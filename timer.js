@@ -20,7 +20,7 @@ const Timer = (function() {
     displayElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
-  function playAlarm(selectedSound) {
+  function playAlarm() {
     try {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       const audioCtx = new AudioContextClass();
@@ -28,7 +28,6 @@ const Timer = (function() {
       const gainNode = audioCtx.createGain();
       gainNode.connect(audioCtx.destination);
       gainNode.gain.setValueAtTime(0.3, now);
-
       const osc = audioCtx.createOscillator();
       osc.connect(gainNode);
       osc.frequency.value = 880;
@@ -37,9 +36,7 @@ const Timer = (function() {
       gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 1);
       osc.stop(now + 0.8);
       audioCtx.resume();
-    } catch(e) {
-      console.log('Audio not supported');
-    }
+    } catch(e) {}
   }
 
   function finishTimer() {
@@ -49,10 +46,7 @@ const Timer = (function() {
     }
     isRunning = false;
     if (playPauseTextElement) playPauseTextElement.innerText = 'Start';
-    
-    const alarmSound = localStorage.getItem('selected_alarm') || 'Message Tones';
-    playAlarm(alarmSound);
-    
+    playAlarm();
     saveState();
   }
 
