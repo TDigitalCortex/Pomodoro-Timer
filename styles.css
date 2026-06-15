@@ -6,7 +6,7 @@
 
 body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -191,7 +191,6 @@ body {
   align-items: center;
   gap: 12px;
   border: 1px solid #eef2f6;
-  transition: 0.1s;
 }
 
 .task-check {
@@ -252,7 +251,7 @@ body {
   border: 1px dashed #dce5ec;
 }
 
-/* Settings Modal Overlay */
+/* Settings Modal Overlay - HIDDEN BY DEFAULT */
 .settings-overlay {
   display: none;
   position: fixed;
@@ -264,12 +263,6 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  animation: fadeIn 0.3s;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 .settings-modal {
