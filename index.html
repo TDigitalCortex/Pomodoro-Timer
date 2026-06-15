@@ -333,7 +333,7 @@
       background: white;
       border-radius: 1.5rem;
       width: 90%;
-      max-width: 500px;
+      max-width: 550px;
       max-height: 85vh;
       overflow-y: auto;
     }
@@ -416,12 +416,12 @@
       cursor: pointer;
     }
 
-    .settings-group select {
-      width: 100%;
-      padding: 0.6rem;
+    .settings-row select {
+      width: 160px;
+      padding: 0.5rem;
       border: 1px solid #cfdee9;
       border-radius: 0.5rem;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
 
     .settings-modal-footer {
@@ -472,7 +472,7 @@
 <body>
   <div class="timer-container">
     <div class="timer-card">
-      <!-- Mode Selector (No All button) -->
+      <!-- Mode Selector -->
       <div class="mode-selector">
         <button class="mode-btn active" data-mode="session" id="sessionModeBtn">Session</button>
         <button class="mode-btn" data-mode="shortBreak" id="shortBreakModeBtn">Short Break</button>
@@ -537,7 +537,7 @@
     </div>
   </div>
 
-  <!-- Settings Modal with Rename Options -->
+  <!-- Settings Modal with Individual Alarm Sounds for Each Timer -->
   <div id="settingsOverlay" class="settings-overlay">
     <div class="settings-modal">
       <div class="settings-modal-header">
@@ -582,6 +582,62 @@
           <div class="settings-row">
             <label>Custom Time:</label>
             <input type="number" id="customTime" min="1" max="99" value="30">
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>Alarm Sounds (per timer)</h3>
+          <div class="settings-row">
+            <label>Session Alarm:</label>
+            <select id="sessionAlarm">
+              <option value="Egg Timer Vibes">Egg Timer Vibes</option>
+              <option value="Flow">Flow</option>
+              <option value="iPhone Note">iPhone Note</option>
+              <option value="Clear Tone">Clear Tone</option>
+              <option value="LG Note">LG Note</option>
+              <option value="Telegram Note">Telegram Note</option>
+              <option value="Spongebob Note">Spongebob Note</option>
+              <option value="Message Tones">Message Tones</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <label>Short Break Alarm:</label>
+            <select id="shortBreakAlarm">
+              <option value="Egg Timer Vibes">Egg Timer Vibes</option>
+              <option value="Flow">Flow</option>
+              <option value="iPhone Note">iPhone Note</option>
+              <option value="Clear Tone">Clear Tone</option>
+              <option value="LG Note">LG Note</option>
+              <option value="Telegram Note">Telegram Note</option>
+              <option value="Spongebob Note">Spongebob Note</option>
+              <option value="Message Tones">Message Tones</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <label>Long Break Alarm:</label>
+            <select id="longBreakAlarm">
+              <option value="Egg Timer Vibes">Egg Timer Vibes</option>
+              <option value="Flow">Flow</option>
+              <option value="iPhone Note">iPhone Note</option>
+              <option value="Clear Tone">Clear Tone</option>
+              <option value="LG Note">LG Note</option>
+              <option value="Telegram Note">Telegram Note</option>
+              <option value="Spongebob Note">Spongebob Note</option>
+              <option value="Message Tones">Message Tones</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <label>Custom Timer Alarm:</label>
+            <select id="customAlarm">
+              <option value="Egg Timer Vibes">Egg Timer Vibes</option>
+              <option value="Flow">Flow</option>
+              <option value="iPhone Note">iPhone Note</option>
+              <option value="Clear Tone">Clear Tone</option>
+              <option value="LG Note">LG Note</option>
+              <option value="Telegram Note">Telegram Note</option>
+              <option value="Spongebob Note">Spongebob Note</option>
+              <option value="Message Tones">Message Tones</option>
+            </select>
           </div>
         </div>
 
@@ -632,20 +688,6 @@
             <input type="color" id="cardBgColor" value="#ffffff">
           </div>
         </div>
-
-        <div class="settings-group">
-          <h3>Alarm Sound</h3>
-          <select id="alarmSoundSelect">
-            <option value="Egg Timer Vibes">Egg Timer Vibes</option>
-            <option value="Flow">Flow</option>
-            <option value="iPhone Note">iPhone Note</option>
-            <option value="Clear Tone">Clear Tone</option>
-            <option value="LG Note">LG Note</option>
-            <option value="Telegram Note">Telegram Note</option>
-            <option value="Spongebob Note">Spongebob Note</option>
-            <option value="Message Tones">Message Tones</option>
-          </select>
-        </div>
       </div>
       <div class="settings-modal-footer">
         <button class="settings-save-btn" id="saveSettingsBtn">Save Settings</button>
@@ -654,14 +696,113 @@
   </div>
 
   <script>
+    // Alarm sound generator function
+    function playAlarm(soundType) {
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContextClass();
+        const now = audioCtx.currentTime;
+        const gainNode = audioCtx.createGain();
+        gainNode.connect(audioCtx.destination);
+        gainNode.gain.setValueAtTime(0.25, now);
+
+        const osc = audioCtx.createOscillator();
+        osc.connect(gainNode);
+
+        switch(soundType) {
+          case 'Egg Timer Vibes':
+            osc.frequency.value = 880;
+            osc.type = 'sine';
+            osc.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 1.2);
+            osc.stop(now + 1.0);
+            break;
+          case 'Flow':
+            osc.frequency.value = 523.25;
+            osc.type = 'triangle';
+            osc.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 0.9);
+            osc.stop(now + 0.8);
+            const osc2 = audioCtx.createOscillator();
+            osc2.frequency.value = 659.25;
+            osc2.type = 'triangle';
+            osc2.connect(gainNode);
+            osc2.start(now + 0.2);
+            osc2.stop(now + 1.0);
+            break;
+          case 'iPhone Note':
+            osc.frequency.value = 880;
+            osc.type = 'square';
+            osc.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 1.5);
+            osc.stop(now + 1.2);
+            break;
+          case 'Clear Tone':
+            osc.frequency.value = 1046.5;
+            osc.type = 'sine';
+            osc.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+            osc.stop(now + 0.5);
+            const osc3 = audioCtx.createOscillator();
+            osc3.frequency.value = 783.99;
+            osc3.type = 'sine';
+            osc3.connect(gainNode);
+            osc3.start(now + 0.5);
+            osc3.stop(now + 1.0);
+            break;
+          case 'LG Note':
+            osc.frequency.value = 440;
+            osc.type = 'sawtooth';
+            osc.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 2);
+            osc.stop(now + 1.8);
+            break;
+          case 'Telegram Note':
+            osc.frequency.value = 880;
+            osc.type = 'sine';
+            osc.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+            osc.stop(now + 0.6);
+            const oscT = audioCtx.createOscillator();
+            oscT.frequency.value = 1244.5;
+            oscT.type = 'sine';
+            oscT.connect(gainNode);
+            oscT.start(now + 0.3);
+            oscT.stop(now + 0.8);
+            break;
+          case 'Spongebob Note':
+            osc.frequency.value = 523.25;
+            osc.type = 'sine';
+            osc.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+            osc.stop(now + 0.4);
+            const oscS = audioCtx.createOscillator();
+            oscS.frequency.value = 698.46;
+            oscS.type = 'sine';
+            oscS.connect(gainNode);
+            oscS.start(now + 0.5);
+            oscS.stop(now + 1.0);
+            break;
+          default:
+            osc.frequency.value = 800;
+            osc.type = 'sine';
+            osc.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 0.8);
+            osc.stop(now + 0.7);
+        }
+        audioCtx.resume();
+      } catch(e) { console.log('Audio error:', e); }
+    }
+
     // 4 Independent Background Timers
     class BackgroundTimer {
-      constructor(name, defaultMinutes, statusTimeId, badgeId) {
+      constructor(name, defaultMinutes, statusTimeId, badgeId, defaultAlarm) {
         this.name = name;
         this.currentSeconds = defaultMinutes * 60;
         this.isRunning = false;
         this.interval = null;
         this.defaultMinutes = defaultMinutes;
+        this.alarmSound = defaultAlarm;
         this.statusTimeElement = document.getElementById(statusTimeId);
         this.badgeElement = document.getElementById(badgeId);
         this.updateStatusDisplay();
@@ -678,31 +819,13 @@
         }
       }
 
-      playAlarm() {
-        try {
-          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          const now = audioCtx.currentTime;
-          const gain = audioCtx.createGain();
-          gain.connect(audioCtx.destination);
-          gain.gain.setValueAtTime(0.3, now);
-          const osc = audioCtx.createOscillator();
-          osc.connect(gain);
-          osc.frequency.value = 880;
-          osc.type = 'sine';
-          osc.start();
-          gain.gain.exponentialRampToValueAtTime(0.00001, now + 1);
-          osc.stop(now + 0.8);
-          audioCtx.resume();
-        } catch(e) {}
-      }
-
       finish() {
         if (this.interval) {
           clearInterval(this.interval);
           this.interval = null;
         }
         this.isRunning = false;
-        this.playAlarm();
+        playAlarm(this.alarmSound);
         this.updateStatusDisplay();
       }
 
@@ -748,6 +871,10 @@
         }
       }
 
+      setAlarmSound(sound) {
+        this.alarmSound = sound;
+      }
+
       getCurrentDisplay() {
         const mins = Math.floor(this.currentSeconds / 60);
         const secs = this.currentSeconds % 60;
@@ -759,11 +886,11 @@
       }
     }
 
-    // Initialize 4 background timers
-    const sessionTimer = new BackgroundTimer('session', 25, 'sessionStatusTime', 'sessionBadge');
-    const shortBreakTimer = new BackgroundTimer('shortBreak', 5, 'shortBreakStatusTime', 'shortBreakBadge');
-    const longBreakTimer = new BackgroundTimer('longBreak', 15, 'longBreakStatusTime', 'longBreakBadge');
-    const customTimer = new BackgroundTimer('custom', 30, 'customStatusTime', 'customBadge');
+    // Initialize 4 background timers with default alarms
+    const sessionTimer = new BackgroundTimer('session', 25, 'sessionStatusTime', 'sessionBadge', 'Message Tones');
+    const shortBreakTimer = new BackgroundTimer('shortBreak', 5, 'shortBreakStatusTime', 'shortBreakBadge', 'Message Tones');
+    const longBreakTimer = new BackgroundTimer('longBreak', 15, 'longBreakStatusTime', 'longBreakBadge', 'Message Tones');
+    const customTimer = new BackgroundTimer('custom', 30, 'customStatusTime', 'customBadge', 'Message Tones');
 
     const timers = {
       session: sessionTimer,
@@ -803,19 +930,16 @@
 
     // Update all timer names in UI
     function updateTimerNames(sessionName, shortName, longName, customName) {
-      // Update mode buttons
       sessionModeBtn.textContent = sessionName;
       shortBreakModeBtn.textContent = shortName;
       longBreakModeBtn.textContent = longName;
       customModeBtn.textContent = customName;
       
-      // Update status bar labels (preserve emoji)
       sessionStatusLabel.innerHTML = `🍅 ${sessionName} <span class="status-badge" id="sessionBadge"></span>`;
       shortBreakStatusLabel.innerHTML = `🌿 ${shortName} <span class="status-badge" id="shortBreakBadge"></span>`;
       longBreakStatusLabel.innerHTML = `☕ ${longName} <span class="status-badge" id="longBreakBadge"></span>`;
       customStatusLabel.innerHTML = `⚙ ${customName} <span class="status-badge" id="customBadge"></span>`;
       
-      // Reattach badge elements
       document.getElementById('sessionBadge').className = `status-badge ${sessionTimer.getIsRunning() ? 'running' : 'idle'}`;
       document.getElementById('shortBreakBadge').className = `status-badge ${shortBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
       document.getElementById('longBreakBadge').className = `status-badge ${longBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
@@ -849,7 +973,6 @@
             playPauseText.innerText = 'Pause';
           }
           updateMainDisplay();
-          // Update badges
           updateBadges();
         }
       };
@@ -993,6 +1116,12 @@
     let shortBreakName = 'Short Break';
     let longBreakName = 'Long Break';
     let customName = 'Custom';
+    
+    // Alarm sounds
+    let sessionAlarm = 'Message Tones';
+    let shortBreakAlarm = 'Message Tones';
+    let longBreakAlarm = 'Message Tones';
+    let customAlarm = 'Message Tones';
 
     function loadSettings() {
       const saved = localStorage.getItem('pomodoro_settings');
@@ -1016,6 +1145,17 @@
         shortBreakTimer.setDuration(shortBreakDuration);
         longBreakTimer.setDuration(longBreakDuration);
         customTimer.setDuration(customDuration);
+        
+        // Load alarm sounds
+        sessionAlarm = settings.sessionAlarm || 'Message Tones';
+        shortBreakAlarm = settings.shortBreakAlarm || 'Message Tones';
+        longBreakAlarm = settings.longBreakAlarm || 'Message Tones';
+        customAlarm = settings.customAlarm || 'Message Tones';
+        
+        sessionTimer.setAlarmSound(sessionAlarm);
+        shortBreakTimer.setAlarmSound(shortBreakAlarm);
+        longBreakTimer.setAlarmSound(longBreakAlarm);
+        customTimer.setAlarmSound(customAlarm);
         
         // Load colors
         if (settings.pageBgColor) document.body.style.backgroundColor = settings.pageBgColor;
@@ -1049,8 +1189,6 @@
           });
         }
         
-        if (settings.alarmSound) document.getElementById('alarmSoundSelect').value = settings.alarmSound;
-        
         // Load into input fields
         document.getElementById('sessionName').value = sessionName;
         document.getElementById('shortBreakName').value = shortBreakName;
@@ -1060,12 +1198,15 @@
         document.getElementById('shortBreakTime').value = shortBreakDuration;
         document.getElementById('longBreakTime').value = longBreakDuration;
         document.getElementById('customTime').value = customDuration;
+        document.getElementById('sessionAlarm').value = sessionAlarm;
+        document.getElementById('shortBreakAlarm').value = shortBreakAlarm;
+        document.getElementById('longBreakAlarm').value = longBreakAlarm;
+        document.getElementById('customAlarm').value = customAlarm;
       }
     }
 
     if (settingsBtn) {
       settingsBtn.onclick = () => {
-        // Load current values into modal
         document.getElementById('sessionName').value = sessionName;
         document.getElementById('shortBreakName').value = shortBreakName;
         document.getElementById('longBreakName').value = longBreakName;
@@ -1074,6 +1215,10 @@
         document.getElementById('shortBreakTime').value = shortBreakDuration;
         document.getElementById('longBreakTime').value = longBreakDuration;
         document.getElementById('customTime').value = customDuration;
+        document.getElementById('sessionAlarm').value = sessionAlarm;
+        document.getElementById('shortBreakAlarm').value = shortBreakAlarm;
+        document.getElementById('longBreakAlarm').value = longBreakAlarm;
+        document.getElementById('customAlarm').value = customAlarm;
         settingsOverlay.style.display = 'flex';
       };
     }
@@ -1101,6 +1246,17 @@
         longBreakTimer.setDuration(longBreakDuration);
         customTimer.setDuration(customDuration);
         
+        // Save alarm sounds
+        sessionAlarm = document.getElementById('sessionAlarm').value;
+        shortBreakAlarm = document.getElementById('shortBreakAlarm').value;
+        longBreakAlarm = document.getElementById('longBreakAlarm').value;
+        customAlarm = document.getElementById('customAlarm').value;
+        
+        sessionTimer.setAlarmSound(sessionAlarm);
+        shortBreakTimer.setAlarmSound(shortBreakAlarm);
+        longBreakTimer.setAlarmSound(longBreakAlarm);
+        customTimer.setAlarmSound(customAlarm);
+        
         // Save colors
         const timerTextColor = document.getElementById('timerTextColor').value;
         const timerBgColor = document.getElementById('timerBgColor').value;
@@ -1111,13 +1267,13 @@
         const taskTextColor = document.getElementById('taskTextColor').value;
         const pageBgColor = document.getElementById('pageBgColor').value;
         const cardBgColor = document.getElementById('cardBgColor').value;
-        const alarmSound = document.getElementById('alarmSoundSelect').value;
         
         localStorage.setItem('pomodoro_settings', JSON.stringify({
           sessionName, shortBreakName, longBreakName, customName,
           sessionDuration, shortBreakDuration, longBreakDuration, customDuration,
+          sessionAlarm, shortBreakAlarm, longBreakAlarm, customAlarm,
           timerTextColor, timerBgColor, primaryBtnColor, primaryBtnHoverColor,
-          actionBtnColor, actionBtnTextColor, taskTextColor, pageBgColor, cardBgColor, alarmSound
+          actionBtnColor, actionBtnTextColor, taskTextColor, pageBgColor, cardBgColor
         }));
         
         // Apply colors
@@ -1142,7 +1298,6 @@
           }
         });
         
-        // Add hover style
         let style = document.getElementById('dynamicStyle');
         if (!style) {
           style = document.createElement('style');
