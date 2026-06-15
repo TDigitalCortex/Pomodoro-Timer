@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Pomodoro Timer</title>
+  <title>Pomodoro Timer - 4 Independent Timers</title>
   <style>
     * {
       margin: 0;
@@ -29,7 +29,7 @@
     }
 
     .timer-card {
-      max-width: 650px;
+      max-width: 1200px;
       width: 100%;
       background: white;
       border-radius: 2rem;
@@ -38,7 +38,7 @@
       text-align: center;
     }
 
-    /* Mode Selector - exactly matching button behavior reference */
+    /* Mode Selector - Original */
     .mode-selector {
       display: flex;
       gap: 0.8rem;
@@ -57,7 +57,6 @@
       font-weight: 500;
       transition: all 0.2s ease;
       color: #4a5568;
-      flex-shrink: 0;
     }
 
     .mode-btn:hover {
@@ -71,30 +70,118 @@
       box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
 
-    /* Timer Display */
-    .timer-circle {
-      text-align: center;
-      margin: 1rem 0;
+    /* 4 Timer Grid */
+    .timers-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
     }
 
-    .timer-digits {
-      font-size: 5rem;
+    .timer-unit {
+      background: #f9fbfd;
+      border-radius: 1rem;
+      padding: 1rem;
+      border: 1px solid #eef2f6;
+    }
+
+    .timer-unit-header {
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.8rem;
+      border-bottom: 1px solid #edeff4;
+      text-align: center;
+    }
+
+    /* Timer Display - ORIGINAL 5rem size restored */
+    .timer-display {
+      font-size: 2.2rem;
       font-weight: 600;
       font-family: 'Courier New', monospace;
-      background: #667eea;
-      display: inline-block;
-      padding: 0.5rem 2rem;
-      border-radius: 80px;
-      color: white;
-      letter-spacing: 4px;
-      transition: all 0.3s ease;
+      text-align: center;
+      padding: 0.3rem;
+      margin: 0.3rem 0;
+      background: white;
+      border-radius: 0.8rem;
+      color: #1a2c38;
     }
 
-    /* Action Buttons - EXACTLY matching mode-selector behavior */
+    /* Timer Controls - Matching original icon-btn styling */
+    .timer-controls {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      margin: 0.8rem 0;
+      flex-wrap: wrap;
+    }
+
+    .timer-btn {
+      background: #f2f5f9;
+      border: none;
+      cursor: pointer;
+      padding: 0.4rem 0.8rem;
+      border-radius: 1.5rem;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
+      color: #1f2e3a;
+      font-size: 0.75rem;
+    }
+
+    .timer-btn:hover {
+      background: #e6edf4;
+      transform: scale(0.97);
+    }
+
+    .duration-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid #edeff4;
+    }
+
+    .duration-control label {
+      font-size: 0.7rem;
+      color: #718096;
+    }
+
+    .duration-control input {
+      width: 50px;
+      padding: 0.2rem;
+      border: 1px solid #cfdee9;
+      border-radius: 0.4rem;
+      font-size: 0.7rem;
+      text-align: center;
+    }
+
+    .duration-control button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      font-size: 0.65rem;
+    }
+
+    .timer-status {
+      font-size: 0.65rem;
+      text-align: center;
+      margin-top: 0.3rem;
+      color: #93a9bb;
+    }
+
+    /* ORIGINAL ACTION BUTTONS - Start/Pause/Reset/Settings (outside grid) */
     .action-buttons {
       display: flex;
-      gap: 0.8rem;
       justify-content: center;
+      gap: 1.5rem;
       margin: 1.5rem 0;
       flex-wrap: wrap;
     }
@@ -103,33 +190,28 @@
       background: #f2f5f9;
       border: none;
       cursor: pointer;
-      padding: 0.6rem 1.2rem;
-      border-radius: 2rem;
+      padding: 0.7rem 1.5rem;
+      border-radius: 3rem;
       transition: all 0.2s ease;
       display: inline-flex;
       align-items: center;
       gap: 8px;
       font-weight: 500;
-      color: #4a5568;
-      font-size: 0.9rem;
-      flex-shrink: 0;
+      color: #1f2e3a;
+      font-size: 1rem;
+      justify-content: center;
     }
 
     .btn-icon {
-      font-size: 1rem;
-      transition: all 0.3s ease;
+      font-size: 1.2rem;
     }
 
     .icon-btn:hover {
-      background: #e2e8f0;
-      transform: translateY(-2px);
-    }
-
-    .icon-btn:active {
+      background: #e6edf4;
       transform: scale(0.97);
     }
 
-    /* Tasks Section */
+    /* Tasks Section - ORIGINAL */
     .tasks-section {
       margin-top: 2rem;
       border-top: 2px solid #edeff4;
@@ -262,6 +344,7 @@
       border: 1px dashed #dce5ec;
     }
 
+    /* Settings Modal - ORIGINAL with all 10+ color options */
     .settings-overlay {
       display: none;
       position: fixed;
@@ -394,108 +477,42 @@
       transform: translateY(-2px);
     }
 
-    /* ========== RESPONSIVE DESIGN - EXACTLY MATCHING MODE BUTTONS ========== */
-    
-    /* Tablet */
+    /* Responsive - ORIGINAL button resizing behavior */
+    @media (max-width: 900px) {
+      .timers-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
     @media (max-width: 768px) {
       .timer-card {
         padding: 1.5rem;
       }
-      
-      .timer-digits {
-        font-size: 3.5rem;
-        padding: 0.4rem 1.2rem;
-      }
-      
-      .mode-btn, .icon-btn {
-        padding: 0.5rem 1rem;
-        font-size: 0.85rem;
-      }
-      
-      .btn-icon {
-        font-size: 0.95rem;
-      }
-      
-      .action-buttons {
-        gap: 0.7rem;
-      }
-    }
-    
-    /* Mobile - buttons wrap and resize exactly like mode buttons */
-    @media (max-width: 550px) {
-      .mode-btn, .icon-btn {
-        padding: 0.45rem 0.85rem;
-        font-size: 0.8rem;
-      }
-      
-      .btn-icon {
+      .icon-btn {
+        padding: 0.6rem 1.2rem;
         font-size: 0.9rem;
       }
-      
-      .timer-digits {
-        font-size: 2.8rem;
-        padding: 0.3rem 1rem;
+      .btn-icon {
+        font-size: 1rem;
       }
     }
-    
-    @media (max-width: 450px) {
-      .mode-selector, .action-buttons {
-        gap: 0.5rem;
+
+    @media (max-width: 550px) {
+      .timers-grid {
+        grid-template-columns: 1fr;
       }
-      
-      .mode-btn, .icon-btn {
-        padding: 0.4rem 0.7rem;
-        font-size: 0.75rem;
-      }
-      
-      .btn-icon {
-        font-size: 0.85rem;
-      }
-      
-      .timer-digits {
-        font-size: 2.2rem;
-        padding: 0.25rem 0.8rem;
-      }
-      
-      .task-input-container {
+      .action-buttons {
         flex-direction: column;
         align-items: stretch;
+        gap: 0.8rem;
       }
-      
-      .task-input-field {
+      .icon-btn {
         width: 100%;
-        min-width: auto;
+        justify-content: center;
+        padding: 0.7rem 1rem;
       }
-      
-      .add-task-btn {
-        width: 100%;
-        padding: 0.7rem;
-      }
-    }
-    
-    @media (max-width: 380px) {
-      .mode-btn, .icon-btn {
-        padding: 0.35rem 0.6rem;
-        font-size: 0.7rem;
-      }
-      
-      .btn-icon {
-        font-size: 0.8rem;
-      }
-      
-      .timer-digits {
+      .timer-display {
         font-size: 1.8rem;
-        padding: 0.2rem 0.6rem;
-      }
-      
-      .settings-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-      }
-      
-      .settings-row input {
-        width: 100%;
       }
     }
   </style>
@@ -503,6 +520,7 @@
 <body>
   <div class="timer-container">
     <div class="timer-card">
+      <!-- Mode Selector -->
       <div class="mode-selector">
         <button class="mode-btn active" data-mode="session">Session</button>
         <button class="mode-btn" data-mode="shortBreak">Short Break</button>
@@ -510,18 +528,86 @@
         <button class="mode-btn" data-mode="custom">Custom</button>
       </div>
 
-      <div class="timer-circle">
-        <div class="timer-digits" id="timerDisplay">25:00</div>
+      <!-- 4 Independent Timers Grid -->
+      <div class="timers-grid">
+        <!-- Session Timer -->
+        <div class="timer-unit">
+          <div class="timer-unit-header session">🍅 Session</div>
+          <div class="timer-display" id="sessionDisplay">25:00</div>
+          <div class="timer-controls">
+            <button class="timer-btn" data-action="start" data-timer="session">▶ Start</button>
+            <button class="timer-btn" data-action="pause" data-timer="session">⏸ Pause</button>
+            <button class="timer-btn" data-action="reset" data-timer="session">⟳ Reset</button>
+          </div>
+          <div class="duration-control">
+            <label>Set:</label>
+            <input type="number" id="sessionDuration" min="1" max="99" value="25" step="1">
+            <button data-set-duration="session">Apply</button>
+          </div>
+          <div class="timer-status" id="sessionStatus">Ready</div>
+        </div>
+
+        <!-- Short Break Timer -->
+        <div class="timer-unit">
+          <div class="timer-unit-header shortBreak">🌿 Short Break</div>
+          <div class="timer-display" id="shortBreakDisplay">05:00</div>
+          <div class="timer-controls">
+            <button class="timer-btn" data-action="start" data-timer="shortBreak">▶ Start</button>
+            <button class="timer-btn" data-action="pause" data-timer="shortBreak">⏸ Pause</button>
+            <button class="timer-btn" data-action="reset" data-timer="shortBreak">⟳ Reset</button>
+          </div>
+          <div class="duration-control">
+            <label>Set:</label>
+            <input type="number" id="shortBreakDuration" min="1" max="99" value="5" step="1">
+            <button data-set-duration="shortBreak">Apply</button>
+          </div>
+          <div class="timer-status" id="shortBreakStatus">Ready</div>
+        </div>
+
+        <!-- Long Break Timer -->
+        <div class="timer-unit">
+          <div class="timer-unit-header longBreak">☕ Long Break</div>
+          <div class="timer-display" id="longBreakDisplay">15:00</div>
+          <div class="timer-controls">
+            <button class="timer-btn" data-action="start" data-timer="longBreak">▶ Start</button>
+            <button class="timer-btn" data-action="pause" data-timer="longBreak">⏸ Pause</button>
+            <button class="timer-btn" data-action="reset" data-timer="longBreak">⟳ Reset</button>
+          </div>
+          <div class="duration-control">
+            <label>Set:</label>
+            <input type="number" id="longBreakDuration" min="1" max="99" value="15" step="1">
+            <button data-set-duration="longBreak">Apply</button>
+          </div>
+          <div class="timer-status" id="longBreakStatus">Ready</div>
+        </div>
+
+        <!-- Custom Timer -->
+        <div class="timer-unit">
+          <div class="timer-unit-header custom">⚙ Custom</div>
+          <div class="timer-display" id="customDisplay">30:00</div>
+          <div class="timer-controls">
+            <button class="timer-btn" data-action="start" data-timer="custom">▶ Start</button>
+            <button class="timer-btn" data-action="pause" data-timer="custom">⏸ Pause</button>
+            <button class="timer-btn" data-action="reset" data-timer="custom">⟳ Reset</button>
+          </div>
+          <div class="duration-control">
+            <label>Set:</label>
+            <input type="number" id="customDuration" min="1" max="99" value="30" step="1">
+            <button data-set-duration="custom">Apply</button>
+          </div>
+          <div class="timer-status" id="customStatus">Ready</div>
+        </div>
       </div>
 
+      <!-- ORIGINAL ACTION BUTTONS (Start, Reset, Settings) -->
       <div class="action-buttons">
         <button class="icon-btn" id="playPauseBtn">
           <span class="btn-icon">▶</span>
-          <span id="playPauseText">Start</span>
+          <span id="playPauseText">Start All</span>
         </button>
         <button class="icon-btn" id="resetBtn">
           <span class="btn-icon">⟳</span>
-          <span>Reset</span>
+          <span>Reset All</span>
         </button>
         <button class="icon-btn" id="settingsBtn">
           <span class="btn-icon">⚙</span>
@@ -529,6 +615,7 @@
         </button>
       </div>
 
+      <!-- Tasks Section -->
       <div class="tasks-section">
         <div class="tasks-header">
           <h3>Tasks</h3>
@@ -544,7 +631,7 @@
     </div>
   </div>
 
-  <!-- Settings Modal with ALL Color Options -->
+  <!-- Settings Modal with ALL Original Color Options -->
   <div id="settingsOverlay" class="settings-overlay">
     <div class="settings-modal">
       <div class="settings-modal-header">
@@ -576,7 +663,7 @@
           <h3>Timer Colors</h3>
           <div class="settings-row">
             <label>Timer Text Color:</label>
-            <input type="color" id="timerTextColor" value="#ffffff">
+            <input type="color" id="timerTextColor" value="#1a2c38">
           </div>
           <div class="settings-row">
             <label>Timer Background:</label>
@@ -600,7 +687,7 @@
           </div>
           <div class="settings-row">
             <label>Action Button Text:</label>
-            <input type="color" id="actionBtnTextColor" value="#4a5568">
+            <input type="color" id="actionBtnTextColor" value="#1f2e3a">
           </div>
         </div>
 
@@ -641,393 +728,396 @@
   </div>
 
   <script>
-    (function() {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-      } else {
-        init();
+    // Timer class for independent timers
+    class IndependentTimer {
+      constructor(name, displayId, statusId, defaultMinutes) {
+        this.name = name;
+        this.displayElement = document.getElementById(displayId);
+        this.statusElement = document.getElementById(statusId);
+        this.currentSeconds = defaultMinutes * 60;
+        this.isRunning = false;
+        this.interval = null;
+        this.defaultMinutes = defaultMinutes;
+        this.updateDisplay();
       }
 
-      function init() {
-        const timerDisplay = document.getElementById('timerDisplay');
-        const playPauseText = document.getElementById('playPauseText');
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const settingsBtn = document.getElementById('settingsBtn');
-        const settingsOverlay = document.getElementById('settingsOverlay');
-        const closeSettingsBtn = document.querySelector('.settings-close-btn');
-        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-        const modeBtns = document.querySelectorAll('.mode-btn');
-        const taskInput = document.getElementById('taskInput');
-        const addTaskBtn = document.getElementById('addTaskBtn');
-        const taskListContainer = document.getElementById('taskListContainer');
-        
-        let timerInterval = null;
-        let currentSeconds = 25 * 60;
-        let isRunning = false;
-        let currentMode = 'session';
-        let sessionTime = 25;
-        let shortBreakTime = 5;
-        let longBreakTime = 15;
-        let customTime = 30;
-        let tasks = [];
-        
-        // Color values
-        let timerTextColor = '#ffffff';
-        let timerBgColor = '#667eea';
-        let primaryBtnColor = '#667eea';
-        let primaryBtnHoverColor = '#5a67d8';
-        let actionBtnColor = '#f2f5f9';
-        let actionBtnTextColor = '#4a5568';
-        let taskTextColor = '#1a2c38';
-        let pageBgColor = '#667eea';
-        let cardBgColor = '#ffffff';
-        
-        function loadSavedData() {
-          const savedTimer = localStorage.getItem('pomodoro_timer');
-          if (savedTimer) {
-            const data = JSON.parse(savedTimer);
-            currentSeconds = data.currentSeconds || 25 * 60;
-            currentMode = data.currentMode || 'session';
-            sessionTime = data.sessionTime || 25;
-            shortBreakTime = data.shortBreakTime || 5;
-            longBreakTime = data.longBreakTime || 15;
-            customTime = data.customTime || 30;
-          }
-          
-          const savedTasks = localStorage.getItem('pomodoro_tasks');
-          if (savedTasks) {
-            tasks = JSON.parse(savedTasks);
-          }
-          
-          const savedSettings = localStorage.getItem('pomodoro_settings');
-          if (savedSettings) {
-            const settings = JSON.parse(savedSettings);
-            sessionTime = settings.sessionTime || 25;
-            shortBreakTime = settings.shortBreakTime || 5;
-            longBreakTime = settings.longBreakTime || 15;
-            customTime = settings.customTime || 30;
-            timerTextColor = settings.timerTextColor || '#ffffff';
-            timerBgColor = settings.timerBgColor || '#667eea';
-            primaryBtnColor = settings.primaryBtnColor || '#667eea';
-            primaryBtnHoverColor = settings.primaryBtnHoverColor || '#5a67d8';
-            actionBtnColor = settings.actionBtnColor || '#f2f5f9';
-            actionBtnTextColor = settings.actionBtnTextColor || '#4a5568';
-            taskTextColor = settings.taskTextColor || '#1a2c38';
-            pageBgColor = settings.pageBgColor || '#667eea';
-            cardBgColor = settings.cardBgColor || '#ffffff';
-          }
-          
-          applyColors();
+      updateDisplay() {
+        if (this.displayElement) {
+          const mins = Math.floor(this.currentSeconds / 60);
+          const secs = this.currentSeconds % 60;
+          this.displayElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
-        
-        function applyColors() {
-          document.body.style.backgroundColor = pageBgColor;
-          document.querySelector('.timer-card').style.backgroundColor = cardBgColor;
-          timerDisplay.style.color = timerTextColor;
-          timerDisplay.style.backgroundColor = timerBgColor;
-          
-          document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => {
-            el.style.color = taskTextColor;
-          });
-          
-          if (addTaskBtn) {
-            addTaskBtn.style.backgroundColor = primaryBtnColor;
-          }
-          if (saveSettingsBtn) {
-            saveSettingsBtn.style.backgroundColor = primaryBtnColor;
-          }
-          
-          const style = document.createElement('style');
-          style.textContent = `
-            .add-task-btn:hover, .settings-save-btn:hover {
-              background-color: ${primaryBtnHoverColor} !important;
-            }
-            .mode-btn.active {
-              background-color: ${primaryBtnColor} !important;
-            }
-            .task-input-field:focus {
-              border-color: ${primaryBtnColor} !important;
-            }
-          `;
-          document.head.appendChild(style);
-          
-          const actionBtns = [playPauseBtn, resetBtn, settingsBtn];
-          actionBtns.forEach(btn => {
-            if (btn) {
-              btn.style.backgroundColor = actionBtnColor;
-              btn.style.color = actionBtnTextColor;
-            }
-          });
-        }
-        
-        function saveTimerState() {
-          localStorage.setItem('pomodoro_timer', JSON.stringify({
-            currentSeconds: currentSeconds,
-            currentMode: currentMode,
-            sessionTime: sessionTime,
-            shortBreakTime: shortBreakTime,
-            longBreakTime: longBreakTime,
-            customTime: customTime
-          }));
-        }
-        
-        function saveTasks() {
-          localStorage.setItem('pomodoro_tasks', JSON.stringify(tasks));
-        }
-        
-        function updateDisplay() {
-          const mins = Math.floor(currentSeconds / 60);
-          const secs = currentSeconds % 60;
-          timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-        
-        function playAlarm() {
-          try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const now = audioCtx.currentTime;
-            const gain = audioCtx.createGain();
-            gain.connect(audioCtx.destination);
-            gain.gain.setValueAtTime(0.3, now);
-            const osc = audioCtx.createOscillator();
-            osc.connect(gain);
-            osc.frequency.value = 880;
-            osc.type = 'sine';
-            osc.start();
-            gain.gain.exponentialRampToValueAtTime(0.00001, now + 1);
-            osc.stop(now + 0.8);
-            audioCtx.resume();
-          } catch(e) {}
-        }
-        
-        function finishTimer() {
-          if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-          }
-          isRunning = false;
-          playPauseText.innerText = 'Start';
-          playAlarm();
-          saveTimerState();
-        }
-        
-        function tick() {
-          if (currentSeconds <= 0) {
-            if (isRunning) finishTimer();
-            return;
-          }
-          currentSeconds--;
-          updateDisplay();
-          if (currentSeconds === 0) finishTimer();
-          saveTimerState();
-        }
-        
-        function startTimer() {
-          if (timerInterval) clearInterval(timerInterval);
-          isRunning = true;
-          playPauseText.innerText = 'Pause';
-          timerInterval = setInterval(() => {
-            if (isRunning) tick();
-          }, 1000);
-          saveTimerState();
-        }
-        
-        function pauseTimer() {
-          isRunning = false;
-          playPauseText.innerText = 'Start';
-          if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-          }
-          saveTimerState();
-        }
-        
-        function resetTimer() {
-          pauseTimer();
-          setMode(currentMode);
-        }
-        
-        function setMode(mode) {
-          currentMode = mode;
-          let duration = sessionTime;
-          switch(mode) {
-            case 'session': duration = sessionTime; break;
-            case 'shortBreak': duration = shortBreakTime; break;
-            case 'longBreak': duration = longBreakTime; break;
-            case 'custom': duration = customTime; break;
-          }
-          currentSeconds = duration * 60;
-          updateDisplay();
-          playPauseText.innerText = 'Start';
-          isRunning = false;
-          
-          modeBtns.forEach(btn => {
-            if (btn.dataset.mode === mode) {
-              btn.classList.add('active');
-            } else {
-              btn.classList.remove('active');
-            }
-          });
-          saveTimerState();
-        }
-        
-        function renderTasks() {
-          if (!taskListContainer) return;
-          taskListContainer.innerHTML = '';
-          
-          const incomplete = tasks.filter(t => !t.completed);
-          const completed = tasks.filter(t => t.completed);
-          const sorted = [...incomplete, ...completed];
-          
-          if (sorted.length === 0) {
-            const empty = document.createElement('li');
-            empty.className = 'empty-tasks';
-            empty.innerText = 'No tasks yet — add something to focus on';
-            taskListContainer.appendChild(empty);
-            return;
-          }
-          
-          sorted.forEach(task => {
-            const li = document.createElement('li');
-            li.className = `task-item ${task.completed ? 'task-completed' : ''}`;
-            
-            const check = document.createElement('input');
-            check.type = 'checkbox';
-            check.className = 'task-check';
-            check.checked = task.completed;
-            check.onchange = () => {
-              task.completed = check.checked;
-              saveTasks();
-              renderTasks();
-            };
-            
-            const text = document.createElement('input');
-            text.type = 'text';
-            text.className = 'task-text';
-            text.value = task.text;
-            text.style.color = taskTextColor;
-            text.onblur = () => {
-              task.text = text.value.trim() || 'Untitled';
-              saveTasks();
-              renderTasks();
-            };
-            text.onkeypress = (e) => { if (e.key === 'Enter') text.blur(); };
-            
-            const del = document.createElement('button');
-            del.className = 'delete-task';
-            del.innerHTML = '×';
-            del.onclick = () => {
-              tasks = tasks.filter(t => t.id !== task.id);
-              saveTasks();
-              renderTasks();
-            };
-            
-            li.appendChild(check);
-            li.appendChild(text);
-            li.appendChild(del);
-            taskListContainer.appendChild(li);
-          });
-        }
-        
-        function addTask() {
-          const text = taskInput.value.trim();
-          if (text === '') return;
-          tasks.push({ id: Date.now(), text: text, completed: false });
-          saveTasks();
-          taskInput.value = '';
-          renderTasks();
-        }
-        
-        if (playPauseBtn) {
-          playPauseBtn.onclick = function() {
-            if (isRunning) pauseTimer();
-            else startTimer();
-          };
-        }
-        
-        if (resetBtn) resetBtn.onclick = resetTimer;
-        
-        if (settingsBtn) {
-          settingsBtn.onclick = function() {
-            document.getElementById('sessionTime').value = sessionTime;
-            document.getElementById('shortBreakTime').value = shortBreakTime;
-            document.getElementById('longBreakTime').value = longBreakTime;
-            document.getElementById('customTime').value = customTime;
-            document.getElementById('timerTextColor').value = timerTextColor;
-            document.getElementById('timerBgColor').value = timerBgColor;
-            document.getElementById('primaryBtnColor').value = primaryBtnColor;
-            document.getElementById('primaryBtnHoverColor').value = primaryBtnHoverColor;
-            document.getElementById('actionBtnColor').value = actionBtnColor;
-            document.getElementById('actionBtnTextColor').value = actionBtnTextColor;
-            document.getElementById('taskTextColor').value = taskTextColor;
-            document.getElementById('pageBgColor').value = pageBgColor;
-            document.getElementById('cardBgColor').value = cardBgColor;
-            settingsOverlay.style.display = 'flex';
-          };
-        }
-        
-        if (closeSettingsBtn) {
-          closeSettingsBtn.onclick = function() {
-            settingsOverlay.style.display = 'none';
-          };
-        }
-        
-        if (settingsOverlay) {
-          settingsOverlay.onclick = function(e) {
-            if (e.target === settingsOverlay) settingsOverlay.style.display = 'none';
-          };
-        }
-        
-        if (saveSettingsBtn) {
-          saveSettingsBtn.onclick = function() {
-            sessionTime = parseInt(document.getElementById('sessionTime').value) || 25;
-            shortBreakTime = parseInt(document.getElementById('shortBreakTime').value) || 5;
-            longBreakTime = parseInt(document.getElementById('longBreakTime').value) || 15;
-            customTime = parseInt(document.getElementById('customTime').value) || 30;
-            
-            timerTextColor = document.getElementById('timerTextColor').value;
-            timerBgColor = document.getElementById('timerBgColor').value;
-            primaryBtnColor = document.getElementById('primaryBtnColor').value;
-            primaryBtnHoverColor = document.getElementById('primaryBtnHoverColor').value;
-            actionBtnColor = document.getElementById('actionBtnColor').value;
-            actionBtnTextColor = document.getElementById('actionBtnTextColor').value;
-            taskTextColor = document.getElementById('taskTextColor').value;
-            pageBgColor = document.getElementById('pageBgColor').value;
-            cardBgColor = document.getElementById('cardBgColor').value;
-            const alarmSound = document.getElementById('alarmSoundSelect').value;
-            
-            localStorage.setItem('pomodoro_settings', JSON.stringify({
-              sessionTime, shortBreakTime, longBreakTime, customTime,
-              timerTextColor, timerBgColor,
-              primaryBtnColor, primaryBtnHoverColor, actionBtnColor, actionBtnTextColor,
-              taskTextColor, pageBgColor, cardBgColor, alarmSound
-            }));
-            
-            applyColors();
-            setMode(currentMode);
-            renderTasks();
-            settingsOverlay.style.display = 'none';
-          };
-        }
-        
-        modeBtns.forEach(btn => {
-          btn.onclick = function() {
-            setMode(this.dataset.mode);
-          };
-        });
-        
-        if (addTaskBtn) addTaskBtn.onclick = addTask;
-        if (taskInput) {
-          taskInput.onkeypress = function(e) {
-            if (e.key === 'Enter') addTask();
-          };
-        }
-        
-        loadSavedData();
-        setMode(currentMode);
-        renderTasks();
       }
-    })();
+
+      playAlarm() {
+        try {
+          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const now = audioCtx.currentTime;
+          const gain = audioCtx.createGain();
+          gain.connect(audioCtx.destination);
+          gain.gain.setValueAtTime(0.3, now);
+          const osc = audioCtx.createOscillator();
+          osc.connect(gain);
+          osc.frequency.value = 880;
+          osc.type = 'sine';
+          osc.start();
+          gain.gain.exponentialRampToValueAtTime(0.00001, now + 1);
+          osc.stop(now + 0.8);
+          audioCtx.resume();
+        } catch(e) {}
+      }
+
+      finish() {
+        if (this.interval) {
+          clearInterval(this.interval);
+          this.interval = null;
+        }
+        this.isRunning = false;
+        if (this.statusElement) this.statusElement.innerText = 'Time\'s Up!';
+        this.playAlarm();
+        setTimeout(() => {
+          if (this.statusElement && this.statusElement.innerText === 'Time\'s Up!') {
+            this.statusElement.innerText = 'Ready';
+          }
+        }, 3000);
+      }
+
+      tick() {
+        if (this.currentSeconds <= 0) {
+          if (this.isRunning) this.finish();
+          return;
+        }
+        this.currentSeconds--;
+        this.updateDisplay();
+        if (this.currentSeconds === 0) this.finish();
+      }
+
+      start() {
+        if (this.interval) clearInterval(this.interval);
+        this.isRunning = true;
+        if (this.statusElement) this.statusElement.innerText = 'Running';
+        this.interval = setInterval(() => {
+          if (this.isRunning) this.tick();
+        }, 1000);
+      }
+
+      pause() {
+        this.isRunning = false;
+        if (this.statusElement) this.statusElement.innerText = 'Paused';
+        if (this.interval) {
+          clearInterval(this.interval);
+          this.interval = null;
+        }
+      }
+
+      reset() {
+        this.pause();
+        this.currentSeconds = this.defaultMinutes * 60;
+        this.updateDisplay();
+        if (this.statusElement) this.statusElement.innerText = 'Ready';
+      }
+
+      setDuration(minutes) {
+        this.defaultMinutes = minutes;
+        if (!this.isRunning) {
+          this.currentSeconds = minutes * 60;
+          this.updateDisplay();
+        }
+      }
+    }
+
+    // Initialize all 4 timers with ORIGINAL default values
+    const sessionTimer = new IndependentTimer('session', 'sessionDisplay', 'sessionStatus', 25);
+    const shortBreakTimer = new IndependentTimer('shortBreak', 'shortBreakDisplay', 'shortBreakStatus', 5);
+    const longBreakTimer = new IndependentTimer('longBreak', 'longBreakDisplay', 'longBreakStatus', 15);
+    const customTimer = new IndependentTimer('custom', 'customDisplay', 'customStatus', 30);
+
+    const timers = {
+      session: sessionTimer,
+      shortBreak: shortBreakTimer,
+      longBreak: longBreakTimer,
+      custom: customTimer
+    };
+
+    // Set up individual timer buttons
+    document.querySelectorAll('.timer-btn[data-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.dataset.action;
+        const timerName = btn.dataset.timer;
+        const timer = timers[timerName];
+        if (timer) {
+          if (action === 'start') timer.start();
+          else if (action === 'pause') timer.pause();
+          else if (action === 'reset') timer.reset();
+        }
+      });
+    });
+
+    // Set up duration buttons
+    document.querySelectorAll('[data-set-duration]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const timerName = btn.dataset.setDuration;
+        const inputId = `${timerName}Duration`;
+        const input = document.getElementById(inputId);
+        if (input) {
+          const minutes = parseInt(input.value);
+          if (!isNaN(minutes) && minutes >= 1 && minutes <= 99) {
+            timers[timerName].setDuration(minutes);
+          }
+        }
+      });
+    });
+
+    // ORIGINAL Start All button functionality
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playPauseText = document.getElementById('playPauseText');
+    let allRunning = false;
+
+    if (playPauseBtn) {
+      playPauseBtn.onclick = () => {
+        if (allRunning) {
+          // Pause all timers
+          Object.values(timers).forEach(timer => timer.pause());
+          playPauseText.innerText = 'Start All';
+          allRunning = false;
+        } else {
+          // Start all timers
+          Object.values(timers).forEach(timer => timer.start());
+          playPauseText.innerText = 'Pause All';
+          allRunning = true;
+        }
+      };
+    }
+
+    // ORIGINAL Reset All button
+    const resetBtn = document.getElementById('resetBtn');
+    if (resetBtn) {
+      resetBtn.onclick = () => {
+        Object.values(timers).forEach(timer => timer.reset());
+        allRunning = false;
+        playPauseText.innerText = 'Start All';
+      };
+    }
+
+    // Mode selector buttons
+    const modeBtns = document.querySelectorAll('.mode-btn');
+    modeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        modeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    // ========== TASKS MODULE (ORIGINAL) ==========
+    let tasks = [];
+    const taskListContainer = document.getElementById('taskListContainer');
+    const taskInput = document.getElementById('taskInput');
+    const addTaskBtn = document.getElementById('addTaskBtn');
+
+    function saveTasks() {
+      localStorage.setItem('pomodoro_tasks', JSON.stringify(tasks));
+    }
+
+    function loadTasks() {
+      const saved = localStorage.getItem('pomodoro_tasks');
+      if (saved) tasks = JSON.parse(saved);
+      renderTasks();
+    }
+
+    function renderTasks() {
+      if (!taskListContainer) return;
+      taskListContainer.innerHTML = '';
+      
+      const incomplete = tasks.filter(t => !t.completed);
+      const completed = tasks.filter(t => t.completed);
+      const sorted = [...incomplete, ...completed];
+      
+      if (sorted.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'empty-tasks';
+        empty.innerText = 'No tasks yet — add something to focus on';
+        taskListContainer.appendChild(empty);
+        return;
+      }
+      
+      sorted.forEach(task => {
+        const li = document.createElement('li');
+        li.className = `task-item ${task.completed ? 'task-completed' : ''}`;
+        
+        const check = document.createElement('input');
+        check.type = 'checkbox';
+        check.className = 'task-check';
+        check.checked = task.completed;
+        check.onchange = () => {
+          task.completed = check.checked;
+          saveTasks();
+          renderTasks();
+        };
+        
+        const text = document.createElement('input');
+        text.type = 'text';
+        text.className = 'task-text';
+        text.value = task.text;
+        text.onblur = () => {
+          task.text = text.value.trim() || 'Untitled';
+          saveTasks();
+          renderTasks();
+        };
+        text.onkeypress = (e) => { if (e.key === 'Enter') text.blur(); };
+        
+        const del = document.createElement('button');
+        del.className = 'delete-task';
+        del.innerHTML = '×';
+        del.onclick = () => {
+          tasks = tasks.filter(t => t.id !== task.id);
+          saveTasks();
+          renderTasks();
+        };
+        
+        li.appendChild(check);
+        li.appendChild(text);
+        li.appendChild(del);
+        taskListContainer.appendChild(li);
+      });
+    }
+
+    function addTask() {
+      const text = taskInput.value.trim();
+      if (text === '') return;
+      tasks.push({ id: Date.now(), text: text, completed: false });
+      saveTasks();
+      taskInput.value = '';
+      renderTasks();
+    }
+
+    if (addTaskBtn) addTaskBtn.onclick = addTask;
+    if (taskInput) taskInput.onkeypress = (e) => { if (e.key === 'Enter') addTask(); };
+
+    // ========== SETTINGS MODAL (ORIGINAL with all colors) ==========
+    const settingsOverlay = document.getElementById('settingsOverlay');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const closeSettingsBtn = document.querySelector('.settings-close-btn');
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+
+    let timerTextColor = '#1a2c38';
+    let timerBgColor = '#667eea';
+    let primaryBtnColor = '#667eea';
+    let primaryBtnHoverColor = '#5a67d8';
+    let actionBtnColor = '#f2f5f9';
+    let actionBtnTextColor = '#1f2e3a';
+    let taskTextColor = '#1a2c38';
+    let pageBgColor = '#667eea';
+    let cardBgColor = '#ffffff';
+    let sessionTimeSetting = 25;
+    let shortBreakTimeSetting = 5;
+    let longBreakTimeSetting = 15;
+    let customTimeSetting = 30;
+
+    function loadSettings() {
+      const saved = localStorage.getItem('pomodoro_settings');
+      if (saved) {
+        const settings = JSON.parse(saved);
+        timerTextColor = settings.timerTextColor || '#1a2c38';
+        timerBgColor = settings.timerBgColor || '#667eea';
+        primaryBtnColor = settings.primaryBtnColor || '#667eea';
+        primaryBtnHoverColor = settings.primaryBtnHoverColor || '#5a67d8';
+        actionBtnColor = settings.actionBtnColor || '#f2f5f9';
+        actionBtnTextColor = settings.actionBtnTextColor || '#1f2e3a';
+        taskTextColor = settings.taskTextColor || '#1a2c38';
+        pageBgColor = settings.pageBgColor || '#667eea';
+        cardBgColor = settings.cardBgColor || '#ffffff';
+        sessionTimeSetting = settings.sessionTimeSetting || 25;
+        shortBreakTimeSetting = settings.shortBreakTimeSetting || 5;
+        longBreakTimeSetting = settings.longBreakTimeSetting || 15;
+        customTimeSetting = settings.customTimeSetting || 30;
+        
+        applyColors();
+      }
+    }
+
+    function applyColors() {
+      document.body.style.backgroundColor = pageBgColor;
+      document.querySelector('.timer-card').style.backgroundColor = cardBgColor;
+      document.querySelectorAll('.timer-display').forEach(el => {
+        el.style.color = timerTextColor;
+        el.style.backgroundColor = timerBgColor;
+      });
+      document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => {
+        el.style.color = taskTextColor;
+      });
+      
+      const addTaskBtnEl = document.getElementById('addTaskBtn');
+      if (addTaskBtnEl) addTaskBtnEl.style.backgroundColor = primaryBtnColor;
+      
+      const saveBtn = document.getElementById('saveSettingsBtn');
+      if (saveBtn) saveBtn.style.backgroundColor = primaryBtnColor;
+      
+      const style = document.createElement('style');
+      style.textContent = `
+        .add-task-btn:hover, .settings-save-btn:hover {
+          background-color: ${primaryBtnHoverColor} !important;
+        }
+        .mode-btn.active {
+          background-color: ${primaryBtnColor} !important;
+        }
+        .task-input-field:focus {
+          border-color: ${primaryBtnColor} !important;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      const actionBtns = [playPauseBtn, resetBtn, settingsBtn];
+      actionBtns.forEach(btn => {
+        if (btn) {
+          btn.style.backgroundColor = actionBtnColor;
+          btn.style.color = actionBtnTextColor;
+        }
+      });
+    }
+
+    if (settingsBtn) {
+      settingsBtn.onclick = () => {
+        document.getElementById('timerTextColor').value = timerTextColor;
+        document.getElementById('timerBgColor').value = timerBgColor;
+        document.getElementById('primaryBtnColor').value = primaryBtnColor;
+        document.getElementById('primaryBtnHoverColor').value = primaryBtnHoverColor;
+        document.getElementById('actionBtnColor').value = actionBtnColor;
+        document.getElementById('actionBtnTextColor').value = actionBtnTextColor;
+        document.getElementById('taskTextColor').value = taskTextColor;
+        document.getElementById('pageBgColor').value = pageBgColor;
+        document.getElementById('cardBgColor').value = cardBgColor;
+        settingsOverlay.style.display = 'flex';
+      };
+    }
+
+    if (closeSettingsBtn) closeSettingsBtn.onclick = () => settingsOverlay.style.display = 'none';
+    if (settingsOverlay) settingsOverlay.onclick = (e) => { if (e.target === settingsOverlay) settingsOverlay.style.display = 'none'; };
+
+    if (saveSettingsBtn) {
+      saveSettingsBtn.onclick = () => {
+        timerTextColor = document.getElementById('timerTextColor').value;
+        timerBgColor = document.getElementById('timerBgColor').value;
+        primaryBtnColor = document.getElementById('primaryBtnColor').value;
+        primaryBtnHoverColor = document.getElementById('primaryBtnHoverColor').value;
+        actionBtnColor = document.getElementById('actionBtnColor').value;
+        actionBtnTextColor = document.getElementById('actionBtnTextColor').value;
+        taskTextColor = document.getElementById('taskTextColor').value;
+        pageBgColor = document.getElementById('pageBgColor').value;
+        cardBgColor = document.getElementById('cardBgColor').value;
+        const alarmSound = document.getElementById('alarmSoundSelect').value;
+        
+        localStorage.setItem('pomodoro_settings', JSON.stringify({
+          timerTextColor, timerBgColor, primaryBtnColor, primaryBtnHoverColor,
+          actionBtnColor, actionBtnTextColor, taskTextColor, pageBgColor, cardBgColor, alarmSound
+        }));
+        
+        applyColors();
+        settingsOverlay.style.display = 'none';
+      };
+    }
+
+    loadTasks();
+    loadSettings();
   </script>
 </body>
 </html>
