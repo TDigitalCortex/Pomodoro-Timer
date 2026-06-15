@@ -5,14 +5,13 @@
 }
 
 body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background: #667eea;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 20px;
-  transition: background-color 0.3s ease;
 }
 
 .timer-container {
@@ -23,13 +22,12 @@ body {
 }
 
 .timer-card {
-  max-width: 650px;
+  max-width: 600px;
   width: 100%;
   background: white;
   border-radius: 2rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   padding: 2rem;
-  transition: all 0.3s ease;
   text-align: center;
 }
 
@@ -56,13 +54,11 @@ body {
 
 .mode-btn:hover {
   background: #e2e8f0;
-  transform: translateY(-2px);
 }
 
 .mode-btn.active {
   background: #667eea;
   color: white;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 /* Timer Display */
@@ -74,13 +70,12 @@ body {
 .timer-digits {
   font-size: 5rem;
   font-weight: 600;
-  font-family: 'Courier New', monospace;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  font-family: monospace;
+  background: #667eea;
   display: inline-block;
   padding: 0.5rem 2rem;
   border-radius: 80px;
   color: white;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   letter-spacing: 4px;
 }
 
@@ -113,11 +108,6 @@ body {
 
 .icon-btn:hover {
   background: #e6edf4;
-  transform: scale(0.98);
-}
-
-.icon-btn:active {
-  transform: scale(0.95);
 }
 
 /* Tasks Section */
@@ -151,12 +141,10 @@ body {
   font-size: 0.9rem;
   font-family: inherit;
   outline: none;
-  transition: 0.2s;
 }
 
 .task-input-field:focus {
   border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
 }
 
 .add-task-btn {
@@ -168,12 +156,10 @@ body {
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
 .add-task-btn:hover {
   background: #5a67d8;
-  transform: translateY(-2px);
 }
 
 .task-list {
@@ -197,7 +183,6 @@ body {
   width: 1.2rem;
   height: 1.2rem;
   cursor: pointer;
-  accent-color: #667eea;
 }
 
 .task-text {
@@ -227,7 +212,6 @@ body {
   font-size: 1.2rem;
   cursor: pointer;
   color: #9aaebf;
-  transition: 0.1s;
   width: 28px;
   height: 28px;
   display: flex;
@@ -251,7 +235,7 @@ body {
   border: 1px dashed #dce5ec;
 }
 
-/* Settings Modal Overlay - HIDDEN BY DEFAULT */
+/* Settings Modal */
 .settings-overlay {
   display: none;
   position: fixed;
@@ -269,22 +253,9 @@ body {
   background: white;
   border-radius: 1.5rem;
   width: 90%;
-  max-width: 500px;
+  max-width: 450px;
   max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  animation: slideIn 0.3s;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateY(-50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
 }
 
 .settings-modal-header {
@@ -306,7 +277,6 @@ body {
   font-size: 1.8rem;
   cursor: pointer;
   color: #93a9bb;
-  transition: 0.2s;
   width: 35px;
   height: 35px;
   display: flex;
@@ -350,7 +320,7 @@ body {
   font-size: 0.9rem;
 }
 
-.settings-input {
+.settings-row input {
   width: 100px;
   padding: 0.5rem;
   border: 1px solid #cfdee9;
@@ -358,15 +328,12 @@ body {
   font-size: 0.9rem;
 }
 
-.settings-color {
+.settings-row input[type="color"] {
   width: 60px;
   height: 35px;
-  border: 1px solid #cfdee9;
-  border-radius: 0.5rem;
-  cursor: pointer;
 }
 
-.settings-select {
+.settings-group select {
   width: 100%;
   padding: 0.6rem;
   border: 1px solid #cfdee9;
@@ -390,29 +357,24 @@ body {
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: 0.2s;
 }
 
 .settings-save-btn:hover {
   background: #5a67d8;
-  transform: translateY(-2px);
 }
 
 @media (max-width: 600px) {
   .timer-card {
     padding: 1.2rem;
   }
-  
   .timer-digits {
     font-size: 3rem;
     padding: 0.3rem 1rem;
   }
-  
   .mode-btn {
     padding: 0.4rem 0.8rem;
     font-size: 0.8rem;
   }
-  
   .icon-btn {
     padding: 0.5rem 1rem;
   }
