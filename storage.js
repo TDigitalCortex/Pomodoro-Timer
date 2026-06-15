@@ -1,7 +1,8 @@
-// Storage module - GitHub style local persistence
+// Storage module - Local persistence
 const Storage = (function() {
   const TIMER_KEY = 'pomodoro_timer_state';
   const TASKS_KEY = 'pomodoro_tasks';
+  const SETTINGS_KEY = 'pomodoro_settings';
 
   function saveTimerState(state) {
     try {
@@ -47,9 +48,29 @@ const Storage = (function() {
         const data = JSON.parse(saved);
         return data.tasks || [];
       }
-      return null;
+      return [];
     } catch (e) {
       console.error('Failed to load tasks:', e);
+      return [];
+    }
+  }
+
+  function saveSettings(settings) {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      return true;
+    } catch (e) {
+      console.error('Failed to save settings:', e);
+      return false;
+    }
+  }
+
+  function loadSettings() {
+    try {
+      const saved = localStorage.getItem(SETTINGS_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      console.error('Failed to load settings:', e);
       return null;
     }
   }
@@ -57,6 +78,7 @@ const Storage = (function() {
   function clearAllData() {
     localStorage.removeItem(TIMER_KEY);
     localStorage.removeItem(TASKS_KEY);
+    localStorage.removeItem(SETTINGS_KEY);
   }
 
   return {
@@ -64,6 +86,8 @@ const Storage = (function() {
     loadTimerState,
     saveTasks,
     loadTasks,
+    saveSettings,
+    loadSettings,
     clearAllData
   };
 })();
