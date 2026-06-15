@@ -1,7 +1,4 @@
 # Pomodoro-Timer
-Embedable Promodoro Timer
-
-# Pomodoro Timer
 
 A clean, local-first Pomodoro timer with task management.
 
@@ -14,3 +11,5 @@ A clean, local-first Pomodoro timer with task management.
 - No external dependencies
 
 ## File Structure
+
+Embedable Promodoro Timer
