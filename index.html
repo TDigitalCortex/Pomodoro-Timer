@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Pomodoro Timer - 4 Independent Timers</title>
+  <title>Pomodoro Timer - 4 Background Timers</title>
   <style>
     * {
       margin: 0;
@@ -29,7 +29,7 @@
     }
 
     .timer-card {
-      max-width: 1200px;
+      max-width: 650px;
       width: 100%;
       background: white;
       border-radius: 2rem;
@@ -38,7 +38,7 @@
       text-align: center;
     }
 
-    /* Mode Selector - Original */
+    /* Mode Selector - Original with added All button */
     .mode-selector {
       display: flex;
       gap: 0.8rem;
@@ -70,114 +70,26 @@
       box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
 
-    /* 4 Timer Grid */
-    .timers-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    .timer-unit {
-      background: #f9fbfd;
-      border-radius: 1rem;
-      padding: 1rem;
-      border: 1px solid #eef2f6;
-    }
-
-    .timer-unit-header {
-      font-size: 0.9rem;
-      font-weight: 600;
-      padding-bottom: 0.5rem;
-      margin-bottom: 0.8rem;
-      border-bottom: 1px solid #edeff4;
+    /* Timer Display */
+    .timer-circle {
       text-align: center;
+      margin: 1rem 0;
     }
 
-    /* Timer Display - ORIGINAL 5rem size restored */
-    .timer-display {
-      font-size: 2.2rem;
+    .timer-digits {
+      font-size: 5rem;
       font-weight: 600;
       font-family: 'Courier New', monospace;
-      text-align: center;
-      padding: 0.3rem;
-      margin: 0.3rem 0;
-      background: white;
-      border-radius: 0.8rem;
-      color: #1a2c38;
-    }
-
-    /* Timer Controls - Matching original icon-btn styling */
-    .timer-controls {
-      display: flex;
-      gap: 0.5rem;
-      justify-content: center;
-      margin: 0.8rem 0;
-      flex-wrap: wrap;
-    }
-
-    .timer-btn {
-      background: #f2f5f9;
-      border: none;
-      cursor: pointer;
-      padding: 0.4rem 0.8rem;
-      border-radius: 1.5rem;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-weight: 500;
-      color: #1f2e3a;
-      font-size: 0.75rem;
-    }
-
-    .timer-btn:hover {
-      background: #e6edf4;
-      transform: scale(0.97);
-    }
-
-    .duration-control {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.3rem;
-      margin-top: 0.5rem;
-      padding-top: 0.5rem;
-      border-top: 1px solid #edeff4;
-    }
-
-    .duration-control label {
-      font-size: 0.7rem;
-      color: #718096;
-    }
-
-    .duration-control input {
-      width: 50px;
-      padding: 0.2rem;
-      border: 1px solid #cfdee9;
-      border-radius: 0.4rem;
-      font-size: 0.7rem;
-      text-align: center;
-    }
-
-    .duration-control button {
       background: #667eea;
+      display: inline-block;
+      padding: 0.5rem 2rem;
+      border-radius: 80px;
       color: white;
-      border: none;
-      padding: 0.2rem 0.5rem;
-      border-radius: 0.4rem;
-      cursor: pointer;
-      font-size: 0.65rem;
+      letter-spacing: 4px;
+      transition: all 0.3s ease;
     }
 
-    .timer-status {
-      font-size: 0.65rem;
-      text-align: center;
-      margin-top: 0.3rem;
-      color: #93a9bb;
-    }
-
-    /* ORIGINAL ACTION BUTTONS - Start/Pause/Reset/Settings (outside grid) */
+    /* Action Buttons */
     .action-buttons {
       display: flex;
       justify-content: center;
@@ -211,7 +123,66 @@
       transform: scale(0.97);
     }
 
-    /* Tasks Section - ORIGINAL */
+    .icon-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Mini Status Bar - Shows all 4 timers status */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin: 1rem 0;
+      padding: 0.8rem;
+      background: #f9fbfd;
+      border-radius: 1rem;
+      border: 1px solid #eef2f6;
+      flex-wrap: wrap;
+    }
+
+    .status-item {
+      flex: 1;
+      text-align: center;
+      padding: 0.3rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .status-item:hover {
+      background: #eef2f6;
+    }
+
+    .status-item.session { border-left: 3px solid #667eea; }
+    .status-item.shortBreak { border-left: 3px solid #48bb78; }
+    .status-item.longBreak { border-left: 3px solid #ed8936; }
+    .status-item.custom { border-left: 3px solid #9f7aea; }
+
+    .status-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #4a5568;
+    }
+
+    .status-time {
+      font-size: 0.85rem;
+      font-family: monospace;
+      font-weight: 600;
+      margin-top: 0.2rem;
+    }
+
+    .status-badge {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-left: 5px;
+    }
+    .status-badge.running { background: #48bb78; box-shadow: 0 0 4px #48bb78; }
+    .status-badge.paused { background: #ed8936; }
+    .status-badge.idle { background: #a0aec0; }
+
+    /* Tasks Section */
     .tasks-section {
       margin-top: 2rem;
       border-top: 2px solid #edeff4;
@@ -344,7 +315,7 @@
       border: 1px dashed #dce5ec;
     }
 
-    /* Settings Modal - ORIGINAL with all 10+ color options */
+    /* Settings Modal */
     .settings-overlay {
       display: none;
       position: fixed;
@@ -477,30 +448,8 @@
       transform: translateY(-2px);
     }
 
-    /* Responsive - ORIGINAL button resizing behavior */
-    @media (max-width: 900px) {
-      .timers-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 768px) {
-      .timer-card {
-        padding: 1.5rem;
-      }
-      .icon-btn {
-        padding: 0.6rem 1.2rem;
-        font-size: 0.9rem;
-      }
-      .btn-icon {
-        font-size: 1rem;
-      }
-    }
-
-    @media (max-width: 550px) {
-      .timers-grid {
-        grid-template-columns: 1fr;
-      }
+    /* Responsive */
+    @media (max-width: 600px) {
       .action-buttons {
         flex-direction: column;
         align-items: stretch;
@@ -509,10 +458,13 @@
       .icon-btn {
         width: 100%;
         justify-content: center;
-        padding: 0.7rem 1rem;
       }
-      .timer-display {
-        font-size: 1.8rem;
+      .timer-digits {
+        font-size: 3rem;
+        padding: 0.3rem 1rem;
+      }
+      .status-bar {
+        flex-direction: column;
       }
     }
   </style>
@@ -520,94 +472,49 @@
 <body>
   <div class="timer-container">
     <div class="timer-card">
-      <!-- Mode Selector -->
+      <!-- Mode Selector with ALL button -->
       <div class="mode-selector">
-        <button class="mode-btn active" data-mode="session">Session</button>
+        <button class="mode-btn" data-mode="session">Session</button>
         <button class="mode-btn" data-mode="shortBreak">Short Break</button>
         <button class="mode-btn" data-mode="longBreak">Long Break</button>
         <button class="mode-btn" data-mode="custom">Custom</button>
+        <button class="mode-btn" data-mode="all">All</button>
       </div>
 
-      <!-- 4 Independent Timers Grid -->
-      <div class="timers-grid">
-        <!-- Session Timer -->
-        <div class="timer-unit">
-          <div class="timer-unit-header session">🍅 Session</div>
-          <div class="timer-display" id="sessionDisplay">25:00</div>
-          <div class="timer-controls">
-            <button class="timer-btn" data-action="start" data-timer="session">▶ Start</button>
-            <button class="timer-btn" data-action="pause" data-timer="session">⏸ Pause</button>
-            <button class="timer-btn" data-action="reset" data-timer="session">⟳ Reset</button>
-          </div>
-          <div class="duration-control">
-            <label>Set:</label>
-            <input type="number" id="sessionDuration" min="1" max="99" value="25" step="1">
-            <button data-set-duration="session">Apply</button>
-          </div>
-          <div class="timer-status" id="sessionStatus">Ready</div>
-        </div>
+      <!-- Main Timer Display -->
+      <div class="timer-circle">
+        <div class="timer-digits" id="timerDisplay">25:00</div>
+      </div>
 
-        <!-- Short Break Timer -->
-        <div class="timer-unit">
-          <div class="timer-unit-header shortBreak">🌿 Short Break</div>
-          <div class="timer-display" id="shortBreakDisplay">05:00</div>
-          <div class="timer-controls">
-            <button class="timer-btn" data-action="start" data-timer="shortBreak">▶ Start</button>
-            <button class="timer-btn" data-action="pause" data-timer="shortBreak">⏸ Pause</button>
-            <button class="timer-btn" data-action="reset" data-timer="shortBreak">⟳ Reset</button>
-          </div>
-          <div class="duration-control">
-            <label>Set:</label>
-            <input type="number" id="shortBreakDuration" min="1" max="99" value="5" step="1">
-            <button data-set-duration="shortBreak">Apply</button>
-          </div>
-          <div class="timer-status" id="shortBreakStatus">Ready</div>
+      <!-- Status Bar - Shows all 4 timers -->
+      <div class="status-bar">
+        <div class="status-item session" data-status="session">
+          <div class="status-label">🍅 Session <span class="status-badge" id="sessionBadge"></span></div>
+          <div class="status-time" id="sessionStatusTime">25:00</div>
         </div>
-
-        <!-- Long Break Timer -->
-        <div class="timer-unit">
-          <div class="timer-unit-header longBreak">☕ Long Break</div>
-          <div class="timer-display" id="longBreakDisplay">15:00</div>
-          <div class="timer-controls">
-            <button class="timer-btn" data-action="start" data-timer="longBreak">▶ Start</button>
-            <button class="timer-btn" data-action="pause" data-timer="longBreak">⏸ Pause</button>
-            <button class="timer-btn" data-action="reset" data-timer="longBreak">⟳ Reset</button>
-          </div>
-          <div class="duration-control">
-            <label>Set:</label>
-            <input type="number" id="longBreakDuration" min="1" max="99" value="15" step="1">
-            <button data-set-duration="longBreak">Apply</button>
-          </div>
-          <div class="timer-status" id="longBreakStatus">Ready</div>
+        <div class="status-item shortBreak" data-status="shortBreak">
+          <div class="status-label">🌿 Short Break <span class="status-badge" id="shortBreakBadge"></span></div>
+          <div class="status-time" id="shortBreakStatusTime">05:00</div>
         </div>
-
-        <!-- Custom Timer -->
-        <div class="timer-unit">
-          <div class="timer-unit-header custom">⚙ Custom</div>
-          <div class="timer-display" id="customDisplay">30:00</div>
-          <div class="timer-controls">
-            <button class="timer-btn" data-action="start" data-timer="custom">▶ Start</button>
-            <button class="timer-btn" data-action="pause" data-timer="custom">⏸ Pause</button>
-            <button class="timer-btn" data-action="reset" data-timer="custom">⟳ Reset</button>
-          </div>
-          <div class="duration-control">
-            <label>Set:</label>
-            <input type="number" id="customDuration" min="1" max="99" value="30" step="1">
-            <button data-set-duration="custom">Apply</button>
-          </div>
-          <div class="timer-status" id="customStatus">Ready</div>
+        <div class="status-item longBreak" data-status="longBreak">
+          <div class="status-label">☕ Long Break <span class="status-badge" id="longBreakBadge"></span></div>
+          <div class="status-time" id="longBreakStatusTime">15:00</div>
+        </div>
+        <div class="status-item custom" data-status="custom">
+          <div class="status-label">⚙ Custom <span class="status-badge" id="customBadge"></span></div>
+          <div class="status-time" id="customStatusTime">30:00</div>
         </div>
       </div>
 
-      <!-- ORIGINAL ACTION BUTTONS (Start, Reset, Settings) -->
+      <!-- Action Buttons -->
       <div class="action-buttons">
         <button class="icon-btn" id="playPauseBtn">
           <span class="btn-icon">▶</span>
-          <span id="playPauseText">Start All</span>
+          <span id="playPauseText">Start</span>
         </button>
         <button class="icon-btn" id="resetBtn">
           <span class="btn-icon">⟳</span>
-          <span>Reset All</span>
+          <span>Reset</span>
         </button>
         <button class="icon-btn" id="settingsBtn">
           <span class="btn-icon">⚙</span>
@@ -631,7 +538,7 @@
     </div>
   </div>
 
-  <!-- Settings Modal with ALL Original Color Options -->
+  <!-- Settings Modal -->
   <div id="settingsOverlay" class="settings-overlay">
     <div class="settings-modal">
       <div class="settings-modal-header">
@@ -663,7 +570,7 @@
           <h3>Timer Colors</h3>
           <div class="settings-row">
             <label>Timer Text Color:</label>
-            <input type="color" id="timerTextColor" value="#1a2c38">
+            <input type="color" id="timerTextColor" value="#ffffff">
           </div>
           <div class="settings-row">
             <label>Timer Background:</label>
@@ -728,24 +635,27 @@
   </div>
 
   <script>
-    // Timer class for independent timers
-    class IndependentTimer {
-      constructor(name, displayId, statusId, defaultMinutes) {
+    // 4 Independent Background Timers
+    class BackgroundTimer {
+      constructor(name, defaultMinutes, statusTimeId, badgeId) {
         this.name = name;
-        this.displayElement = document.getElementById(displayId);
-        this.statusElement = document.getElementById(statusId);
         this.currentSeconds = defaultMinutes * 60;
         this.isRunning = false;
         this.interval = null;
         this.defaultMinutes = defaultMinutes;
-        this.updateDisplay();
+        this.statusTimeElement = document.getElementById(statusTimeId);
+        this.badgeElement = document.getElementById(badgeId);
+        this.updateStatusDisplay();
       }
 
-      updateDisplay() {
-        if (this.displayElement) {
+      updateStatusDisplay() {
+        if (this.statusTimeElement) {
           const mins = Math.floor(this.currentSeconds / 60);
           const secs = this.currentSeconds % 60;
-          this.displayElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+          this.statusTimeElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        if (this.badgeElement) {
+          this.badgeElement.className = `status-badge ${this.isRunning ? 'running' : (this.currentSeconds < this.defaultMinutes * 60 ? 'paused' : 'idle')}`;
         }
       }
 
@@ -773,13 +683,8 @@
           this.interval = null;
         }
         this.isRunning = false;
-        if (this.statusElement) this.statusElement.innerText = 'Time\'s Up!';
         this.playAlarm();
-        setTimeout(() => {
-          if (this.statusElement && this.statusElement.innerText === 'Time\'s Up!') {
-            this.statusElement.innerText = 'Ready';
-          }
-        }, 3000);
+        this.updateStatusDisplay();
       }
 
       tick() {
@@ -788,49 +693,58 @@
           return;
         }
         this.currentSeconds--;
-        this.updateDisplay();
+        this.updateStatusDisplay();
         if (this.currentSeconds === 0) this.finish();
       }
 
       start() {
         if (this.interval) clearInterval(this.interval);
         this.isRunning = true;
-        if (this.statusElement) this.statusElement.innerText = 'Running';
         this.interval = setInterval(() => {
           if (this.isRunning) this.tick();
         }, 1000);
+        this.updateStatusDisplay();
       }
 
       pause() {
         this.isRunning = false;
-        if (this.statusElement) this.statusElement.innerText = 'Paused';
         if (this.interval) {
           clearInterval(this.interval);
           this.interval = null;
         }
+        this.updateStatusDisplay();
       }
 
       reset() {
         this.pause();
         this.currentSeconds = this.defaultMinutes * 60;
-        this.updateDisplay();
-        if (this.statusElement) this.statusElement.innerText = 'Ready';
+        this.updateStatusDisplay();
       }
 
       setDuration(minutes) {
         this.defaultMinutes = minutes;
         if (!this.isRunning) {
           this.currentSeconds = minutes * 60;
-          this.updateDisplay();
+          this.updateStatusDisplay();
         }
+      }
+
+      getCurrentDisplay() {
+        const mins = Math.floor(this.currentSeconds / 60);
+        const secs = this.currentSeconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+
+      getIsRunning() {
+        return this.isRunning;
       }
     }
 
-    // Initialize all 4 timers with ORIGINAL default values
-    const sessionTimer = new IndependentTimer('session', 'sessionDisplay', 'sessionStatus', 25);
-    const shortBreakTimer = new IndependentTimer('shortBreak', 'shortBreakDisplay', 'shortBreakStatus', 5);
-    const longBreakTimer = new IndependentTimer('longBreak', 'longBreakDisplay', 'longBreakStatus', 15);
-    const customTimer = new IndependentTimer('custom', 'customDisplay', 'customStatus', 30);
+    // Initialize 4 background timers
+    const sessionTimer = new BackgroundTimer('session', 25, 'sessionStatusTime', 'sessionBadge');
+    const shortBreakTimer = new BackgroundTimer('shortBreak', 5, 'shortBreakStatusTime', 'shortBreakBadge');
+    const longBreakTimer = new BackgroundTimer('longBreak', 15, 'longBreakStatusTime', 'longBreakBadge');
+    const customTimer = new BackgroundTimer('custom', 30, 'customStatusTime', 'customBadge');
 
     const timers = {
       session: sessionTimer,
@@ -839,76 +753,107 @@
       custom: customTimer
     };
 
-    // Set up individual timer buttons
-    document.querySelectorAll('.timer-btn[data-action]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const action = btn.dataset.action;
-        const timerName = btn.dataset.timer;
-        const timer = timers[timerName];
-        if (timer) {
-          if (action === 'start') timer.start();
-          else if (action === 'pause') timer.pause();
-          else if (action === 'reset') timer.reset();
-        }
-      });
-    });
-
-    // Set up duration buttons
-    document.querySelectorAll('[data-set-duration]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const timerName = btn.dataset.setDuration;
-        const inputId = `${timerName}Duration`;
-        const input = document.getElementById(inputId);
-        if (input) {
-          const minutes = parseInt(input.value);
-          if (!isNaN(minutes) && minutes >= 1 && minutes <= 99) {
-            timers[timerName].setDuration(minutes);
-          }
-        }
-      });
-    });
-
-    // ORIGINAL Start All button functionality
-    const playPauseBtn = document.getElementById('playPauseBtn');
+    // Current active view
+    let currentView = 'session';
+    const mainDisplay = document.getElementById('timerDisplay');
     const playPauseText = document.getElementById('playPauseText');
-    let allRunning = false;
 
-    if (playPauseBtn) {
-      playPauseBtn.onclick = () => {
-        if (allRunning) {
-          // Pause all timers
-          Object.values(timers).forEach(timer => timer.pause());
-          playPauseText.innerText = 'Start All';
-          allRunning = false;
-        } else {
-          // Start all timers
-          Object.values(timers).forEach(timer => timer.start());
-          playPauseText.innerText = 'Pause All';
-          allRunning = true;
-        }
-      };
+    function updateMainDisplay() {
+      const timer = timers[currentView];
+      if (timer) {
+        mainDisplay.textContent = timer.getCurrentDisplay();
+        playPauseText.innerText = timer.getIsRunning() ? 'Pause' : 'Start';
+      }
     }
 
-    // ORIGINAL Reset All button
-    const resetBtn = document.getElementById('resetBtn');
-    if (resetBtn) {
-      resetBtn.onclick = () => {
-        Object.values(timers).forEach(timer => timer.reset());
-        allRunning = false;
-        playPauseText.innerText = 'Start All';
-      };
-    }
+    // Update main display every second
+    setInterval(() => {
+      updateMainDisplay();
+    }, 1000);
 
-    // Mode selector buttons
+    // Mode switching - timers continue running in background
     const modeBtns = document.querySelectorAll('.mode-btn');
     modeBtns.forEach(btn => {
       btn.addEventListener('click', () => {
+        const mode = btn.dataset.mode;
+        currentView = mode;
+        
+        // Update active button styling
         modeBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        
+        if (mode === 'all') {
+          // Show all timers view - expand status bar into full view
+          showAllTimersView();
+        } else {
+          // Show single timer view
+          showSingleTimerView();
+          updateMainDisplay();
+        }
       });
     });
 
-    // ========== TASKS MODULE (ORIGINAL) ==========
+    function showSingleTimerView() {
+      document.querySelector('.timer-circle').style.display = 'block';
+      document.querySelector('.status-bar').style.display = 'flex';
+      // Reset status bar to normal
+    }
+
+    function showAllTimersView() {
+      // For "All" view, we show all timers prominently
+      // The status bar already shows all timers, we just keep it visible
+      document.querySelector('.timer-circle').style.display = 'block';
+      document.querySelector('.status-bar').style.display = 'flex';
+      // Highlight that we're in all view
+    }
+
+    // Start/Pause button controls the CURRENTLY VIEWED timer
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    if (playPauseBtn) {
+      playPauseBtn.onclick = () => {
+        const timer = timers[currentView];
+        if (timer) {
+          if (timer.getIsRunning()) {
+            timer.pause();
+            playPauseText.innerText = 'Start';
+          } else {
+            timer.start();
+            playPauseText.innerText = 'Pause';
+          }
+          updateMainDisplay();
+        }
+      };
+    }
+
+    // Reset button resets the CURRENTLY VIEWED timer
+    const resetBtn = document.getElementById('resetBtn');
+    if (resetBtn) {
+      resetBtn.onclick = () => {
+        const timer = timers[currentView];
+        if (timer) {
+          timer.reset();
+          updateMainDisplay();
+        }
+      };
+    }
+
+    // Click on status bar items switches view
+    document.querySelectorAll('.status-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const mode = item.dataset.status;
+        currentView = mode;
+        modeBtns.forEach(btn => {
+          if (btn.dataset.mode === mode) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+        updateMainDisplay();
+      });
+    });
+
+    // ========== TASKS MODULE ==========
     let tasks = [];
     const taskListContainer = document.getElementById('taskListContainer');
     const taskInput = document.getElementById('taskInput');
@@ -993,99 +938,26 @@
     if (addTaskBtn) addTaskBtn.onclick = addTask;
     if (taskInput) taskInput.onkeypress = (e) => { if (e.key === 'Enter') addTask(); };
 
-    // ========== SETTINGS MODAL (ORIGINAL with all colors) ==========
+    // ========== SETTINGS ==========
     const settingsOverlay = document.getElementById('settingsOverlay');
     const settingsBtn = document.getElementById('settingsBtn');
     const closeSettingsBtn = document.querySelector('.settings-close-btn');
     const saveSettingsBtn = document.getElementById('saveSettingsBtn');
 
-    let timerTextColor = '#1a2c38';
-    let timerBgColor = '#667eea';
-    let primaryBtnColor = '#667eea';
-    let primaryBtnHoverColor = '#5a67d8';
-    let actionBtnColor = '#f2f5f9';
-    let actionBtnTextColor = '#1f2e3a';
-    let taskTextColor = '#1a2c38';
-    let pageBgColor = '#667eea';
-    let cardBgColor = '#ffffff';
-    let sessionTimeSetting = 25;
-    let shortBreakTimeSetting = 5;
-    let longBreakTimeSetting = 15;
-    let customTimeSetting = 30;
-
     function loadSettings() {
       const saved = localStorage.getItem('pomodoro_settings');
       if (saved) {
         const settings = JSON.parse(saved);
-        timerTextColor = settings.timerTextColor || '#1a2c38';
-        timerBgColor = settings.timerBgColor || '#667eea';
-        primaryBtnColor = settings.primaryBtnColor || '#667eea';
-        primaryBtnHoverColor = settings.primaryBtnHoverColor || '#5a67d8';
-        actionBtnColor = settings.actionBtnColor || '#f2f5f9';
-        actionBtnTextColor = settings.actionBtnTextColor || '#1f2e3a';
-        taskTextColor = settings.taskTextColor || '#1a2c38';
-        pageBgColor = settings.pageBgColor || '#667eea';
-        cardBgColor = settings.cardBgColor || '#ffffff';
-        sessionTimeSetting = settings.sessionTimeSetting || 25;
-        shortBreakTimeSetting = settings.shortBreakTimeSetting || 5;
-        longBreakTimeSetting = settings.longBreakTimeSetting || 15;
-        customTimeSetting = settings.customTimeSetting || 30;
-        
-        applyColors();
+        if (settings.pageBgColor) document.body.style.backgroundColor = settings.pageBgColor;
+        if (settings.cardBgColor) document.querySelector('.timer-card').style.backgroundColor = settings.cardBgColor;
+        if (settings.timerTextColor) mainDisplay.style.color = settings.timerTextColor;
+        if (settings.timerBgColor) mainDisplay.style.backgroundColor = settings.timerBgColor;
+        if (settings.alarmSound) document.getElementById('alarmSoundSelect').value = settings.alarmSound;
       }
-    }
-
-    function applyColors() {
-      document.body.style.backgroundColor = pageBgColor;
-      document.querySelector('.timer-card').style.backgroundColor = cardBgColor;
-      document.querySelectorAll('.timer-display').forEach(el => {
-        el.style.color = timerTextColor;
-        el.style.backgroundColor = timerBgColor;
-      });
-      document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => {
-        el.style.color = taskTextColor;
-      });
-      
-      const addTaskBtnEl = document.getElementById('addTaskBtn');
-      if (addTaskBtnEl) addTaskBtnEl.style.backgroundColor = primaryBtnColor;
-      
-      const saveBtn = document.getElementById('saveSettingsBtn');
-      if (saveBtn) saveBtn.style.backgroundColor = primaryBtnColor;
-      
-      const style = document.createElement('style');
-      style.textContent = `
-        .add-task-btn:hover, .settings-save-btn:hover {
-          background-color: ${primaryBtnHoverColor} !important;
-        }
-        .mode-btn.active {
-          background-color: ${primaryBtnColor} !important;
-        }
-        .task-input-field:focus {
-          border-color: ${primaryBtnColor} !important;
-        }
-      `;
-      document.head.appendChild(style);
-      
-      const actionBtns = [playPauseBtn, resetBtn, settingsBtn];
-      actionBtns.forEach(btn => {
-        if (btn) {
-          btn.style.backgroundColor = actionBtnColor;
-          btn.style.color = actionBtnTextColor;
-        }
-      });
     }
 
     if (settingsBtn) {
       settingsBtn.onclick = () => {
-        document.getElementById('timerTextColor').value = timerTextColor;
-        document.getElementById('timerBgColor').value = timerBgColor;
-        document.getElementById('primaryBtnColor').value = primaryBtnColor;
-        document.getElementById('primaryBtnHoverColor').value = primaryBtnHoverColor;
-        document.getElementById('actionBtnColor').value = actionBtnColor;
-        document.getElementById('actionBtnTextColor').value = actionBtnTextColor;
-        document.getElementById('taskTextColor').value = taskTextColor;
-        document.getElementById('pageBgColor').value = pageBgColor;
-        document.getElementById('cardBgColor').value = cardBgColor;
         settingsOverlay.style.display = 'flex';
       };
     }
@@ -1095,15 +967,15 @@
 
     if (saveSettingsBtn) {
       saveSettingsBtn.onclick = () => {
-        timerTextColor = document.getElementById('timerTextColor').value;
-        timerBgColor = document.getElementById('timerBgColor').value;
-        primaryBtnColor = document.getElementById('primaryBtnColor').value;
-        primaryBtnHoverColor = document.getElementById('primaryBtnHoverColor').value;
-        actionBtnColor = document.getElementById('actionBtnColor').value;
-        actionBtnTextColor = document.getElementById('actionBtnTextColor').value;
-        taskTextColor = document.getElementById('taskTextColor').value;
-        pageBgColor = document.getElementById('pageBgColor').value;
-        cardBgColor = document.getElementById('cardBgColor').value;
+        const timerTextColor = document.getElementById('timerTextColor').value;
+        const timerBgColor = document.getElementById('timerBgColor').value;
+        const primaryBtnColor = document.getElementById('primaryBtnColor').value;
+        const primaryBtnHoverColor = document.getElementById('primaryBtnHoverColor').value;
+        const actionBtnColor = document.getElementById('actionBtnColor').value;
+        const actionBtnTextColor = document.getElementById('actionBtnTextColor').value;
+        const taskTextColor = document.getElementById('taskTextColor').value;
+        const pageBgColor = document.getElementById('pageBgColor').value;
+        const cardBgColor = document.getElementById('cardBgColor').value;
         const alarmSound = document.getElementById('alarmSoundSelect').value;
         
         localStorage.setItem('pomodoro_settings', JSON.stringify({
@@ -1111,11 +983,17 @@
           actionBtnColor, actionBtnTextColor, taskTextColor, pageBgColor, cardBgColor, alarmSound
         }));
         
-        applyColors();
+        document.body.style.backgroundColor = pageBgColor;
+        document.querySelector('.timer-card').style.backgroundColor = cardBgColor;
+        mainDisplay.style.color = timerTextColor;
+        mainDisplay.style.backgroundColor = timerBgColor;
+        
         settingsOverlay.style.display = 'none';
       };
     }
 
+    // Set active mode on load
+    document.querySelector('.mode-btn[data-mode="session"]').classList.add('active');
     loadTasks();
     loadSettings();
   </script>
