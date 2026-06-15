@@ -1,111 +1,91 @@
-const TaskManager = (function() {
-  let tasks = [];
-  let containerElement = null;
-  let taskInputElement = null;
+const TaskManager = {
+  tasks: [],
+  containerElement: null,
+  taskInputElement: null,
 
-  function saveToStorage() {
-    Storage.saveTasks(tasks);
-  }
+  saveToStorage() {
+    Storage.saveTasks(this.tasks);
+  },
 
-  function loadFromStorage() {
-    tasks = Storage.loadTasks();
-    render();
-  }
+  loadFromStorage() {
+    this.tasks = Storage.loadTasks();
+    this.render();
+  },
 
-  function render() {
-    if (!containerElement) return;
+  render() {
+    if (!this.containerElement) return;
+    this.containerElement.innerHTML = '';
     
-    containerElement.innerHTML = '';
+    const incomplete = this.tasks.filter(t => !t.completed);
+    const completed = this.tasks.filter(t => t.completed);
+    const sorted = [...incomplete, ...completed];
     
-    const incompleteTasks = tasks.filter(t => !t.completed);
-    const completedTasks = tasks.filter(t => t.completed);
-    const sortedTasks = [...incompleteTasks, ...completedTasks];
-    
-    if (sortedTasks.length === 0) {
-      const emptyLi = document.createElement('li');
-      emptyLi.className = 'empty-tasks';
-      emptyLi.innerText = 'No tasks yet — add something to focus on';
-      containerElement.appendChild(emptyLi);
+    if (sorted.length === 0) {
+      const empty = document.createElement('li');
+      empty.className = 'empty-tasks';
+      empty.innerText = 'No tasks yet — add something to focus on';
+      this.containerElement.appendChild(empty);
       return;
     }
     
-    sortedTasks.forEach(task => {
+    sorted.forEach(task => {
       const li = document.createElement('li');
       li.className = `task-item ${task.completed ? 'task-completed' : ''}`;
-      li.dataset.id = task.id;
       
-      const checkBox = document.createElement('input');
-      checkBox.type = 'checkbox';
-      checkBox.className = 'task-check';
-      checkBox.checked = task.completed;
-      checkBox.addEventListener('change', (e) => {
-        task.completed = e.target.checked;
-        saveToStorage();
-        render();
-      });
+      const check = document.createElement('input');
+      check.type = 'checkbox';
+      check.className = 'task-check';
+      check.checked = task.completed;
+      check.onchange = () => {
+        task.completed = check.checked;
+        this.saveToStorage();
+        this.render();
+      };
       
-      const taskText = document.createElement('input');
-      taskText.type = 'text';
-      taskText.className = 'task-text';
-      taskText.value = task.text;
-      taskText.addEventListener('blur', (e) => {
-        task.text = e.target.value.trim() || 'Untitled';
-        saveToStorage();
-        render();
-      });
-      taskText.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') taskText.blur();
-      });
+      const text = document.createElement('input');
+      text.type = 'text';
+      text.className = 'task-text';
+      text.value = task.text;
+      text.onblur = () => {
+        task.text = text.value.trim() || 'Untitled';
+        this.saveToStorage();
+        this.render();
+      };
+      text.onkeypress = (e) => { if (e.key === 'Enter') text.blur(); };
       
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'delete-task';
-      deleteBtn.innerHTML = '×';
-      deleteBtn.addEventListener('click', () => {
-        tasks = tasks.filter(t => t.id !== task.id);
-        saveToStorage();
-        render();
-      });
+      const del = document.createElement('button');
+      del.className = 'delete-task';
+      del.innerHTML = '×';
+      del.onclick = () => {
+        this.tasks = this.tasks.filter(t => t.id !== task.id);
+        this.saveToStorage();
+        this.render();
+      };
       
-      li.appendChild(checkBox);
-      li.appendChild(taskText);
-      li.appendChild(deleteBtn);
-      containerElement.appendChild(li);
+      li.appendChild(check);
+      li.appendChild(text);
+      li.appendChild(del);
+      this.containerElement.appendChild(li);
     });
-  }
+  },
 
-  function addTask() {
-    const text = taskInputElement.value.trim();
+  addTask() {
+    const text = this.taskInputElement.value.trim();
     if (text === '') return;
-    
-    tasks.push({
-      id: Date.now(),
-      text: text,
-      completed: false
-    });
-    saveToStorage();
-    taskInputElement.value = '';
-    render();
-  }
+    this.tasks.push({ id: Date.now(), text: text, completed: false });
+    this.saveToStorage();
+    this.taskInputElement.value = '';
+    this.render();
+  },
 
-  function init(containerId, addButtonId, inputId) {
-    containerElement = document.getElementById(containerId);
-    taskInputElement = document.getElementById(inputId);
-    const addButton = document.getElementById(addButtonId);
-    
-    if (addButton) {
-      addButton.addEventListener('click', addTask);
+  init(containerId, addButtonId, inputId) {
+    this.containerElement = document.getElementById(containerId);
+    this.taskInputElement = document.getElementById(inputId);
+    const addBtn = document.getElementById(addButtonId);
+    if (addBtn) addBtn.onclick = () => this.addTask();
+    if (this.taskInputElement) {
+      this.taskInputElement.onkeypress = (e) => { if (e.key === 'Enter') this.addTask(); };
     }
-    
-    if (taskInputElement) {
-      taskInputElement.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addTask();
-      });
-    }
-    
-    loadFromStorage();
+    this.loadFromStorage();
   }
-
-  return {
-    init
-  };
-})();
+};
