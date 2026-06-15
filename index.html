@@ -112,6 +112,7 @@
 
     .icon-btn:hover {
       background: #e6edf4;
+      transform: scale(0.98);
     }
 
     .tasks-section {
@@ -481,298 +482,352 @@
   </div>
 
   <script>
-    // ========== STORAGE MODULE ==========
-    const Storage = {
-      saveTimerState(state) { localStorage.setItem('pomodoro_timer', JSON.stringify(state)); },
-      loadTimerState() { const saved = localStorage.getItem('pomodoro_timer'); return saved ? JSON.parse(saved) : null; },
-      saveTasks(tasks) { localStorage.setItem('pomodoro_tasks', JSON.stringify(tasks)); },
-      loadTasks() { const saved = localStorage.getItem('pomodoro_tasks'); return saved ? JSON.parse(saved) : []; },
-      saveSettings(settings) { localStorage.setItem('pomodoro_settings', JSON.stringify(settings)); },
-      loadSettings() { const saved = localStorage.getItem('pomodoro_settings'); return saved ? JSON.parse(saved) : null; }
-    };
-
-    // ========== TIMER MODULE ==========
-    const Timer = {
-      timerInterval: null,
-      currentSeconds: 25 * 60,
-      isRunning: false,
-      currentMode: 'session',
-      sessionTime: 25,
-      shortBreakTime: 5,
-      longBreakTime: 15,
-      customTime: 30,
-      displayElement: null,
-      playPauseTextElement: null,
-
-      updateDisplay() {
-        if (!this.displayElement) return;
-        const mins = Math.floor(this.currentSeconds / 60);
-        const secs = this.currentSeconds % 60;
-        this.displayElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-      },
-
-      playAlarm() {
-        try {
-          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          const now = audioCtx.currentTime;
-          const gain = audioCtx.createGain();
-          gain.connect(audioCtx.destination);
-          gain.gain.setValueAtTime(0.3, now);
-          const osc = audioCtx.createOscillator();
-          osc.connect(gain);
-          osc.frequency.value = 880;
-          osc.type = 'sine';
-          osc.start();
-          gain.gain.exponentialRampToValueAtTime(0.00001, now + 1);
-          osc.stop(now + 0.8);
-          audioCtx.resume();
-        } catch(e) { console.log('Audio error:', e); }
-      },
-
-      finishTimer() {
-        if (this.timerInterval) { clearInterval(this.timerInterval); this.timerInterval = null; }
-        this.isRunning = false;
-        if (this.playPauseTextElement) this.playPauseTextElement.innerText = 'Start';
-        this.playAlarm();
-        this.saveState();
-      },
-
-      tick() {
-        if (this.currentSeconds <= 0) {
-          if (this.isRunning) this.finishTimer();
-          return;
-        }
-        this.currentSeconds--;
-        this.updateDisplay();
-        if (this.currentSeconds === 0) this.finishTimer();
-        this.saveState();
-      },
-
-      start() {
-        if (this.timerInterval) clearInterval(this.timerInterval);
-        this.isRunning = true;
-        if (this.playPauseTextElement) this.playPauseTextElement.innerText = 'Pause';
-        this.timerInterval = setInterval(() => { if (this.isRunning) this.tick(); }, 1000);
-        this.saveState();
-      },
-
-      pause() {
-        this.isRunning = false;
-        if (this.playPauseTextElement) this.playPauseTextElement.innerText = 'Start';
-        if (this.timerInterval) { clearInterval(this.timerInterval); this.timerInterval = null; }
-        this.saveState();
-      },
-
-      reset() { this.pause(); this.setMode(this.currentMode); },
-
-      setMode(mode) {
-        this.currentMode = mode;
-        let duration = this.sessionTime;
-        switch(mode) {
-          case 'session': duration = this.sessionTime; break;
-          case 'shortBreak': duration = this.shortBreakTime; break;
-          case 'longBreak': duration = this.longBreakTime; break;
-          case 'custom': duration = this.customTime; break;
-        }
-        this.currentSeconds = duration * 60;
-        this.updateDisplay();
-        if (this.playPauseTextElement) this.playPauseTextElement.innerText = 'Start';
-        this.isRunning = false;
-        
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-          if (btn.dataset.mode === mode) btn.classList.add('active');
-          else btn.classList.remove('active');
-        });
-        this.saveState();
-      },
-
-      updateDurations(session, short, long, custom) {
-        this.sessionTime = session;
-        this.shortBreakTime = short;
-        this.longBreakTime = long;
-        this.customTime = custom;
-        this.setMode(this.currentMode);
-      },
-
-      saveState() {
-        Storage.saveTimerState({
-          currentSeconds: this.currentSeconds,
-          currentMode: this.currentMode,
-          sessionTime: this.sessionTime,
-          shortBreakTime: this.shortBreakTime,
-          longBreakTime: this.longBreakTime,
-          customTime: this.customTime
-        });
-      },
-
-      loadState() {
-        const saved = Storage.loadTimerState();
-        if (saved) {
-          this.currentSeconds = saved.currentSeconds || 25 * 60;
-          this.currentMode = saved.currentMode || 'session';
-          this.sessionTime = saved.sessionTime || 25;
-          this.shortBreakTime = saved.shortBreakTime || 5;
-          this.longBreakTime = saved.longBreakTime || 15;
-          this.customTime = saved.customTime || 30;
-          this.updateDisplay();
-        }
-      },
-
-      init(displayId, playPauseTextId) {
-        this.displayElement = document.getElementById(displayId);
-        this.playPauseTextElement = document.getElementById(playPauseTextId);
-        this.loadState();
-        this.setMode(this.currentMode);
+    (function() {
+      // Wait for DOM to be fully loaded
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
       }
-    };
 
-    // ========== TASKS MODULE ==========
-    const TaskManager = {
-      tasks: [],
-      containerElement: null,
-      taskInputElement: null,
-
-      saveToStorage() { Storage.saveTasks(this.tasks); },
-
-      loadFromStorage() { this.tasks = Storage.loadTasks(); this.render(); },
-
-      render() {
-        if (!this.containerElement) return;
-        this.containerElement.innerHTML = '';
+      function init() {
+        console.log('App initializing...');
         
-        const incomplete = this.tasks.filter(t => !t.completed);
-        const completed = this.tasks.filter(t => t.completed);
-        const sorted = [...incomplete, ...completed];
+        // DOM Elements
+        const timerDisplay = document.getElementById('timerDisplay');
+        const playPauseText = document.getElementById('playPauseText');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsOverlay = document.getElementById('settingsOverlay');
+        const closeSettingsBtn = document.querySelector('.settings-close-btn');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const taskInput = document.getElementById('taskInput');
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const taskListContainer = document.getElementById('taskListContainer');
         
-        if (sorted.length === 0) {
-          const empty = document.createElement('li');
-          empty.className = 'empty-tasks';
-          empty.innerText = 'No tasks yet — add something to focus on';
-          this.containerElement.appendChild(empty);
-          return;
+        // Timer State
+        let timerInterval = null;
+        let currentSeconds = 25 * 60;
+        let isRunning = false;
+        let currentMode = 'session';
+        let sessionTime = 25;
+        let shortBreakTime = 5;
+        let longBreakTime = 15;
+        let customTime = 30;
+        
+        // Tasks Array
+        let tasks = [];
+        
+        // Load saved data
+        function loadSavedData() {
+          const savedTimer = localStorage.getItem('pomodoro_timer');
+          if (savedTimer) {
+            const data = JSON.parse(savedTimer);
+            currentSeconds = data.currentSeconds || 25 * 60;
+            currentMode = data.currentMode || 'session';
+            sessionTime = data.sessionTime || 25;
+            shortBreakTime = data.shortBreakTime || 5;
+            longBreakTime = data.longBreakTime || 15;
+            customTime = data.customTime || 30;
+          }
+          
+          const savedTasks = localStorage.getItem('pomodoro_tasks');
+          if (savedTasks) {
+            tasks = JSON.parse(savedTasks);
+          }
+          
+          const savedSettings = localStorage.getItem('pomodoro_settings');
+          if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            sessionTime = settings.sessionTime || 25;
+            shortBreakTime = settings.shortBreakTime || 5;
+            longBreakTime = settings.longBreakTime || 15;
+            customTime = settings.customTime || 30;
+            if (settings.bgColor) document.body.style.backgroundColor = settings.bgColor;
+            if (settings.cardBgColor) document.querySelector('.timer-card').style.backgroundColor = settings.cardBgColor;
+            if (settings.textColor) {
+              document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => el.style.color = settings.textColor);
+              document.querySelector('.timer-digits').style.backgroundColor = settings.textColor;
+            }
+          }
         }
         
-        sorted.forEach(task => {
-          const li = document.createElement('li');
-          li.className = `task-item ${task.completed ? 'task-completed' : ''}`;
-          
-          const check = document.createElement('input');
-          check.type = 'checkbox';
-          check.className = 'task-check';
-          check.checked = task.completed;
-          check.onchange = () => {
-            task.completed = check.checked;
-            this.saveToStorage();
-            this.render();
-          };
-          
-          const text = document.createElement('input');
-          text.type = 'text';
-          text.className = 'task-text';
-          text.value = task.text;
-          text.onblur = () => {
-            task.text = text.value.trim() || 'Untitled';
-            this.saveToStorage();
-            this.render();
-          };
-          text.onkeypress = (e) => { if (e.key === 'Enter') text.blur(); };
-          
-          const del = document.createElement('button');
-          del.className = 'delete-task';
-          del.innerHTML = '×';
-          del.onclick = () => {
-            this.tasks = this.tasks.filter(t => t.id !== task.id);
-            this.saveToStorage();
-            this.render();
-          };
-          
-          li.appendChild(check);
-          li.appendChild(text);
-          li.appendChild(del);
-          this.containerElement.appendChild(li);
-        });
-      },
-
-      addTask() {
-        const text = this.taskInputElement.value.trim();
-        if (text === '') return;
-        this.tasks.push({ id: Date.now(), text: text, completed: false });
-        this.saveToStorage();
-        this.taskInputElement.value = '';
-        this.render();
-      },
-
-      init(containerId, addButtonId, inputId) {
-        this.containerElement = document.getElementById(containerId);
-        this.taskInputElement = document.getElementById(inputId);
-        const addBtn = document.getElementById(addButtonId);
-        if (addBtn) addBtn.onclick = () => this.addTask();
-        if (this.taskInputElement) {
-          this.taskInputElement.onkeypress = (e) => { if (e.key === 'Enter') this.addTask(); };
+        // Save timer state
+        function saveTimerState() {
+          localStorage.setItem('pomodoro_timer', JSON.stringify({
+            currentSeconds: currentSeconds,
+            currentMode: currentMode,
+            sessionTime: sessionTime,
+            shortBreakTime: shortBreakTime,
+            longBreakTime: longBreakTime,
+            customTime: customTime
+          }));
         }
-        this.loadFromStorage();
-      }
-    };
-
-    // ========== APP INITIALIZATION ==========
-    document.addEventListener('DOMContentLoaded', function() {
-      Timer.init('timerDisplay', 'playPauseText');
-      TaskManager.init('taskListContainer', 'addTaskBtn', 'taskInput');
-      
-      const playPauseBtn = document.getElementById('playPauseBtn');
-      const resetBtn = document.getElementById('resetBtn');
-      const settingsBtn = document.getElementById('settingsBtn');
-      const overlay = document.getElementById('settingsOverlay');
-      const closeBtn = document.querySelector('.settings-close-btn');
-      const saveBtn = document.getElementById('saveSettingsBtn');
-      
-      document.querySelectorAll('.mode-btn').forEach(btn => {
-        btn.onclick = function() { Timer.setMode(this.dataset.mode); };
-      });
-      
-      if (playPauseBtn) playPauseBtn.onclick = function() { Timer.isRunning ? Timer.pause() : Timer.start(); };
-      if (resetBtn) resetBtn.onclick = function() { Timer.reset(); };
-      if (settingsBtn) settingsBtn.onclick = function() { overlay.style.display = 'flex'; };
-      if (closeBtn) closeBtn.onclick = function() { overlay.style.display = 'none'; };
-      if (overlay) overlay.onclick = function(e) { if (e.target === overlay) overlay.style.display = 'none'; };
-      
-      if (saveBtn) {
-        saveBtn.onclick = function() {
-          const settings = {
-            sessionTime: parseInt(document.getElementById('sessionTime').value) || 25,
-            shortBreakTime: parseInt(document.getElementById('shortBreakTime').value) || 5,
-            longBreakTime: parseInt(document.getElementById('longBreakTime').value) || 15,
-            customTime: parseInt(document.getElementById('customTime').value) || 30,
-            textColor: document.getElementById('textColor').value,
-            bgColor: document.getElementById('bgColor').value,
-            cardBgColor: document.getElementById('cardBgColor').value,
-            alarmSound: document.getElementById('alarmSoundSelect').value
-          };
+        
+        // Save tasks
+        function saveTasks() {
+          localStorage.setItem('pomodoro_tasks', JSON.stringify(tasks));
+        }
+        
+        // Update timer display
+        function updateDisplay() {
+          const mins = Math.floor(currentSeconds / 60);
+          const secs = currentSeconds % 60;
+          timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Play alarm
+        function playAlarm() {
+          try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const now = audioCtx.currentTime;
+            const gain = audioCtx.createGain();
+            gain.connect(audioCtx.destination);
+            gain.gain.setValueAtTime(0.3, now);
+            const osc = audioCtx.createOscillator();
+            osc.connect(gain);
+            osc.frequency.value = 880;
+            osc.type = 'sine';
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, now + 1);
+            osc.stop(now + 0.8);
+            audioCtx.resume();
+          } catch(e) {
+            console.log('Audio error:', e);
+          }
+        }
+        
+        // Finish timer
+        function finishTimer() {
+          if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+          }
+          isRunning = false;
+          playPauseText.innerText = 'Start';
+          playAlarm();
+          saveTimerState();
+        }
+        
+        // Timer tick
+        function tick() {
+          if (currentSeconds <= 0) {
+            if (isRunning) finishTimer();
+            return;
+          }
+          currentSeconds--;
+          updateDisplay();
+          if (currentSeconds === 0) finishTimer();
+          saveTimerState();
+        }
+        
+        // Start timer
+        function startTimer() {
+          if (timerInterval) clearInterval(timerInterval);
+          isRunning = true;
+          playPauseText.innerText = 'Pause';
+          timerInterval = setInterval(() => {
+            if (isRunning) tick();
+          }, 1000);
+          saveTimerState();
+        }
+        
+        // Pause timer
+        function pauseTimer() {
+          isRunning = false;
+          playPauseText.innerText = 'Start';
+          if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+          }
+          saveTimerState();
+        }
+        
+        // Reset timer
+        function resetTimer() {
+          pauseTimer();
+          setMode(currentMode);
+        }
+        
+        // Set mode
+        function setMode(mode) {
+          currentMode = mode;
+          let duration = sessionTime;
+          switch(mode) {
+            case 'session': duration = sessionTime; break;
+            case 'shortBreak': duration = shortBreakTime; break;
+            case 'longBreak': duration = longBreakTime; break;
+            case 'custom': duration = customTime; break;
+          }
+          currentSeconds = duration * 60;
+          updateDisplay();
+          playPauseText.innerText = 'Start';
+          isRunning = false;
           
-          Storage.saveSettings(settings);
-          localStorage.setItem('selected_alarm', settings.alarmSound);
-          
-          document.body.style.backgroundColor = settings.bgColor;
-          document.querySelector('.timer-card').style.backgroundColor = settings.cardBgColor;
-          document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => {
-            el.style.color = settings.textColor;
+          modeBtns.forEach(btn => {
+            if (btn.dataset.mode === mode) {
+              btn.classList.add('active');
+            } else {
+              btn.classList.remove('active');
+            }
           });
-          document.querySelector('.timer-digits').style.backgroundColor = settings.textColor;
+          saveTimerState();
+        }
+        
+        // Render tasks
+        function renderTasks() {
+          if (!taskListContainer) return;
+          taskListContainer.innerHTML = '';
           
-          Timer.updateDurations(settings.sessionTime, settings.shortBreakTime, settings.longBreakTime, settings.customTime);
-          overlay.style.display = 'none';
-        };
-      }
-      
-      const saved = Storage.loadSettings();
-      if (saved) {
-        document.body.style.backgroundColor = saved.bgColor;
-        document.querySelector('.timer-card').style.backgroundColor = saved.cardBgColor;
-        document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => {
-          el.style.color = saved.textColor;
+          const incomplete = tasks.filter(t => !t.completed);
+          const completed = tasks.filter(t => t.completed);
+          const sorted = [...incomplete, ...completed];
+          
+          if (sorted.length === 0) {
+            const empty = document.createElement('li');
+            empty.className = 'empty-tasks';
+            empty.innerText = 'No tasks yet — add something to focus on';
+            taskListContainer.appendChild(empty);
+            return;
+          }
+          
+          sorted.forEach(task => {
+            const li = document.createElement('li');
+            li.className = `task-item ${task.completed ? 'task-completed' : ''}`;
+            
+            const check = document.createElement('input');
+            check.type = 'checkbox';
+            check.className = 'task-check';
+            check.checked = task.completed;
+            check.onchange = () => {
+              task.completed = check.checked;
+              saveTasks();
+              renderTasks();
+            };
+            
+            const text = document.createElement('input');
+            text.type = 'text';
+            text.className = 'task-text';
+            text.value = task.text;
+            text.onblur = () => {
+              task.text = text.value.trim() || 'Untitled';
+              saveTasks();
+              renderTasks();
+            };
+            text.onkeypress = (e) => { if (e.key === 'Enter') text.blur(); };
+            
+            const del = document.createElement('button');
+            del.className = 'delete-task';
+            del.innerHTML = '×';
+            del.onclick = () => {
+              tasks = tasks.filter(t => t.id !== task.id);
+              saveTasks();
+              renderTasks();
+            };
+            
+            li.appendChild(check);
+            li.appendChild(text);
+            li.appendChild(del);
+            taskListContainer.appendChild(li);
+          });
+        }
+        
+        // Add task
+        function addTask() {
+          const text = taskInput.value.trim();
+          if (text === '') return;
+          tasks.push({ id: Date.now(), text: text, completed: false });
+          saveTasks();
+          taskInput.value = '';
+          renderTasks();
+        }
+        
+        // Event Listeners
+        if (playPauseBtn) {
+          playPauseBtn.onclick = function() {
+            if (isRunning) {
+              pauseTimer();
+            } else {
+              startTimer();
+            }
+          };
+        }
+        
+        if (resetBtn) resetBtn.onclick = resetTimer;
+        
+        if (settingsBtn) {
+          settingsBtn.onclick = function() {
+            // Load current settings into modal
+            document.getElementById('sessionTime').value = sessionTime;
+            document.getElementById('shortBreakTime').value = shortBreakTime;
+            document.getElementById('longBreakTime').value = longBreakTime;
+            document.getElementById('customTime').value = customTime;
+            settingsOverlay.style.display = 'flex';
+          };
+        }
+        
+        if (closeSettingsBtn) {
+          closeSettingsBtn.onclick = function() {
+            settingsOverlay.style.display = 'none';
+          };
+        }
+        
+        if (settingsOverlay) {
+          settingsOverlay.onclick = function(e) {
+            if (e.target === settingsOverlay) settingsOverlay.style.display = 'none';
+          };
+        }
+        
+        if (saveSettingsBtn) {
+          saveSettingsBtn.onclick = function() {
+            sessionTime = parseInt(document.getElementById('sessionTime').value) || 25;
+            shortBreakTime = parseInt(document.getElementById('shortBreakTime').value) || 5;
+            longBreakTime = parseInt(document.getElementById('longBreakTime').value) || 15;
+            customTime = parseInt(document.getElementById('customTime').value) || 30;
+            const textColor = document.getElementById('textColor').value;
+            const bgColor = document.getElementById('bgColor').value;
+            const cardBgColor = document.getElementById('cardBgColor').value;
+            const alarmSound = document.getElementById('alarmSoundSelect').value;
+            
+            localStorage.setItem('pomodoro_settings', JSON.stringify({
+              sessionTime, shortBreakTime, longBreakTime, customTime,
+              textColor, bgColor, cardBgColor, alarmSound
+            }));
+            
+            document.body.style.backgroundColor = bgColor;
+            document.querySelector('.timer-card').style.backgroundColor = cardBgColor;
+            document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => {
+              el.style.color = textColor;
+            });
+            document.querySelector('.timer-digits').style.backgroundColor = textColor;
+            
+            setMode(currentMode);
+            settingsOverlay.style.display = 'none';
+          };
+        }
+        
+        modeBtns.forEach(btn => {
+          btn.onclick = function() {
+            setMode(this.dataset.mode);
+          };
         });
+        
+        if (addTaskBtn) addTaskBtn.onclick = addTask;
+        if (taskInput) {
+          taskInput.onkeypress = function(e) {
+            if (e.key === 'Enter') addTask();
+          };
+        }
+        
+        // Initialize
+        loadSavedData();
+        setMode(currentMode);
+        renderTasks();
+        console.log('App initialized successfully');
       }
-    });
+    })();
   </script>
 </body>
 </html>
