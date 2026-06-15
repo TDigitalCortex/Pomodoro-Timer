@@ -1,4 +1,4 @@
-// Tasks module
+// Tasks module with priority and completed items moved to bottom
 const TaskManager = (function() {
   let tasks = [];
   let containerElement = null;
@@ -24,7 +24,13 @@ const TaskManager = (function() {
     
     containerElement.innerHTML = '';
     
-    if (tasks.length === 0) {
+    // Sort tasks: incomplete first, then completed
+    const sortedTasks = [...tasks].sort((a, b) => {
+      if (a.completed === b.completed) return 0;
+      return a.completed ? 1 : -1;
+    });
+    
+    if (sortedTasks.length === 0) {
       const emptyLi = document.createElement('li');
       emptyLi.className = 'empty-tasks';
       emptyLi.innerText = 'No tasks yet — add something to focus on';
@@ -32,7 +38,7 @@ const TaskManager = (function() {
       return;
     }
     
-    tasks.forEach(task => {
+    sortedTasks.forEach(task => {
       const li = document.createElement('li');
       li.className = `task-item ${task.completed ? 'task-completed' : ''}`;
       li.dataset.id = task.id;
@@ -61,6 +67,10 @@ const TaskManager = (function() {
         if (e.key === 'Enter') taskInput.blur();
       });
       
+      const prioritySpan = document.createElement('span');
+      prioritySpan.className = `priority-badge priority-${task.priority || 'medium'}`;
+      prioritySpan.innerText = (task.priority || 'medium').toUpperCase();
+      
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'delete-task';
       deleteBtn.innerHTML = '×';
@@ -73,26 +83,25 @@ const TaskManager = (function() {
       
       li.appendChild(checkBox);
       li.appendChild(taskInput);
+      li.appendChild(prioritySpan);
       li.appendChild(deleteBtn);
       containerElement.appendChild(li);
     });
   }
 
-  function addTask(taskText = 'New task') {
+  function addTask(taskText) {
+    if (!taskText || taskText.trim() === '') return;
+    
     const newId = Date.now();
-    tasks.unshift({
+    tasks.push({
       id: newId,
-      text: taskText,
+      text: taskText.trim(),
       completed: false,
+      priority: 'medium',
       createdAt: Date.now()
     });
     saveToStorage();
     render();
-    
-    setTimeout(() => {
-      const newTaskElement = containerElement.querySelector(`.task-item[data-id='${newId}'] .task-text`);
-      if (newTaskElement) newTaskElement.focus();
-    }, 20);
   }
 
   function deleteTask(taskId) {
@@ -105,12 +114,24 @@ const TaskManager = (function() {
     return [...tasks];
   }
 
-  function init(containerId, addButtonId) {
+  function init(containerId, addButtonId, inputId) {
     containerElement = document.getElementById(containerId);
     const addButton = document.getElementById(addButtonId);
+    const taskInput = document.getElementById(inputId);
     
-    if (addButton) {
-      addButton.addEventListener('click', () => addTask());
+    if (addButton && taskInput) {
+      addButton.addEventListener('click', () => {
+        addTask(taskInput.value);
+        taskInput.value = '';
+        taskInput.focus();
+      });
+      
+      taskInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          addTask(taskInput.value);
+          taskInput.value = '';
+        }
+      });
     }
     
     loadFromStorage();
@@ -128,66 +149,3 @@ const TaskManager = (function() {
     setOnTasksChanged
   };
 })();
-
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  TaskManager.init('taskListContainer', 'addTaskBtn');
-  
-  Timer.init({
-    display: 'timerDisplay',
-    playPauseText: 'playPauseText',
-    statusSpan: 'timerStatus',
-    workMinutes: 'workMinutes',
-    alarmSelect: 'alarmSoundSelect'
-  });
-  
-  Timer.setCallbacks({
-    onStatusChange: (status) => {
-      const statusSpan = document.getElementById('timerStatus');
-      if (statusSpan) {
-        switch(status) {
-          case 'focusing':
-            statusSpan.innerText = 'Focusing...';
-            break;
-          case 'paused':
-            statusSpan.innerText = 'Paused';
-            break;
-          case 'reset':
-            statusSpan.innerText = 'Reset - fresh pomodoro';
-            setTimeout(() => {
-              if (document.getElementById('timerStatus').innerText === 'Reset - fresh pomodoro')
-                document.getElementById('timerStatus').innerText = 'Ready';
-            }, 1800);
-            break;
-          case 'ready':
-            statusSpan.innerText = 'Ready for focus';
-            break;
-          default:
-            statusSpan.innerText = 'Focus session';
-        }
-      }
-    }
-  });
-  
-  const playPauseBtn = document.getElementById('playPauseBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const settingsToggleBtn = document.getElementById('settingsToggleBtn');
-  const settingsPanel = document.getElementById('settingsPanel');
-  
-  if (playPauseBtn) {
-    playPauseBtn.addEventListener('click', () => {
-      if (Timer.getIsRunning()) Timer.pause();
-      else Timer.start();
-    });
-  }
-  
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => Timer.reset());
-  }
-  
-  if (settingsToggleBtn && settingsPanel) {
-    settingsToggleBtn.addEventListener('click', () => {
-      settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
-    });
-  }
-});
