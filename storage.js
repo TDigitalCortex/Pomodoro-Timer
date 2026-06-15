@@ -8,7 +8,6 @@ const Storage = (function() {
       localStorage.setItem(TIMER_KEY, JSON.stringify(state));
       return true;
     } catch (e) {
-      console.error('Failed to save timer state:', e);
       return false;
     }
   }
@@ -18,7 +17,6 @@ const Storage = (function() {
       const saved = localStorage.getItem(TIMER_KEY);
       return saved ? JSON.parse(saved) : null;
     } catch (e) {
-      console.error('Failed to load timer state:', e);
       return null;
     }
   }
@@ -28,7 +26,6 @@ const Storage = (function() {
       localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
       return true;
     } catch (e) {
-      console.error('Failed to save tasks:', e);
       return false;
     }
   }
@@ -38,7 +35,6 @@ const Storage = (function() {
       const saved = localStorage.getItem(TASKS_KEY);
       return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      console.error('Failed to load tasks:', e);
       return [];
     }
   }
@@ -48,7 +44,6 @@ const Storage = (function() {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
       return true;
     } catch (e) {
-      console.error('Failed to save settings:', e);
       return false;
     }
   }
@@ -58,7 +53,6 @@ const Storage = (function() {
       const saved = localStorage.getItem(SETTINGS_KEY);
       return saved ? JSON.parse(saved) : null;
     } catch (e) {
-      console.error('Failed to load settings:', e);
       return null;
     }
   }
