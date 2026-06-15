@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>Pomodoro Timer</title>
   <style>
     * {
@@ -29,7 +29,7 @@
     }
 
     .timer-card {
-      max-width: 600px;
+      max-width: 650px;
       width: 100%;
       background: white;
       border-radius: 2rem;
@@ -38,6 +38,7 @@
       text-align: center;
     }
 
+    /* Mode Selector */
     .mode-selector {
       display: flex;
       gap: 0.8rem;
@@ -54,19 +55,22 @@
       cursor: pointer;
       font-size: 0.9rem;
       font-weight: 500;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
       color: #4a5568;
     }
 
     .mode-btn:hover {
       background: #e2e8f0;
+      transform: translateY(-2px);
     }
 
     .mode-btn.active {
       background: #667eea;
       color: white;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
 
+    /* Timer Display */
     .timer-circle {
       text-align: center;
       margin: 1rem 0;
@@ -75,20 +79,23 @@
     .timer-digits {
       font-size: 5rem;
       font-weight: 600;
-      font-family: monospace;
+      font-family: 'Courier New', monospace;
       background: #667eea;
       display: inline-block;
       padding: 0.5rem 2rem;
       border-radius: 80px;
       color: white;
       letter-spacing: 4px;
+      transition: all 0.3s ease;
     }
 
+    /* Action Buttons - Responsive */
     .action-buttons {
       display: flex;
       justify-content: center;
       gap: 1.5rem;
       margin: 1.5rem 0;
+      flex-wrap: wrap;
     }
 
     .icon-btn {
@@ -97,24 +104,32 @@
       cursor: pointer;
       padding: 0.7rem 1.5rem;
       border-radius: 3rem;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
       display: inline-flex;
       align-items: center;
       gap: 8px;
       font-weight: 500;
       color: #1f2e3a;
       font-size: 1rem;
+      min-width: 100px;
+      justify-content: center;
     }
 
     .btn-icon {
       font-size: 1.2rem;
+      transition: font-size 0.3s ease;
     }
 
     .icon-btn:hover {
       background: #e6edf4;
-      transform: scale(0.98);
+      transform: scale(0.97);
     }
 
+    .icon-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Tasks Section */
     .tasks-section {
       margin-top: 2rem;
       border-top: 2px solid #edeff4;
@@ -135,6 +150,7 @@
       display: flex;
       gap: 0.8rem;
       margin-bottom: 1.5rem;
+      flex-wrap: wrap;
     }
 
     .task-input-field {
@@ -145,10 +161,12 @@
       font-size: 0.9rem;
       font-family: inherit;
       outline: none;
+      min-width: 150px;
     }
 
     .task-input-field:focus {
       border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
     }
 
     .add-task-btn {
@@ -160,10 +178,13 @@
       font-size: 0.9rem;
       font-weight: 500;
       cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
     }
 
     .add-task-btn:hover {
       background: #5a67d8;
+      transform: translateY(-2px);
     }
 
     .task-list {
@@ -181,12 +202,14 @@
       align-items: center;
       gap: 12px;
       border: 1px solid #eef2f6;
+      transition: all 0.2s ease;
     }
 
     .task-check {
       width: 1.2rem;
       height: 1.2rem;
       cursor: pointer;
+      flex-shrink: 0;
     }
 
     .task-text {
@@ -198,6 +221,7 @@
       font-family: inherit;
       color: #1a2c38;
       text-align: left;
+      min-width: 0;
     }
 
     .task-text:focus {
@@ -222,6 +246,8 @@
       align-items: center;
       justify-content: center;
       border-radius: 50%;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
     }
 
     .delete-task:hover {
@@ -239,6 +265,7 @@
       border: 1px dashed #dce5ec;
     }
 
+    /* Settings Modal */
     .settings-overlay {
       display: none;
       position: fixed;
@@ -286,6 +313,7 @@
       align-items: center;
       justify-content: center;
       border-radius: 50%;
+      transition: all 0.2s ease;
     }
 
     .settings-close-btn:hover {
@@ -315,6 +343,7 @@
       align-items: center;
       margin-bottom: 0.8rem;
       gap: 1rem;
+      flex-wrap: wrap;
     }
 
     .settings-row label {
@@ -360,17 +389,142 @@
       cursor: pointer;
       font-size: 0.9rem;
       font-weight: 500;
+      transition: all 0.2s ease;
     }
 
     .settings-save-btn:hover {
       background: #5a67d8;
+      transform: translateY(-2px);
     }
 
-    @media (max-width: 600px) {
-      .timer-card { padding: 1.2rem; }
-      .timer-digits { font-size: 3rem; padding: 0.3rem 1rem; }
-      .mode-btn { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
-      .icon-btn { padding: 0.5rem 1rem; }
+    /* ========== RESPONSIVE DESIGN ========== */
+    @media (max-width: 768px) {
+      .timer-card {
+        padding: 1.5rem;
+      }
+      
+      .timer-digits {
+        font-size: 3.5rem;
+        padding: 0.4rem 1.2rem;
+        letter-spacing: 2px;
+      }
+      
+      .mode-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+      }
+      
+      .action-buttons {
+        gap: 1rem;
+      }
+      
+      .icon-btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+        min-width: 85px;
+      }
+      
+      .btn-icon {
+        font-size: 1rem;
+      }
+    }
+
+    @media (max-width: 550px) {
+      .timer-card {
+        padding: 1.2rem;
+      }
+      
+      .timer-digits {
+        font-size: 2.5rem;
+        padding: 0.3rem 0.8rem;
+        letter-spacing: 1px;
+      }
+      
+      .mode-selector {
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+      
+      .mode-btn {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.75rem;
+      }
+      
+      .action-buttons {
+        gap: 0.7rem;
+        margin: 1rem 0;
+      }
+      
+      .icon-btn {
+        padding: 0.5rem 0.9rem;
+        font-size: 0.8rem;
+        min-width: 70px;
+        gap: 5px;
+      }
+      
+      .btn-icon {
+        font-size: 0.9rem;
+      }
+      
+      .tasks-header h3 {
+        font-size: 1rem;
+      }
+      
+      .task-input-container {
+        gap: 0.5rem;
+      }
+      
+      .task-input-field {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.85rem;
+      }
+      
+      .add-task-btn {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.85rem;
+      }
+      
+      .task-text {
+        font-size: 0.85rem;
+      }
+      
+      .settings-modal {
+        width: 95%;
+        max-width: 95%;
+      }
+      
+      .settings-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+      
+      .settings-row input {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .timer-digits {
+        font-size: 2rem;
+        padding: 0.2rem 0.6rem;
+      }
+      
+      .icon-btn {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.75rem;
+        min-width: 60px;
+      }
+      
+      .btn-icon {
+        font-size: 0.8rem;
+      }
+      
+      .mode-btn {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.7rem;
+      }
     }
   </style>
 </head>
@@ -491,8 +645,6 @@
       }
 
       function init() {
-        console.log('App initializing...');
-        
         // DOM Elements
         const timerDisplay = document.getElementById('timerDisplay');
         const playPauseText = document.getElementById('playPauseText');
@@ -594,9 +746,7 @@
             gain.gain.exponentialRampToValueAtTime(0.00001, now + 1);
             osc.stop(now + 0.8);
             audioCtx.resume();
-          } catch(e) {
-            console.log('Audio error:', e);
-          }
+          } catch(e) {}
         }
         
         // Finish timer
@@ -759,7 +909,6 @@
         
         if (settingsBtn) {
           settingsBtn.onclick = function() {
-            // Load current settings into modal
             document.getElementById('sessionTime').value = sessionTime;
             document.getElementById('shortBreakTime').value = shortBreakTime;
             document.getElementById('longBreakTime').value = longBreakTime;
@@ -825,7 +974,6 @@
         loadSavedData();
         setMode(currentMode);
         renderTasks();
-        console.log('App initialized successfully');
       }
     })();
   </script>
