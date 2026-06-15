@@ -1,179 +1,145 @@
-const Timer = (function() {
-  let timerInterval = null;
-  let currentSeconds = 25 * 60;
-  let isRunning = false;
-  let currentMode = 'session';
-  
-  let sessionTime = 25;
-  let shortBreakTime = 5;
-  let longBreakTime = 15;
-  let customTime = 30;
-  
-  let displayElement = null;
-  let playPauseTextElement = null;
-  let modeButtons = null;
+const Timer = {
+  timerInterval: null,
+  currentSeconds: 25 * 60,
+  isRunning: false,
+  currentMode: 'session',
+  sessionTime: 25,
+  shortBreakTime: 5,
+  longBreakTime: 15,
+  customTime: 30,
+  displayElement: null,
+  playPauseTextElement: null,
 
-  function updateDisplay() {
-    if (!displayElement) return;
-    const mins = Math.floor(currentSeconds / 60);
-    const secs = currentSeconds % 60;
-    displayElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }
+  updateDisplay() {
+    if (!this.displayElement) return;
+    const mins = Math.floor(this.currentSeconds / 60);
+    const secs = this.currentSeconds % 60;
+    this.displayElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  },
 
-  function playAlarm() {
+  playAlarm() {
     try {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      const audioCtx = new AudioContextClass();
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const now = audioCtx.currentTime;
-      const gainNode = audioCtx.createGain();
-      gainNode.connect(audioCtx.destination);
-      gainNode.gain.setValueAtTime(0.3, now);
+      const gain = audioCtx.createGain();
+      gain.connect(audioCtx.destination);
+      gain.gain.setValueAtTime(0.3, now);
       const osc = audioCtx.createOscillator();
-      osc.connect(gainNode);
+      osc.connect(gain);
       osc.frequency.value = 880;
       osc.type = 'sine';
       osc.start();
-      gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 1);
+      gain.gain.exponentialRampToValueAtTime(0.00001, now + 1);
       osc.stop(now + 0.8);
       audioCtx.resume();
     } catch(e) {}
-  }
+  },
 
-  function finishTimer() {
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
+  finishTimer() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
     }
-    isRunning = false;
-    if (playPauseTextElement) playPauseTextElement.innerText = 'Start';
-    playAlarm();
-    saveState();
-  }
+    this.isRunning = false;
+    if (this.playPauseTextElement) this.playPauseTextElement.innerText = 'Start';
+    this.playAlarm();
+    this.saveState();
+  },
 
-  function tick() {
-    if (currentSeconds <= 0) {
-      if (isRunning) finishTimer();
+  tick() {
+    if (this.currentSeconds <= 0) {
+      if (this.isRunning) this.finishTimer();
       return;
     }
-    currentSeconds--;
-    updateDisplay();
-    if (currentSeconds === 0) finishTimer();
-    saveState();
-  }
+    this.currentSeconds--;
+    this.updateDisplay();
+    if (this.currentSeconds === 0) this.finishTimer();
+    this.saveState();
+  },
 
-  function start() {
-    if (timerInterval) clearInterval(timerInterval);
-    isRunning = true;
-    if (playPauseTextElement) playPauseTextElement.innerText = 'Pause';
-    timerInterval = setInterval(() => {
-      if (isRunning) tick();
+  start() {
+    if (this.timerInterval) clearInterval(this.timerInterval);
+    this.isRunning = true;
+    if (this.playPauseTextElement) this.playPauseTextElement.innerText = 'Pause';
+    this.timerInterval = setInterval(() => {
+      if (this.isRunning) this.tick();
     }, 1000);
-    saveState();
-  }
+    this.saveState();
+  },
 
-  function pause() {
-    isRunning = false;
-    if (playPauseTextElement) playPauseTextElement.innerText = 'Start';
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
+  pause() {
+    this.isRunning = false;
+    if (this.playPauseTextElement) this.playPauseTextElement.innerText = 'Start';
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
     }
-    saveState();
-  }
+    this.saveState();
+  },
 
-  function reset() {
-    pause();
-    setMode(currentMode);
-  }
+  reset() {
+    this.pause();
+    this.setMode(this.currentMode);
+  },
 
-  function setMode(mode) {
-    currentMode = mode;
-    let duration = sessionTime;
-    
+  setMode(mode) {
+    this.currentMode = mode;
+    let duration = this.sessionTime;
     switch(mode) {
-      case 'session':
-        duration = sessionTime;
-        break;
-      case 'shortBreak':
-        duration = shortBreakTime;
-        break;
-      case 'longBreak':
-        duration = longBreakTime;
-        break;
-      case 'custom':
-        duration = customTime;
-        break;
+      case 'session': duration = this.sessionTime; break;
+      case 'shortBreak': duration = this.shortBreakTime; break;
+      case 'longBreak': duration = this.longBreakTime; break;
+      case 'custom': duration = this.customTime; break;
     }
+    this.currentSeconds = duration * 60;
+    this.updateDisplay();
+    if (this.playPauseTextElement) this.playPauseTextElement.innerText = 'Start';
+    this.isRunning = false;
     
-    currentSeconds = duration * 60;
-    updateDisplay();
-    if (playPauseTextElement) playPauseTextElement.innerText = 'Start';
-    isRunning = false;
-    
-    if (modeButtons) {
-      modeButtons.forEach(btn => {
-        if (btn.dataset.mode === mode) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-    }
-    
-    saveState();
-  }
-
-  function updateDurations(session, short, long, custom) {
-    sessionTime = session;
-    shortBreakTime = short;
-    longBreakTime = long;
-    customTime = custom;
-    setMode(currentMode);
-  }
-
-  function getIsRunning() {
-    return isRunning;
-  }
-
-  function saveState() {
-    Storage.saveTimerState({
-      currentSeconds: currentSeconds,
-      currentMode: currentMode,
-      sessionTime: sessionTime,
-      shortBreakTime: shortBreakTime,
-      longBreakTime: longBreakTime,
-      customTime: customTime
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      if (btn.dataset.mode === mode) btn.classList.add('active');
+      else btn.classList.remove('active');
     });
-  }
+    
+    this.saveState();
+  },
 
-  function loadState() {
+  updateDurations(session, short, long, custom) {
+    this.sessionTime = session;
+    this.shortBreakTime = short;
+    this.longBreakTime = long;
+    this.customTime = custom;
+    this.setMode(this.currentMode);
+  },
+
+  saveState() {
+    Storage.saveTimerState({
+      currentSeconds: this.currentSeconds,
+      currentMode: this.currentMode,
+      sessionTime: this.sessionTime,
+      shortBreakTime: this.shortBreakTime,
+      longBreakTime: this.longBreakTime,
+      customTime: this.customTime
+    });
+  },
+
+  loadState() {
     const saved = Storage.loadTimerState();
     if (saved) {
-      currentSeconds = saved.currentSeconds || 25 * 60;
-      currentMode = saved.currentMode || 'session';
-      sessionTime = saved.sessionTime || 25;
-      shortBreakTime = saved.shortBreakTime || 5;
-      longBreakTime = saved.longBreakTime || 15;
-      customTime = saved.customTime || 30;
-      updateDisplay();
+      this.currentSeconds = saved.currentSeconds || 25 * 60;
+      this.currentMode = saved.currentMode || 'session';
+      this.sessionTime = saved.sessionTime || 25;
+      this.shortBreakTime = saved.shortBreakTime || 5;
+      this.longBreakTime = saved.longBreakTime || 15;
+      this.customTime = saved.customTime || 30;
+      this.updateDisplay();
     }
-  }
+  },
 
-  function init(displayId, playPauseTextId) {
-    displayElement = document.getElementById(displayId);
-    playPauseTextElement = document.getElementById(playPauseTextId);
-    modeButtons = document.querySelectorAll('.mode-btn');
-    loadState();
-    setMode(currentMode);
+  init(displayId, playPauseTextId) {
+    this.displayElement = document.getElementById(displayId);
+    this.playPauseTextElement = document.getElementById(playPauseTextId);
+    this.loadState();
+    this.setMode(this.currentMode);
   }
-
-  return {
-    init,
-    start,
-    pause,
-    reset,
-    setMode,
-    updateDurations,
-    getIsRunning
-  };
-})();
+};
