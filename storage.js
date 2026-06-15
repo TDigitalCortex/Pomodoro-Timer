@@ -1,4 +1,3 @@
-// Storage module - Local persistence
 const Storage = (function() {
   const TIMER_KEY = 'pomodoro_timer_state';
   const TASKS_KEY = 'pomodoro_tasks';
@@ -6,10 +5,7 @@ const Storage = (function() {
 
   function saveTimerState(state) {
     try {
-      localStorage.setItem(TIMER_KEY, JSON.stringify({
-        ...state,
-        lastSaved: Date.now()
-      }));
+      localStorage.setItem(TIMER_KEY, JSON.stringify(state));
       return true;
     } catch (e) {
       console.error('Failed to save timer state:', e);
@@ -29,11 +25,7 @@ const Storage = (function() {
 
   function saveTasks(tasks) {
     try {
-      localStorage.setItem(TASKS_KEY, JSON.stringify({
-        tasks: tasks,
-        version: '1.0',
-        updatedAt: Date.now()
-      }));
+      localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
       return true;
     } catch (e) {
       console.error('Failed to save tasks:', e);
@@ -44,11 +36,7 @@ const Storage = (function() {
   function loadTasks() {
     try {
       const saved = localStorage.getItem(TASKS_KEY);
-      if (saved) {
-        const data = JSON.parse(saved);
-        return data.tasks || [];
-      }
-      return [];
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
       console.error('Failed to load tasks:', e);
       return [];
@@ -75,19 +63,12 @@ const Storage = (function() {
     }
   }
 
-  function clearAllData() {
-    localStorage.removeItem(TIMER_KEY);
-    localStorage.removeItem(TASKS_KEY);
-    localStorage.removeItem(SETTINGS_KEY);
-  }
-
   return {
     saveTimerState,
     loadTimerState,
     saveTasks,
     loadTasks,
     saveSettings,
-    loadSettings,
-    clearAllData
+    loadSettings
   };
 })();
