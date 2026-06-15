@@ -341,6 +341,7 @@
       font-weight: 500;
       color: #2d3748;
       font-size: 0.9rem;
+      min-width: 140px;
     }
 
     .settings-row input {
@@ -352,8 +353,9 @@
     }
 
     .settings-row input[type="color"] {
-      width: 60px;
-      height: 35px;
+      width: 70px;
+      height: 40px;
+      cursor: pointer;
     }
 
     .settings-group select {
@@ -560,6 +562,7 @@
     </div>
   </div>
 
+  <!-- Settings Modal with ALL Color Options -->
   <div id="settingsOverlay" class="settings-overlay">
     <div class="settings-modal">
       <div class="settings-modal-header">
@@ -588,14 +591,46 @@
         </div>
 
         <div class="settings-group">
-          <h3>Appearance</h3>
+          <h3>Timer Colors</h3>
           <div class="settings-row">
-            <label>Text Color:</label>
-            <input type="color" id="textColor" value="#1a2c38">
+            <label>Timer Text Color:</label>
+            <input type="color" id="timerTextColor" value="#ffffff">
           </div>
           <div class="settings-row">
-            <label>Background Color:</label>
-            <input type="color" id="bgColor" value="#667eea">
+            <label>Timer Background:</label>
+            <input type="color" id="timerBgColor" value="#667eea">
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>Button Colors</h3>
+          <div class="settings-row">
+            <label>Primary Button Color:</label>
+            <input type="color" id="primaryBtnColor" value="#667eea">
+          </div>
+          <div class="settings-row">
+            <label>Primary Button Hover:</label>
+            <input type="color" id="primaryBtnHoverColor" value="#5a67d8">
+          </div>
+          <div class="settings-row">
+            <label>Action Button Color:</label>
+            <input type="color" id="actionBtnColor" value="#f2f5f9">
+          </div>
+          <div class="settings-row">
+            <label>Action Button Text:</label>
+            <input type="color" id="actionBtnTextColor" value="#1f2e3a">
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>Theme Colors</h3>
+          <div class="settings-row">
+            <label>Task Text Color:</label>
+            <input type="color" id="taskTextColor" value="#1a2c38">
+          </div>
+          <div class="settings-row">
+            <label>Page Background:</label>
+            <input type="color" id="pageBgColor" value="#667eea">
           </div>
           <div class="settings-row">
             <label>Card Background:</label>
@@ -655,6 +690,17 @@
         let customTime = 30;
         let tasks = [];
         
+        // Color values
+        let timerTextColor = '#ffffff';
+        let timerBgColor = '#667eea';
+        let primaryBtnColor = '#667eea';
+        let primaryBtnHoverColor = '#5a67d8';
+        let actionBtnColor = '#f2f5f9';
+        let actionBtnTextColor = '#1f2e3a';
+        let taskTextColor = '#1a2c38';
+        let pageBgColor = '#667eea';
+        let cardBgColor = '#ffffff';
+        
         function loadSavedData() {
           const savedTimer = localStorage.getItem('pomodoro_timer');
           if (savedTimer) {
@@ -679,13 +725,58 @@
             shortBreakTime = settings.shortBreakTime || 5;
             longBreakTime = settings.longBreakTime || 15;
             customTime = settings.customTime || 30;
-            if (settings.bgColor) document.body.style.backgroundColor = settings.bgColor;
-            if (settings.cardBgColor) document.querySelector('.timer-card').style.backgroundColor = settings.cardBgColor;
-            if (settings.textColor) {
-              document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => el.style.color = settings.textColor);
-              document.querySelector('.timer-digits').style.backgroundColor = settings.textColor;
-            }
+            timerTextColor = settings.timerTextColor || '#ffffff';
+            timerBgColor = settings.timerBgColor || '#667eea';
+            primaryBtnColor = settings.primaryBtnColor || '#667eea';
+            primaryBtnHoverColor = settings.primaryBtnHoverColor || '#5a67d8';
+            actionBtnColor = settings.actionBtnColor || '#f2f5f9';
+            actionBtnTextColor = settings.actionBtnTextColor || '#1f2e3a';
+            taskTextColor = settings.taskTextColor || '#1a2c38';
+            pageBgColor = settings.pageBgColor || '#667eea';
+            cardBgColor = settings.cardBgColor || '#ffffff';
           }
+          
+          applyColors();
+        }
+        
+        function applyColors() {
+          document.body.style.backgroundColor = pageBgColor;
+          document.querySelector('.timer-card').style.backgroundColor = cardBgColor;
+          timerDisplay.style.color = timerTextColor;
+          timerDisplay.style.backgroundColor = timerBgColor;
+          
+          document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => {
+            el.style.color = taskTextColor;
+          });
+          
+          if (addTaskBtn) {
+            addTaskBtn.style.backgroundColor = primaryBtnColor;
+          }
+          if (saveSettingsBtn) {
+            saveSettingsBtn.style.backgroundColor = primaryBtnColor;
+          }
+          
+          const style = document.createElement('style');
+          style.textContent = `
+            .add-task-btn:hover, .settings-save-btn:hover {
+              background-color: ${primaryBtnHoverColor} !important;
+            }
+            .mode-btn.active {
+              background-color: ${primaryBtnColor} !important;
+            }
+            .task-input-field:focus {
+              border-color: ${primaryBtnColor} !important;
+            }
+          `;
+          document.head.appendChild(style);
+          
+          const actionBtns = [playPauseBtn, resetBtn, settingsBtn];
+          actionBtns.forEach(btn => {
+            if (btn) {
+              btn.style.backgroundColor = actionBtnColor;
+              btn.style.color = actionBtnTextColor;
+            }
+          });
         }
         
         function saveTimerState() {
@@ -832,6 +923,7 @@
             text.type = 'text';
             text.className = 'task-text';
             text.value = task.text;
+            text.style.color = taskTextColor;
             text.onblur = () => {
               task.text = text.value.trim() || 'Untitled';
               saveTasks();
@@ -879,6 +971,15 @@
             document.getElementById('shortBreakTime').value = shortBreakTime;
             document.getElementById('longBreakTime').value = longBreakTime;
             document.getElementById('customTime').value = customTime;
+            document.getElementById('timerTextColor').value = timerTextColor;
+            document.getElementById('timerBgColor').value = timerBgColor;
+            document.getElementById('primaryBtnColor').value = primaryBtnColor;
+            document.getElementById('primaryBtnHoverColor').value = primaryBtnHoverColor;
+            document.getElementById('actionBtnColor').value = actionBtnColor;
+            document.getElementById('actionBtnTextColor').value = actionBtnTextColor;
+            document.getElementById('taskTextColor').value = taskTextColor;
+            document.getElementById('pageBgColor').value = pageBgColor;
+            document.getElementById('cardBgColor').value = cardBgColor;
             settingsOverlay.style.display = 'flex';
           };
         }
@@ -901,24 +1002,28 @@
             shortBreakTime = parseInt(document.getElementById('shortBreakTime').value) || 5;
             longBreakTime = parseInt(document.getElementById('longBreakTime').value) || 15;
             customTime = parseInt(document.getElementById('customTime').value) || 30;
-            const textColor = document.getElementById('textColor').value;
-            const bgColor = document.getElementById('bgColor').value;
-            const cardBgColor = document.getElementById('cardBgColor').value;
+            
+            timerTextColor = document.getElementById('timerTextColor').value;
+            timerBgColor = document.getElementById('timerBgColor').value;
+            primaryBtnColor = document.getElementById('primaryBtnColor').value;
+            primaryBtnHoverColor = document.getElementById('primaryBtnHoverColor').value;
+            actionBtnColor = document.getElementById('actionBtnColor').value;
+            actionBtnTextColor = document.getElementById('actionBtnTextColor').value;
+            taskTextColor = document.getElementById('taskTextColor').value;
+            pageBgColor = document.getElementById('pageBgColor').value;
+            cardBgColor = document.getElementById('cardBgColor').value;
             const alarmSound = document.getElementById('alarmSoundSelect').value;
             
             localStorage.setItem('pomodoro_settings', JSON.stringify({
               sessionTime, shortBreakTime, longBreakTime, customTime,
-              textColor, bgColor, cardBgColor, alarmSound
+              timerTextColor, timerBgColor,
+              primaryBtnColor, primaryBtnHoverColor, actionBtnColor, actionBtnTextColor,
+              taskTextColor, pageBgColor, cardBgColor, alarmSound
             }));
             
-            document.body.style.backgroundColor = bgColor;
-            document.querySelector('.timer-card').style.backgroundColor = cardBgColor;
-            document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => {
-              el.style.color = textColor;
-            });
-            document.querySelector('.timer-digits').style.backgroundColor = textColor;
-            
+            applyColors();
             setMode(currentMode);
+            renderTasks();
             settingsOverlay.style.display = 'none';
           };
         }
