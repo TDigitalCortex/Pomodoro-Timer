@@ -93,6 +93,7 @@
       gap: 1.5rem;
       margin: 1.5rem 0;
       transition: all 0.3s ease;
+      flex-wrap: wrap;
     }
 
     .icon-btn {
@@ -108,7 +109,6 @@
       font-weight: 500;
       color: #1f2e3a;
       font-size: 1rem;
-      flex: 0 1 auto;
       justify-content: center;
     }
 
@@ -389,8 +389,9 @@
       transform: translateY(-2px);
     }
 
-    /* ========== RESPONSIVE BUTTON RESIZING (REVERTED) ========== */
+    /* ========== RESPONSIVE DESIGN - BUTTONS GET SMALLER AND STACK ========== */
     
+    /* Tablet (768px and below) */
     @media (max-width: 768px) {
       .timer-card {
         padding: 1.5rem;
@@ -420,28 +421,35 @@
       }
     }
     
-    @media (max-width: 600px) {
+    /* Mobile (650px and below) - buttons stack and get smaller */
+    @media (max-width: 650px) {
       .action-buttons {
         flex-direction: column;
-        gap: 0.8rem;
         align-items: center;
+        gap: 0.8rem;
       }
       
       .icon-btn {
-        width: 100%;
-        max-width: 200px;
-        padding: 0.7rem 1rem;
-        font-size: 0.9rem;
-        justify-content: center;
+        width: auto;
+        min-width: 140px;
+        padding: 0.6rem 1.1rem;
+        font-size: 0.85rem;
       }
       
       .btn-icon {
-        font-size: 1rem;
+        font-size: 0.95rem;
+      }
+    }
+    
+    /* Small Mobile (550px and below) - buttons get even smaller */
+    @media (max-width: 550px) {
+      .timer-card {
+        padding: 1.2rem;
       }
       
       .timer-digits {
-        font-size: 2.8rem;
-        padding: 0.3rem 1rem;
+        font-size: 3rem;
+        padding: 0.35rem 1rem;
       }
       
       .mode-selector {
@@ -453,6 +461,16 @@
         font-size: 0.8rem;
       }
       
+      .icon-btn {
+        min-width: 120px;
+        padding: 0.55rem 1rem;
+        font-size: 0.8rem;
+      }
+      
+      .btn-icon {
+        font-size: 0.9rem;
+      }
+      
       .task-input-container {
         flex-direction: column;
         gap: 0.8rem;
@@ -460,29 +478,28 @@
       
       .add-task-btn {
         width: 100%;
-        padding: 0.7rem;
+        padding: 0.6rem;
+        font-size: 0.85rem;
       }
     }
     
+    /* Mobile (480px and below) - even smaller buttons */
     @media (max-width: 480px) {
-      .timer-card {
-        padding: 1rem;
-      }
-      
       .timer-digits {
-        font-size: 2.2rem;
-        padding: 0.25rem 0.8rem;
-        letter-spacing: 1px;
+        font-size: 2.5rem;
+        padding: 0.3rem 0.9rem;
+        letter-spacing: 2px;
       }
       
       .icon-btn {
-        max-width: 180px;
-        padding: 0.6rem 0.8rem;
-        font-size: 0.85rem;
+        min-width: 110px;
+        padding: 0.5rem 0.9rem;
+        font-size: 0.75rem;
+        gap: 6px;
       }
       
       .btn-icon {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
       }
       
       .mode-btn {
@@ -501,20 +518,60 @@
       }
     }
     
-    @media (max-width: 380px) {
+    /* Extra Small (400px and below) - smallest buttons */
+    @media (max-width: 400px) {
       .timer-digits {
-        font-size: 1.8rem;
-        padding: 0.2rem 0.6rem;
+        font-size: 2rem;
+        padding: 0.25rem 0.7rem;
+        letter-spacing: 1px;
       }
       
       .icon-btn {
-        max-width: 150px;
+        min-width: 100px;
+        padding: 0.45rem 0.8rem;
+        font-size: 0.7rem;
+        gap: 5px;
+      }
+      
+      .btn-icon {
+        font-size: 0.8rem;
+      }
+      
+      .mode-btn {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.7rem;
+      }
+      
+      .task-input-field {
         padding: 0.5rem 0.7rem;
         font-size: 0.8rem;
       }
       
+      .add-task-btn {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.8rem;
+      }
+      
+      .task-text {
+        font-size: 0.8rem;
+      }
+    }
+    
+    /* Tiny (340px and below) */
+    @media (max-width: 340px) {
+      .icon-btn {
+        min-width: 90px;
+        padding: 0.4rem 0.7rem;
+        font-size: 0.65rem;
+      }
+      
       .btn-icon {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
+      }
+      
+      .timer-digits {
+        font-size: 1.8rem;
+        padding: 0.2rem 0.6rem;
       }
     }
   </style>
