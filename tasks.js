@@ -1,21 +1,14 @@
-// Tasks module with priority and completed items moved to bottom
 const TaskManager = (function() {
   let tasks = [];
   let containerElement = null;
-  let onTasksChangedCallback = null;
+  let taskInputElement = null;
 
   function saveToStorage() {
     Storage.saveTasks(tasks);
-    if (onTasksChangedCallback) onTasksChangedCallback(tasks);
   }
 
   function loadFromStorage() {
-    const stored = Storage.loadTasks();
-    if (stored && stored.length) {
-      tasks = stored;
-    } else {
-      tasks = [];
-    }
+    tasks = Storage.loadTasks();
     render();
   }
 
@@ -24,11 +17,9 @@ const TaskManager = (function() {
     
     containerElement.innerHTML = '';
     
-    // Sort tasks: incomplete first, then completed
-    const sortedTasks = [...tasks].sort((a, b) => {
-      if (a.completed === b.completed) return 0;
-      return a.completed ? 1 : -1;
-    });
+    const incompleteTasks = tasks.filter(t => !t.completed);
+    const completedTasks = tasks.filter(t => t.completed);
+    const sortedTasks = [...incompleteTasks, ...completedTasks];
     
     if (sortedTasks.length === 0) {
       const emptyLi = document.createElement('li');
@@ -53,28 +44,22 @@ const TaskManager = (function() {
         render();
       });
       
-      const taskInput = document.createElement('input');
-      taskInput.type = 'text';
-      taskInput.className = 'task-text';
-      taskInput.value = task.text;
-      taskInput.addEventListener('blur', (e) => {
-        const newText = e.target.value.trim();
-        if (newText) task.text = newText;
+      const taskText = document.createElement('input');
+      taskText.type = 'text';
+      taskText.className = 'task-text';
+      taskText.value = task.text;
+      taskText.addEventListener('blur', (e) => {
+        task.text = e.target.value.trim() || 'Untitled';
         saveToStorage();
         render();
       });
-      taskInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') taskInput.blur();
+      taskText.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') taskText.blur();
       });
-      
-      const prioritySpan = document.createElement('span');
-      prioritySpan.className = `priority-badge priority-${task.priority || 'medium'}`;
-      prioritySpan.innerText = (task.priority || 'medium').toUpperCase();
       
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'delete-task';
       deleteBtn.innerHTML = '×';
-      deleteBtn.title = 'Delete task';
       deleteBtn.addEventListener('click', () => {
         tasks = tasks.filter(t => t.id !== task.id);
         saveToStorage();
@@ -82,70 +67,45 @@ const TaskManager = (function() {
       });
       
       li.appendChild(checkBox);
-      li.appendChild(taskInput);
-      li.appendChild(prioritySpan);
+      li.appendChild(taskText);
       li.appendChild(deleteBtn);
       containerElement.appendChild(li);
     });
   }
 
-  function addTask(taskText) {
-    if (!taskText || taskText.trim() === '') return;
+  function addTask() {
+    const text = taskInputElement.value.trim();
+    if (text === '') return;
     
-    const newId = Date.now();
     tasks.push({
-      id: newId,
-      text: taskText.trim(),
-      completed: false,
-      priority: 'medium',
-      createdAt: Date.now()
+      id: Date.now(),
+      text: text,
+      completed: false
     });
     saveToStorage();
+    taskInputElement.value = '';
     render();
-  }
-
-  function deleteTask(taskId) {
-    tasks = tasks.filter(t => t.id !== taskId);
-    saveToStorage();
-    render();
-  }
-
-  function getAllTasks() {
-    return [...tasks];
   }
 
   function init(containerId, addButtonId, inputId) {
     containerElement = document.getElementById(containerId);
+    taskInputElement = document.getElementById(inputId);
     const addButton = document.getElementById(addButtonId);
-    const taskInput = document.getElementById(inputId);
     
-    if (addButton && taskInput) {
-      addButton.addEventListener('click', () => {
-        addTask(taskInput.value);
-        taskInput.value = '';
-        taskInput.focus();
-      });
-      
-      taskInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-          addTask(taskInput.value);
-          taskInput.value = '';
-        }
+    if (addButton) {
+      addButton.addEventListener('click', addTask);
+    }
+    
+    if (taskInputElement) {
+      taskInputElement.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addTask();
       });
     }
     
     loadFromStorage();
   }
 
-  function setOnTasksChanged(callback) {
-    onTasksChangedCallback = callback;
-  }
-
   return {
-    init,
-    addTask,
-    deleteTask,
-    getAllTasks,
-    setOnTasksChanged
+    init
   };
 })();
