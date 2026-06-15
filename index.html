@@ -38,7 +38,7 @@
       text-align: center;
     }
 
-    /* Mode Selector - Original with added All button */
+    /* Mode Selector */
     .mode-selector {
       display: flex;
       gap: 0.8rem;
@@ -127,7 +127,7 @@
       transform: scale(0.95);
     }
 
-    /* Mini Status Bar - Shows all 4 timers status */
+    /* Status Bar - Shows all 4 timers */
     .status-bar {
       display: flex;
       justify-content: space-between;
@@ -472,13 +472,12 @@
 <body>
   <div class="timer-container">
     <div class="timer-card">
-      <!-- Mode Selector with ALL button -->
+      <!-- Mode Selector (No All button) -->
       <div class="mode-selector">
-        <button class="mode-btn" data-mode="session">Session</button>
-        <button class="mode-btn" data-mode="shortBreak">Short Break</button>
-        <button class="mode-btn" data-mode="longBreak">Long Break</button>
-        <button class="mode-btn" data-mode="custom">Custom</button>
-        <button class="mode-btn" data-mode="all">All</button>
+        <button class="mode-btn active" data-mode="session" id="sessionModeBtn">Session</button>
+        <button class="mode-btn" data-mode="shortBreak" id="shortBreakModeBtn">Short Break</button>
+        <button class="mode-btn" data-mode="longBreak" id="longBreakModeBtn">Long Break</button>
+        <button class="mode-btn" data-mode="custom" id="customModeBtn">Custom</button>
       </div>
 
       <!-- Main Timer Display -->
@@ -489,19 +488,19 @@
       <!-- Status Bar - Shows all 4 timers -->
       <div class="status-bar">
         <div class="status-item session" data-status="session">
-          <div class="status-label">🍅 Session <span class="status-badge" id="sessionBadge"></span></div>
+          <div class="status-label" id="sessionStatusLabel">🍅 Session <span class="status-badge" id="sessionBadge"></span></div>
           <div class="status-time" id="sessionStatusTime">25:00</div>
         </div>
         <div class="status-item shortBreak" data-status="shortBreak">
-          <div class="status-label">🌿 Short Break <span class="status-badge" id="shortBreakBadge"></span></div>
+          <div class="status-label" id="shortBreakStatusLabel">🌿 Short Break <span class="status-badge" id="shortBreakBadge"></span></div>
           <div class="status-time" id="shortBreakStatusTime">05:00</div>
         </div>
         <div class="status-item longBreak" data-status="longBreak">
-          <div class="status-label">☕ Long Break <span class="status-badge" id="longBreakBadge"></span></div>
+          <div class="status-label" id="longBreakStatusLabel">☕ Long Break <span class="status-badge" id="longBreakBadge"></span></div>
           <div class="status-time" id="longBreakStatusTime">15:00</div>
         </div>
         <div class="status-item custom" data-status="custom">
-          <div class="status-label">⚙ Custom <span class="status-badge" id="customBadge"></span></div>
+          <div class="status-label" id="customStatusLabel">⚙ Custom <span class="status-badge" id="customBadge"></span></div>
           <div class="status-time" id="customStatusTime">30:00</div>
         </div>
       </div>
@@ -538,7 +537,7 @@
     </div>
   </div>
 
-  <!-- Settings Modal -->
+  <!-- Settings Modal with Rename Options -->
   <div id="settingsOverlay" class="settings-overlay">
     <div class="settings-modal">
       <div class="settings-modal-header">
@@ -546,6 +545,26 @@
         <button class="settings-close-btn">&times;</button>
       </div>
       <div class="settings-modal-body">
+        <div class="settings-group">
+          <h3>Timer Names</h3>
+          <div class="settings-row">
+            <label>Session Timer Name:</label>
+            <input type="text" id="sessionName" value="Session" maxlength="20">
+          </div>
+          <div class="settings-row">
+            <label>Short Break Name:</label>
+            <input type="text" id="shortBreakName" value="Short Break" maxlength="20">
+          </div>
+          <div class="settings-row">
+            <label>Long Break Name:</label>
+            <input type="text" id="longBreakName" value="Long Break" maxlength="20">
+          </div>
+          <div class="settings-row">
+            <label>Custom Timer Name:</label>
+            <input type="text" id="customName" value="Custom" maxlength="20">
+          </div>
+        </div>
+
         <div class="settings-group">
           <h3>Timer Duration (minutes)</h3>
           <div class="settings-row">
@@ -753,6 +772,17 @@
       custom: customTimer
     };
 
+    // Timer name elements
+    const sessionModeBtn = document.getElementById('sessionModeBtn');
+    const shortBreakModeBtn = document.getElementById('shortBreakModeBtn');
+    const longBreakModeBtn = document.getElementById('longBreakModeBtn');
+    const customModeBtn = document.getElementById('customModeBtn');
+    
+    const sessionStatusLabel = document.getElementById('sessionStatusLabel');
+    const shortBreakStatusLabel = document.getElementById('shortBreakStatusLabel');
+    const longBreakStatusLabel = document.getElementById('longBreakStatusLabel');
+    const customStatusLabel = document.getElementById('customStatusLabel');
+
     // Current active view
     let currentView = 'session';
     const mainDisplay = document.getElementById('timerDisplay');
@@ -771,41 +801,39 @@
       updateMainDisplay();
     }, 1000);
 
-    // Mode switching - timers continue running in background
+    // Update all timer names in UI
+    function updateTimerNames(sessionName, shortName, longName, customName) {
+      // Update mode buttons
+      sessionModeBtn.textContent = sessionName;
+      shortBreakModeBtn.textContent = shortName;
+      longBreakModeBtn.textContent = longName;
+      customModeBtn.textContent = customName;
+      
+      // Update status bar labels (preserve emoji)
+      sessionStatusLabel.innerHTML = `🍅 ${sessionName} <span class="status-badge" id="sessionBadge"></span>`;
+      shortBreakStatusLabel.innerHTML = `🌿 ${shortName} <span class="status-badge" id="shortBreakBadge"></span>`;
+      longBreakStatusLabel.innerHTML = `☕ ${longName} <span class="status-badge" id="longBreakBadge"></span>`;
+      customStatusLabel.innerHTML = `⚙ ${customName} <span class="status-badge" id="customBadge"></span>`;
+      
+      // Reattach badge elements
+      document.getElementById('sessionBadge').className = `status-badge ${sessionTimer.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('shortBreakBadge').className = `status-badge ${shortBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('longBreakBadge').className = `status-badge ${longBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('customBadge').className = `status-badge ${customTimer.getIsRunning() ? 'running' : 'idle'}`;
+    }
+
+    // Mode switching
     const modeBtns = document.querySelectorAll('.mode-btn');
     modeBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const mode = btn.dataset.mode;
         currentView = mode;
         
-        // Update active button styling
         modeBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        
-        if (mode === 'all') {
-          // Show all timers view - expand status bar into full view
-          showAllTimersView();
-        } else {
-          // Show single timer view
-          showSingleTimerView();
-          updateMainDisplay();
-        }
+        updateMainDisplay();
       });
     });
-
-    function showSingleTimerView() {
-      document.querySelector('.timer-circle').style.display = 'block';
-      document.querySelector('.status-bar').style.display = 'flex';
-      // Reset status bar to normal
-    }
-
-    function showAllTimersView() {
-      // For "All" view, we show all timers prominently
-      // The status bar already shows all timers, we just keep it visible
-      document.querySelector('.timer-circle').style.display = 'block';
-      document.querySelector('.status-bar').style.display = 'flex';
-      // Highlight that we're in all view
-    }
 
     // Start/Pause button controls the CURRENTLY VIEWED timer
     const playPauseBtn = document.getElementById('playPauseBtn');
@@ -821,8 +849,17 @@
             playPauseText.innerText = 'Pause';
           }
           updateMainDisplay();
+          // Update badges
+          updateBadges();
         }
       };
+    }
+
+    function updateBadges() {
+      document.getElementById('sessionBadge').className = `status-badge ${sessionTimer.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('shortBreakBadge').className = `status-badge ${shortBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('longBreakBadge').className = `status-badge ${longBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('customBadge').className = `status-badge ${customTimer.getIsRunning() ? 'running' : 'idle'}`;
     }
 
     // Reset button resets the CURRENTLY VIEWED timer
@@ -833,6 +870,7 @@
         if (timer) {
           timer.reset();
           updateMainDisplay();
+          updateBadges();
         }
       };
     }
@@ -944,20 +982,98 @@
     const closeSettingsBtn = document.querySelector('.settings-close-btn');
     const saveSettingsBtn = document.getElementById('saveSettingsBtn');
 
+    // Timer durations
+    let sessionDuration = 25;
+    let shortBreakDuration = 5;
+    let longBreakDuration = 15;
+    let customDuration = 30;
+    
+    // Timer names
+    let sessionName = 'Session';
+    let shortBreakName = 'Short Break';
+    let longBreakName = 'Long Break';
+    let customName = 'Custom';
+
     function loadSettings() {
       const saved = localStorage.getItem('pomodoro_settings');
       if (saved) {
         const settings = JSON.parse(saved);
+        
+        // Load names
+        sessionName = settings.sessionName || 'Session';
+        shortBreakName = settings.shortBreakName || 'Short Break';
+        longBreakName = settings.longBreakName || 'Long Break';
+        customName = settings.customName || 'Custom';
+        updateTimerNames(sessionName, shortBreakName, longBreakName, customName);
+        
+        // Load durations
+        sessionDuration = settings.sessionDuration || 25;
+        shortBreakDuration = settings.shortBreakDuration || 5;
+        longBreakDuration = settings.longBreakDuration || 15;
+        customDuration = settings.customDuration || 30;
+        
+        sessionTimer.setDuration(sessionDuration);
+        shortBreakTimer.setDuration(shortBreakDuration);
+        longBreakTimer.setDuration(longBreakDuration);
+        customTimer.setDuration(customDuration);
+        
+        // Load colors
         if (settings.pageBgColor) document.body.style.backgroundColor = settings.pageBgColor;
         if (settings.cardBgColor) document.querySelector('.timer-card').style.backgroundColor = settings.cardBgColor;
         if (settings.timerTextColor) mainDisplay.style.color = settings.timerTextColor;
         if (settings.timerBgColor) mainDisplay.style.backgroundColor = settings.timerBgColor;
+        if (settings.taskTextColor) {
+          document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => {
+            el.style.color = settings.taskTextColor;
+          });
+        }
+        
+        // Load button colors
+        if (settings.primaryBtnColor) {
+          const addBtn = document.getElementById('addTaskBtn');
+          if (addBtn) addBtn.style.backgroundColor = settings.primaryBtnColor;
+          const saveBtn = document.getElementById('saveSettingsBtn');
+          if (saveBtn) saveBtn.style.backgroundColor = settings.primaryBtnColor;
+        }
+        
+        if (settings.actionBtnColor) {
+          const btns = [playPauseBtn, resetBtn, settingsBtn];
+          btns.forEach(btn => {
+            if (btn) btn.style.backgroundColor = settings.actionBtnColor;
+          });
+        }
+        if (settings.actionBtnTextColor) {
+          const btns = [playPauseBtn, resetBtn, settingsBtn];
+          btns.forEach(btn => {
+            if (btn) btn.style.color = settings.actionBtnTextColor;
+          });
+        }
+        
         if (settings.alarmSound) document.getElementById('alarmSoundSelect').value = settings.alarmSound;
+        
+        // Load into input fields
+        document.getElementById('sessionName').value = sessionName;
+        document.getElementById('shortBreakName').value = shortBreakName;
+        document.getElementById('longBreakName').value = longBreakName;
+        document.getElementById('customName').value = customName;
+        document.getElementById('sessionTime').value = sessionDuration;
+        document.getElementById('shortBreakTime').value = shortBreakDuration;
+        document.getElementById('longBreakTime').value = longBreakDuration;
+        document.getElementById('customTime').value = customDuration;
       }
     }
 
     if (settingsBtn) {
       settingsBtn.onclick = () => {
+        // Load current values into modal
+        document.getElementById('sessionName').value = sessionName;
+        document.getElementById('shortBreakName').value = shortBreakName;
+        document.getElementById('longBreakName').value = longBreakName;
+        document.getElementById('customName').value = customName;
+        document.getElementById('sessionTime').value = sessionDuration;
+        document.getElementById('shortBreakTime').value = shortBreakDuration;
+        document.getElementById('longBreakTime').value = longBreakDuration;
+        document.getElementById('customTime').value = customDuration;
         settingsOverlay.style.display = 'flex';
       };
     }
@@ -967,6 +1083,25 @@
 
     if (saveSettingsBtn) {
       saveSettingsBtn.onclick = () => {
+        // Save names
+        sessionName = document.getElementById('sessionName').value || 'Session';
+        shortBreakName = document.getElementById('shortBreakName').value || 'Short Break';
+        longBreakName = document.getElementById('longBreakName').value || 'Long Break';
+        customName = document.getElementById('customName').value || 'Custom';
+        updateTimerNames(sessionName, shortBreakName, longBreakName, customName);
+        
+        // Save durations
+        sessionDuration = parseInt(document.getElementById('sessionTime').value) || 25;
+        shortBreakDuration = parseInt(document.getElementById('shortBreakTime').value) || 5;
+        longBreakDuration = parseInt(document.getElementById('longBreakTime').value) || 15;
+        customDuration = parseInt(document.getElementById('customTime').value) || 30;
+        
+        sessionTimer.setDuration(sessionDuration);
+        shortBreakTimer.setDuration(shortBreakDuration);
+        longBreakTimer.setDuration(longBreakDuration);
+        customTimer.setDuration(customDuration);
+        
+        // Save colors
         const timerTextColor = document.getElementById('timerTextColor').value;
         const timerBgColor = document.getElementById('timerBgColor').value;
         const primaryBtnColor = document.getElementById('primaryBtnColor').value;
@@ -979,14 +1114,49 @@
         const alarmSound = document.getElementById('alarmSoundSelect').value;
         
         localStorage.setItem('pomodoro_settings', JSON.stringify({
+          sessionName, shortBreakName, longBreakName, customName,
+          sessionDuration, shortBreakDuration, longBreakDuration, customDuration,
           timerTextColor, timerBgColor, primaryBtnColor, primaryBtnHoverColor,
           actionBtnColor, actionBtnTextColor, taskTextColor, pageBgColor, cardBgColor, alarmSound
         }));
         
+        // Apply colors
         document.body.style.backgroundColor = pageBgColor;
         document.querySelector('.timer-card').style.backgroundColor = cardBgColor;
         mainDisplay.style.color = timerTextColor;
         mainDisplay.style.backgroundColor = timerBgColor;
+        document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => {
+          el.style.color = taskTextColor;
+        });
+        
+        const addBtn = document.getElementById('addTaskBtn');
+        if (addBtn) addBtn.style.backgroundColor = primaryBtnColor;
+        const saveBtn = document.getElementById('saveSettingsBtn');
+        if (saveBtn) saveBtn.style.backgroundColor = primaryBtnColor;
+        
+        const btns = [playPauseBtn, resetBtn, settingsBtn];
+        btns.forEach(btn => {
+          if (btn) {
+            btn.style.backgroundColor = actionBtnColor;
+            btn.style.color = actionBtnTextColor;
+          }
+        });
+        
+        // Add hover style
+        let style = document.getElementById('dynamicStyle');
+        if (!style) {
+          style = document.createElement('style');
+          style.id = 'dynamicStyle';
+          document.head.appendChild(style);
+        }
+        style.textContent = `
+          .add-task-btn:hover, .settings-save-btn:hover {
+            background-color: ${primaryBtnHoverColor} !important;
+          }
+          .mode-btn.active {
+            background-color: ${primaryBtnColor} !important;
+          }
+        `;
         
         settingsOverlay.style.display = 'none';
       };
@@ -996,6 +1166,7 @@
     document.querySelector('.mode-btn[data-mode="session"]').classList.add('active');
     loadTasks();
     loadSettings();
+    updateMainDisplay();
   </script>
 </body>
 </html>
