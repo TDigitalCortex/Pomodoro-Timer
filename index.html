@@ -3,82 +3,124 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Notion Pomodoro Timer</title>
+  <title>Pomodoro Timer</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <div class="timer-card" id="app">
-    <div class="notion-header">
-      <h1>Pomodoro Timer</h1>
-      <div class="gh-badge">
-        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
-          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
-        </svg>
-        GitHub logic · local sync
+  <div class="timer-container">
+    <div class="timer-card" id="app">
+      <!-- Mode Selection -->
+      <div class="mode-selector">
+        <button class="mode-btn active" data-mode="session">Session</button>
+        <button class="mode-btn" data-mode="shortBreak">Short Break</button>
+        <button class="mode-btn" data-mode="longBreak">Long Break</button>
+        <button class="mode-btn" data-mode="custom">Custom</button>
       </div>
-    </div>
 
-    <div class="timer-circle">
-      <div class="timer-digits" id="timerDisplay">25:00</div>
-    </div>
-
-    <div class="action-buttons">
-      <button class="icon-btn" id="playPauseBtn">
-        <span class="btn-icon">▶</span>
-        <span id="playPauseText">Start</span>
-      </button>
-      <button class="icon-btn" id="resetBtn">
-        <span class="btn-icon">⟳</span>
-        <span>Reset</span>
-      </button>
-      <button class="icon-btn" id="settingsToggleBtn">
-        <span class="btn-icon">⚙</span>
-        <span>Settings</span>
-      </button>
-    </div>
-
-    <div id="settingsPanel" class="settings-panel">
-      <div class="setting-row">
-        <div class="setting-label">Work duration</div>
-        <div class="setting-control">
-          <input type="number" id="workMinutes" min="1" max="99" value="25" step="1">
-          <span>minutes</span>
-        </div>
+      <!-- Timer Display -->
+      <div class="timer-circle">
+        <div class="timer-digits" id="timerDisplay">25:00</div>
       </div>
-      <div class="setting-row">
-        <div class="setting-label">Alarm sound</div>
-        <select id="alarmSoundSelect" class="alarm-select">
-          <option value="Egg Timer Vibes">Egg Timer Vibes</option>
-          <option value="Flow">Flow</option>
-          <option value="iPhone Note">iPhone Note</option>
-          <option value="Clear Tone">Clear Tone</option>
-          <option value="LG Note">LG Note</option>
-          <option value="Telegram Note">Telegram Note</option>
-          <option value="Spongebob Note">Spongebob Note</option>
-          <option value="Message Tones">Message Tones</option>
-        </select>
-      </div>
-      <div class="status-chip">
-        <span id="timerStatus">Focus session</span>
-      </div>
-    </div>
 
-    <div class="tasks-section">
-      <div class="tasks-header">
-        <h3>Tasks</h3>
-        <button class="add-task-btn" id="addTaskBtn">
-          <span>+</span> Add task
+      <!-- Control Buttons -->
+      <div class="action-buttons">
+        <button class="icon-btn" id="playPauseBtn">
+          <span class="btn-icon">▶</span>
+          <span id="playPauseText">Start</span>
+        </button>
+        <button class="icon-btn" id="resetBtn">
+          <span class="btn-icon">⟳</span>
+          <span>Reset</span>
+        </button>
+        <button class="icon-btn" id="settingsBtn">
+          <span class="btn-icon">⚙</span>
+          <span>Settings</span>
         </button>
       </div>
-      <ul class="task-list" id="taskListContainer">
-        <li class="empty-tasks">No tasks yet — add something to focus on</li>
-      </ul>
+
+      <!-- Tasks Section -->
+      <div class="tasks-section">
+        <div class="tasks-header">
+          <h3>Tasks</h3>
+        </div>
+        <div class="task-input-container">
+          <input type="text" id="taskInput" placeholder="Enter a new task..." class="task-input-field">
+          <button class="add-task-btn" id="addTaskBtn">+ Add Task</button>
+        </div>
+        <ul class="task-list" id="taskListContainer">
+          <li class="empty-tasks">No tasks yet — add something to focus on</li>
+        </ul>
+      </div>
     </div>
-    <footer>Pomodoro timer · tasks saved locally with GitHub-style persistence</footer>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <span class="close-btn">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="setting-group">
+          <h3>Timer Duration (minutes)</h3>
+          <div class="setting-row">
+            <label>Session Time:</label>
+            <input type="number" id="sessionTime" min="1" max="99" value="25">
+          </div>
+          <div class="setting-row">
+            <label>Short Break:</label>
+            <input type="number" id="shortBreakTime" min="1" max="99" value="5">
+          </div>
+          <div class="setting-row">
+            <label>Long Break:</label>
+            <input type="number" id="longBreakTime" min="1" max="99" value="15">
+          </div>
+          <div class="setting-row">
+            <label>Custom Time:</label>
+            <input type="number" id="customTime" min="1" max="99" value="30">
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <h3>Appearance</h3>
+          <div class="setting-row">
+            <label>Text Color:</label>
+            <input type="color" id="textColor" value="#1f2b36">
+          </div>
+          <div class="setting-row">
+            <label>Background Color:</label>
+            <input type="color" id="bgColor" value="#ffffff">
+          </div>
+          <div class="setting-row">
+            <label>Card Background:</label>
+            <input type="color" id="cardBgColor" value="#ffffff">
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <h3>Alarm Sound</h3>
+          <select id="alarmSoundSelect" class="alarm-select">
+            <option value="Egg Timer Vibes">Egg Timer Vibes</option>
+            <option value="Flow">Flow</option>
+            <option value="iPhone Note">iPhone Note</option>
+            <option value="Clear Tone">Clear Tone</option>
+            <option value="LG Note">LG Note</option>
+            <option value="Telegram Note">Telegram Note</option>
+            <option value="Spongebob Note">Spongebob Note</option>
+            <option value="Message Tones">Message Tones</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="save-settings-btn" id="saveSettingsBtn">Save Settings</button>
+      </div>
+    </div>
   </div>
 
   <script src="js/storage.js"></script>
-  <script src="js/tasks.js"></script>
   <script src="js/timer.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
