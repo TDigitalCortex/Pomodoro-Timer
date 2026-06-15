@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pomodoro Timer</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -54,7 +54,7 @@
     </div>
   </div>
 
-  <!-- Settings Modal Popup (hidden by default) -->
+  <!-- Settings Modal Popup -->
   <div id="settingsOverlay" class="settings-overlay">
     <div class="settings-modal">
       <div class="settings-modal-header">
@@ -66,19 +66,19 @@
           <h3>Timer Duration (minutes)</h3>
           <div class="settings-row">
             <label>Session Time:</label>
-            <input type="number" id="sessionTime" min="1" max="99" value="25" class="settings-input">
+            <input type="number" id="sessionTime" min="1" max="99" value="25">
           </div>
           <div class="settings-row">
             <label>Short Break:</label>
-            <input type="number" id="shortBreakTime" min="1" max="99" value="5" class="settings-input">
+            <input type="number" id="shortBreakTime" min="1" max="99" value="5">
           </div>
           <div class="settings-row">
             <label>Long Break:</label>
-            <input type="number" id="longBreakTime" min="1" max="99" value="15" class="settings-input">
+            <input type="number" id="longBreakTime" min="1" max="99" value="15">
           </div>
           <div class="settings-row">
             <label>Custom Time:</label>
-            <input type="number" id="customTime" min="1" max="99" value="30" class="settings-input">
+            <input type="number" id="customTime" min="1" max="99" value="30">
           </div>
         </div>
 
@@ -86,21 +86,21 @@
           <h3>Appearance</h3>
           <div class="settings-row">
             <label>Text Color:</label>
-            <input type="color" id="textColor" value="#1a2c38" class="settings-color">
+            <input type="color" id="textColor" value="#1a2c38">
           </div>
           <div class="settings-row">
             <label>Background Color:</label>
-            <input type="color" id="bgColor" value="#667eea" class="settings-color">
+            <input type="color" id="bgColor" value="#667eea">
           </div>
           <div class="settings-row">
             <label>Card Background:</label>
-            <input type="color" id="cardBgColor" value="#ffffff" class="settings-color">
+            <input type="color" id="cardBgColor" value="#ffffff">
           </div>
         </div>
 
         <div class="settings-group">
           <h3>Alarm Sound</h3>
-          <select id="alarmSoundSelect" class="settings-select">
+          <select id="alarmSoundSelect">
             <option value="Egg Timer Vibes">Egg Timer Vibes</option>
             <option value="Flow">Flow</option>
             <option value="iPhone Note">iPhone Note</option>
