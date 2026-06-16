@@ -296,20 +296,19 @@
       overflow-y: auto;
     }
 
-    /* Make scrollbar INVISIBLE but keep scroll functionality - WebKit (Chrome, Safari, Edge) */
+    /* Make VERTICAL scrollbar INVISIBLE - WebKit (Chrome, Safari, Edge) */
     .task-list.scroll::-webkit-scrollbar {
       width: 0px;
-      height: 0px;
       background: transparent;
       display: none;
     }
 
-    /* Make scrollbar INVISIBLE for Firefox */
+    /* Make VERTICAL scrollbar INVISIBLE for Firefox */
     .task-list.scroll {
       scrollbar-width: none;
     }
 
-    /* Make scrollbar INVISIBLE for IE/Edge */
+    /* Make VERTICAL scrollbar INVISIBLE for IE/Edge */
     .task-list.scroll {
       -ms-overflow-style: none;
     }
@@ -353,20 +352,19 @@
       outline: none;
       cursor: text;
       line-height: 1.4;
-    }
-
-    /* Line break mode - text wraps normally */
-    .task-list.line-break .task-text {
+      overflow-x: hidden;
       white-space: normal;
       word-wrap: break-word;
       word-break: break-word;
       overflow-wrap: break-word;
     }
 
-    /* Scroll mode - text stays on one line with horizontal scroll */
+    /* Ensure NO horizontal scrollbar ever appears on task text */
     .task-list.scroll .task-text {
-      white-space: nowrap;
-      overflow-x: auto;
+      overflow-x: hidden;
+      white-space: normal;
+      word-wrap: break-word;
+      word-break: break-word;
     }
 
     .task-text:focus {
