@@ -70,10 +70,9 @@
       box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
 
-    /* Current Time Display - Above Timer */
     .current-time {
       font-size: 1rem;
-      font-weight: 700;
+      font-weight: 500;
       color: #718096;
       margin-bottom: 0.5rem;
       transition: all 0.3s ease;
@@ -610,7 +609,6 @@
         <button class="mode-btn" data-mode="custom" id="customModeBtn">Custom</button>
       </div>
 
-      <!-- Current Time Display - Above Timer -->
       <div class="current-time" id="currentTimeDisplay">12:00:00</div>
 
       <div class="timer-circle">
@@ -763,53 +761,57 @@
           <div class="settings-row">
             <label>Session Alarm:</label>
             <select id="sessionAlarm">
-              <option value="Egg Timer Vibes">Egg Timer Vibes</option>
-              <option value="Flow">Flow</option>
-              <option value="iPhone Note">iPhone Note</option>
-              <option value="Clear Tone">Clear Tone</option>
-              <option value="LG Note">LG Note</option>
-              <option value="Telegram Note">Telegram Note</option>
-              <option value="Spongebob Note">Spongebob Note</option>
-              <option value="Message Tones">Message Tones</option>
+              <option value="sound1.mp3">Sound 1</option>
+              <option value="sound2.mp3">Sound 2</option>
+              <option value="sound3.mp3">Sound 3</option>
+              <option value="sound4.mp3">Sound 4</option>
+              <option value="sound5.mp3">Sound 5</option>
+              <option value="sound6.mp3">Sound 6</option>
+              <option value="sound7.mp3">Sound 7</option>
+              <option value="sound8.mp3">Sound 8</option>
+              <option value="sound9.mp3">Sound 9</option>
             </select>
           </div>
           <div class="settings-row">
             <label>Short Break Alarm:</label>
             <select id="shortBreakAlarm">
-              <option value="Egg Timer Vibes">Egg Timer Vibes</option>
-              <option value="Flow">Flow</option>
-              <option value="iPhone Note">iPhone Note</option>
-              <option value="Clear Tone">Clear Tone</option>
-              <option value="LG Note">LG Note</option>
-              <option value="Telegram Note">Telegram Note</option>
-              <option value="Spongebob Note">Spongebob Note</option>
-              <option value="Message Tones">Message Tones</option>
+              <option value="sound1.mp3">Sound 1</option>
+              <option value="sound2.mp3">Sound 2</option>
+              <option value="sound3.mp3">Sound 3</option>
+              <option value="sound4.mp3">Sound 4</option>
+              <option value="sound5.mp3">Sound 5</option>
+              <option value="sound6.mp3">Sound 6</option>
+              <option value="sound7.mp3">Sound 7</option>
+              <option value="sound8.mp3">Sound 8</option>
+              <option value="sound9.mp3">Sound 9</option>
             </select>
           </div>
           <div class="settings-row">
             <label>Long Break Alarm:</label>
             <select id="longBreakAlarm">
-              <option value="Egg Timer Vibes">Egg Timer Vibes</option>
-              <option value="Flow">Flow</option>
-              <option value="iPhone Note">iPhone Note</option>
-              <option value="Clear Tone">Clear Tone</option>
-              <option value="LG Note">LG Note</option>
-              <option value="Telegram Note">Telegram Note</option>
-              <option value="Spongebob Note">Spongebob Note</option>
-              <option value="Message Tones">Message Tones</option>
+              <option value="sound1.mp3">Sound 1</option>
+              <option value="sound2.mp3">Sound 2</option>
+              <option value="sound3.mp3">Sound 3</option>
+              <option value="sound4.mp3">Sound 4</option>
+              <option value="sound5.mp3">Sound 5</option>
+              <option value="sound6.mp3">Sound 6</option>
+              <option value="sound7.mp3">Sound 7</option>
+              <option value="sound8.mp3">Sound 8</option>
+              <option value="sound9.mp3">Sound 9</option>
             </select>
           </div>
           <div class="settings-row">
             <label>Custom Timer Alarm:</label>
             <select id="customAlarm">
-              <option value="Egg Timer Vibes">Egg Timer Vibes</option>
-              <option value="Flow">Flow</option>
-              <option value="iPhone Note">iPhone Note</option>
-              <option value="Clear Tone">Clear Tone</option>
-              <option value="LG Note">LG Note</option>
-              <option value="Telegram Note">Telegram Note</option>
-              <option value="Spongebob Note">Spongebob Note</option>
-              <option value="Message Tones">Message Tones</option>
+              <option value="sound1.mp3">Sound 1</option>
+              <option value="sound2.mp3">Sound 2</option>
+              <option value="sound3.mp3">Sound 3</option>
+              <option value="sound4.mp3">Sound 4</option>
+              <option value="sound5.mp3">Sound 5</option>
+              <option value="sound6.mp3">Sound 6</option>
+              <option value="sound7.mp3">Sound 7</option>
+              <option value="sound8.mp3">Sound 8</option>
+              <option value="sound9.mp3">Sound 9</option>
             </select>
           </div>
         </div>
@@ -873,105 +875,41 @@
   </div>
 
   <script>
-    // Alarm sound generator function
-    function playAlarm(soundType) {
+    // ========== ALARM PLAYER WITH MP3 SUPPORT ==========
+    function playAlarm(soundFile) {
       try {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContextClass();
+        // Try to play MP3 file
+        const audio = new Audio(`sounds/${soundFile}`);
+        audio.play().catch(() => {
+          // Fallback: if MP3 fails, try Web Audio API beep
+          playFallbackBeep();
+        });
+      } catch(e) {
+        // Fallback: use Web Audio API beep
+        playFallbackBeep();
+      }
+    }
+
+    // Fallback beep using Web Audio API (in case MP3 fails to load)
+    function playFallbackBeep() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const now = audioCtx.currentTime;
         const gainNode = audioCtx.createGain();
         gainNode.connect(audioCtx.destination);
-        gainNode.gain.setValueAtTime(0.25, now);
-
+        gainNode.gain.setValueAtTime(0.3, now);
         const osc = audioCtx.createOscillator();
         osc.connect(gainNode);
-
-        switch(soundType) {
-          case 'Egg Timer Vibes':
-            osc.frequency.value = 880;
-            osc.type = 'sine';
-            osc.start();
-            gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 1.2);
-            osc.stop(now + 1.0);
-            break;
-          case 'Flow':
-            osc.frequency.value = 523.25;
-            osc.type = 'triangle';
-            osc.start();
-            gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 0.9);
-            osc.stop(now + 0.8);
-            const osc2 = audioCtx.createOscillator();
-            osc2.frequency.value = 659.25;
-            osc2.type = 'triangle';
-            osc2.connect(gainNode);
-            osc2.start(now + 0.2);
-            osc2.stop(now + 1.0);
-            break;
-          case 'iPhone Note':
-            osc.frequency.value = 880;
-            osc.type = 'square';
-            osc.start();
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 1.5);
-            osc.stop(now + 1.2);
-            break;
-          case 'Clear Tone':
-            osc.frequency.value = 1046.5;
-            osc.type = 'sine';
-            osc.start();
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
-            osc.stop(now + 0.5);
-            const osc3 = audioCtx.createOscillator();
-            osc3.frequency.value = 783.99;
-            osc3.type = 'sine';
-            osc3.connect(gainNode);
-            osc3.start(now + 0.5);
-            osc3.stop(now + 1.0);
-            break;
-          case 'LG Note':
-            osc.frequency.value = 440;
-            osc.type = 'sawtooth';
-            osc.start();
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 2);
-            osc.stop(now + 1.8);
-            break;
-          case 'Telegram Note':
-            osc.frequency.value = 880;
-            osc.type = 'sine';
-            osc.start();
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
-            osc.stop(now + 0.6);
-            const oscT = audioCtx.createOscillator();
-            oscT.frequency.value = 1244.5;
-            oscT.type = 'sine';
-            oscT.connect(gainNode);
-            oscT.start(now + 0.3);
-            oscT.stop(now + 0.8);
-            break;
-          case 'Spongebob Note':
-            osc.frequency.value = 523.25;
-            osc.type = 'sine';
-            osc.start();
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
-            osc.stop(now + 0.4);
-            const oscS = audioCtx.createOscillator();
-            oscS.frequency.value = 698.46;
-            oscS.type = 'sine';
-            oscS.connect(gainNode);
-            oscS.start(now + 0.5);
-            oscS.stop(now + 1.0);
-            break;
-          default:
-            osc.frequency.value = 800;
-            osc.type = 'sine';
-            osc.start();
-            gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 0.8);
-            osc.stop(now + 0.7);
-        }
+        osc.frequency.value = 880;
+        osc.type = 'sine';
+        osc.start();
+        gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 1);
+        osc.stop(now + 0.8);
         audioCtx.resume();
       } catch(e) { console.log('Audio error:', e); }
     }
 
-    // Session tracking variables
+    // ========== SESSION TRACKING ==========
     let todaySessions = 0;
     let totalSessions = 0;
     let focusHours = 0;
@@ -1020,7 +958,7 @@
       }
     }
 
-    // 4 Independent Background Timers
+    // ========== 4 INDEPENDENT BACKGROUND TIMERS ==========
     class BackgroundTimer {
       constructor(name, defaultMinutes, statusTimeId, badgeId, defaultAlarm, onCompleteCallback) {
         this.name = name;
@@ -1117,10 +1055,10 @@
     }
 
     // Initialize 4 background timers
-    const sessionTimer = new BackgroundTimer('session', 25, 'sessionStatusTime', 'sessionBadge', 'Message Tones', recordCompletedSession);
-    const shortBreakTimer = new BackgroundTimer('shortBreak', 5, 'shortBreakStatusTime', 'shortBreakBadge', 'Message Tones', null);
-    const longBreakTimer = new BackgroundTimer('longBreak', 15, 'longBreakStatusTime', 'longBreakBadge', 'Message Tones', null);
-    const customTimer = new BackgroundTimer('custom', 30, 'customStatusTime', 'customBadge', 'Message Tones', null);
+    const sessionTimer = new BackgroundTimer('session', 25, 'sessionStatusTime', 'sessionBadge', 'sound1.mp3', recordCompletedSession);
+    const shortBreakTimer = new BackgroundTimer('shortBreak', 5, 'shortBreakStatusTime', 'shortBreakBadge', 'sound2.mp3', null);
+    const longBreakTimer = new BackgroundTimer('longBreak', 15, 'longBreakStatusTime', 'longBreakBadge', 'sound3.mp3', null);
+    const customTimer = new BackgroundTimer('custom', 30, 'customStatusTime', 'customBadge', 'sound4.mp3', null);
 
     const timers = {
       session: sessionTimer,
@@ -1159,39 +1097,28 @@
       currentTimeElement.textContent = `${hours}:${minutes}:${seconds}`;
     }
 
-    // Update current time every second
     setInterval(updateCurrentTime, 1000);
-    // Initial update
     updateCurrentTime();
 
-    // SINGLE function that updates ALL displays from ALL timers
     function updateAllDisplays() {
-      // Update main display
       const timer = timers[currentView];
       if (timer) {
         mainDisplay.textContent = timer.getCurrentDisplay();
         playPauseText.innerText = timer.getIsRunning() ? 'Pause' : 'Start';
       }
       
-      // Update all status bar displays from the timers' current values
       sessionTimer.updateStatusDisplay();
       shortBreakTimer.updateStatusDisplay();
       longBreakTimer.updateStatusDisplay();
       customTimer.updateStatusDisplay();
       
-      // Update badges
       document.getElementById('sessionBadge').className = `status-badge ${sessionTimer.getIsRunning() ? 'running' : 'idle'}`;
       document.getElementById('shortBreakBadge').className = `status-badge ${shortBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
       document.getElementById('longBreakBadge').className = `status-badge ${longBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
       document.getElementById('customBadge').className = `status-badge ${customTimer.getIsRunning() ? 'running' : 'idle'}`;
     }
 
-    // Run every second - single source of truth
-    setInterval(() => {
-      updateAllDisplays();
-    }, 1000);
-
-    // Initial display update
+    setInterval(updateAllDisplays, 1000);
     updateAllDisplays();
 
     function updateTimerNames(sessionName, shortName, longName, customName) {
@@ -1208,6 +1135,7 @@
       updateAllDisplays();
     }
 
+    // ========== EVENT LISTENERS ==========
     const modeBtns = document.querySelectorAll('.mode-btn');
     modeBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1385,7 +1313,7 @@
     let statusBarEnabled = true;
     let sessionDuration = 25, shortBreakDuration = 5, longBreakDuration = 15, customDuration = 30;
     let sessionName = 'Session', shortBreakName = 'Short Break', longBreakName = 'Long Break', customName = 'Custom';
-    let sessionAlarm = 'Message Tones', shortBreakAlarm = 'Message Tones', longBreakAlarm = 'Message Tones', customAlarm = 'Message Tones';
+    let sessionAlarm = 'sound1.mp3', shortBreakAlarm = 'sound2.mp3', longBreakAlarm = 'sound3.mp3', customAlarm = 'sound4.mp3';
     let timerTextColor = '#ffffff', timerBgColor = '#667eea';
     let primaryBtnColor = '#667eea', primaryBtnHoverColor = '#5a67d8';
     let actionBtnColor = '#f2f5f9', actionBtnTextColor = '#1f2e3a';
@@ -1412,10 +1340,10 @@
         longBreakTimer.setDuration(longBreakDuration);
         customTimer.setDuration(customDuration);
         
-        sessionAlarm = settings.sessionAlarm || 'Message Tones';
-        shortBreakAlarm = settings.shortBreakAlarm || 'Message Tones';
-        longBreakAlarm = settings.longBreakAlarm || 'Message Tones';
-        customAlarm = settings.customAlarm || 'Message Tones';
+        sessionAlarm = settings.sessionAlarm || 'sound1.mp3';
+        shortBreakAlarm = settings.shortBreakAlarm || 'sound2.mp3';
+        longBreakAlarm = settings.longBreakAlarm || 'sound3.mp3';
+        customAlarm = settings.customAlarm || 'sound4.mp3';
         
         sessionTimer.setAlarmSound(sessionAlarm);
         shortBreakTimer.setAlarmSound(shortBreakAlarm);
@@ -1428,7 +1356,6 @@
         statusBarEnabled = settings.statusBarEnabled !== undefined ? settings.statusBarEnabled : true;
         taskScrollEnabled = settings.taskScrollEnabled !== undefined ? settings.taskScrollEnabled : true;
         
-        // Apply current time color
         currentTimeElement.style.color = currentTimeColor;
         
         if (!currentTimeEnabled) {
@@ -1585,7 +1512,6 @@
         statusBarEnabled = document.getElementById('statusBarToggle').checked;
         taskScrollEnabled = document.getElementById('taskScrollToggle').checked;
         
-        // Apply current time color
         currentTimeElement.style.color = currentTimeColor;
         
         if (currentTimeEnabled) {
