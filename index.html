@@ -931,11 +931,14 @@
     // ========== ALARM PLAYER WITH MP3 SUPPORT ==========
     function playAlarm(soundFile) {
       try {
+        // Create a new Audio object with the sound file
         const audio = new Audio(`sounds/${soundFile}`);
-        audio.play().catch(() => {
+        audio.play().catch((err) => {
+          console.log('MP3 playback failed, using fallback beep:', err);
           playFallbackBeep();
         });
       } catch(e) {
+        console.log('MP3 creation failed, using fallback beep:', e);
         playFallbackBeep();
       }
     }
@@ -1020,6 +1023,8 @@
         this.onCompleteCallback = onCompleteCallback;
         this.statusTimeElement = document.getElementById(statusTimeId);
         this.badgeElement = document.getElementById(badgeId);
+        // Flag to track if timer has completed and needs reset before starting again
+        this.hasCompleted = false;
         this.updateStatusDisplay();
       }
 
@@ -1040,10 +1045,13 @@
           this.interval = null;
         }
         this.isRunning = false;
+        this.hasCompleted = true;
+        // Play the alarm sound when timer completes
         playAlarm(this.alarmSound);
         if (this.onCompleteCallback && this.name === 'session') {
           this.onCompleteCallback(this.defaultMinutes);
         }
+        this.updateStatusDisplay();
         updateAllDisplays();
       }
 
@@ -1053,16 +1061,24 @@
           return;
         }
         this.currentSeconds--;
+        this.updateStatusDisplay();
         updateAllDisplays();
         if (this.currentSeconds === 0) this.finish();
       }
 
       start() {
+        // If the timer has completed, reset it before starting
+        if (this.hasCompleted || this.currentSeconds <= 0) {
+          this.currentSeconds = this.defaultMinutes * 60;
+          this.hasCompleted = false;
+          this.updateStatusDisplay();
+        }
         if (this.interval) clearInterval(this.interval);
         this.isRunning = true;
         this.interval = setInterval(() => {
           if (this.isRunning) this.tick();
         }, 1000);
+        this.updateStatusDisplay();
         updateAllDisplays();
       }
 
@@ -1072,12 +1088,15 @@
           clearInterval(this.interval);
           this.interval = null;
         }
+        this.updateStatusDisplay();
         updateAllDisplays();
       }
 
       reset() {
         this.pause();
         this.currentSeconds = this.defaultMinutes * 60;
+        this.hasCompleted = false;
+        this.updateStatusDisplay();
         updateAllDisplays();
       }
 
@@ -1085,6 +1104,8 @@
         this.defaultMinutes = minutes;
         if (!this.isRunning) {
           this.currentSeconds = minutes * 60;
+          this.hasCompleted = false;
+          this.updateStatusDisplay();
           updateAllDisplays();
         }
       }
