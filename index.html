@@ -875,60 +875,34 @@
   </div>
 
   <script>
-    // ========== ALARM PLAYER WITH MP3 SUPPORT AND AUTO-RESUME ==========
-    let audioContext = null;
-
-    function getAudioContext() {
-      if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      return audioContext;
-    }
-
+    // ========== ALARM PLAYER WITH MP3 SUPPORT ==========
     function playAlarm(soundFile) {
       try {
-        // Use the audio element approach for MP3
         const audio = new Audio(`sounds/${soundFile}`);
-        
-        // Resume audio context if suspended (this handles the "Start" click issue)
-        if (audioContext && audioContext.state === 'suspended') {
-          audioContext.resume();
-        }
-        
-        audio.play().catch((error) => {
-          console.log('MP3 playback failed, using fallback beep:', error);
+        audio.play().catch(() => {
           playFallbackBeep();
         });
       } catch(e) {
-        console.log('Audio error, using fallback beep:', e);
         playFallbackBeep();
       }
     }
 
-    // Fallback beep using Web Audio API
     function playFallbackBeep() {
       try {
-        const ctx = getAudioContext();
-        const now = ctx.currentTime;
-        const gainNode = ctx.createGain();
-        gainNode.connect(ctx.destination);
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
+        const gainNode = audioCtx.createGain();
+        gainNode.connect(audioCtx.destination);
         gainNode.gain.setValueAtTime(0.3, now);
-        
-        const osc = ctx.createOscillator();
+        const osc = audioCtx.createOscillator();
         osc.connect(gainNode);
         osc.frequency.value = 880;
         osc.type = 'sine';
-        osc.start(now);
+        osc.start();
         gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 1);
         osc.stop(now + 0.8);
-        
-        // Resume context if suspended
-        if (ctx.state === 'suspended') {
-          ctx.resume();
-        }
-      } catch(e) { 
-        console.log('Fallback audio error:', e); 
-      }
+        audioCtx.resume();
+      } catch(e) { console.log('Audio error:', e); }
     }
 
     // Session tracking variables
@@ -992,7 +966,7 @@
         this.onCompleteCallback = onCompleteCallback;
         this.statusTimeElement = document.getElementById(statusTimeId);
         this.badgeElement = document.getElementById(badgeId);
-        this.hasPlayedAlarm = false;
+        this.hasFinished = false; // Track if timer has finished to prevent double alarms
         this.updateStatusDisplay();
       }
 
@@ -1014,40 +988,46 @@
         }
         this.isRunning = false;
         
-        // Play alarm when timer reaches 0
-        playAlarm(this.alarmSound);
-        
-        if (this.onCompleteCallback && this.name === 'session') {
-          this.onCompleteCallback(this.defaultMinutes);
+        // Only play alarm and trigger callback if timer actually completed (reached 0)
+        if (this.currentSeconds <= 0 && !this.hasFinished) {
+          this.hasFinished = true;
+          playAlarm(this.alarmSound);
+          if (this.onCompleteCallback && this.name === 'session') {
+            this.onCompleteCallback(this.defaultMinutes);
+          }
         }
+        this.updateStatusDisplay();
         updateAllDisplays();
       }
 
       tick() {
         if (this.currentSeconds <= 0) {
-          if (this.isRunning) this.finish();
+          if (this.isRunning) {
+            this.finish();
+          }
           return;
         }
         this.currentSeconds--;
-        updateAllDisplays();
+        this.hasFinished = false; // Reset flag when ticking
+        this.updateStatusDisplay();
         if (this.currentSeconds === 0) {
-          // When we hit 0, the next tick will call finish()
-          // But we also need to trigger the alarm immediately
-          if (this.isRunning) {
-            // Slight delay to ensure display updates first, but play alarm immediately
-            setTimeout(() => {
-              if (this.isRunning) {
-                this.finish();
-              }
-            }, 50);
-          }
+          this.finish();
         }
+        updateAllDisplays();
       }
 
       start() {
+        // Reset the finished flag when starting
+        this.hasFinished = false;
+        
+        // If timer is already at 0, reset to default duration first
+        if (this.currentSeconds <= 0) {
+          this.currentSeconds = this.defaultMinutes * 60;
+          this.updateStatusDisplay();
+        }
+        
         if (this.interval) clearInterval(this.interval);
         this.isRunning = true;
-        this.hasPlayedAlarm = false;
         this.interval = setInterval(() => {
           if (this.isRunning) this.tick();
         }, 1000);
@@ -1066,7 +1046,8 @@
       reset() {
         this.pause();
         this.currentSeconds = this.defaultMinutes * 60;
-        this.hasPlayedAlarm = false;
+        this.hasFinished = false;
+        this.updateStatusDisplay();
         updateAllDisplays();
       }
 
@@ -1074,6 +1055,8 @@
         this.defaultMinutes = minutes;
         if (!this.isRunning) {
           this.currentSeconds = minutes * 60;
+          this.hasFinished = false;
+          this.updateStatusDisplay();
           updateAllDisplays();
         }
       }
@@ -1093,7 +1076,7 @@
       }
     }
 
-    // Initialize 4 background timers with default sound files
+    // Initialize 4 background timers
     const sessionTimer = new BackgroundTimer('session', 25, 'sessionStatusTime', 'sessionBadge', 'sound1.mp3', recordCompletedSession);
     const shortBreakTimer = new BackgroundTimer('shortBreak', 5, 'shortBreakStatusTime', 'shortBreakBadge', 'sound2.mp3', null);
     const longBreakTimer = new BackgroundTimer('longBreak', 15, 'longBreakStatusTime', 'longBreakBadge', 'sound3.mp3', null);
