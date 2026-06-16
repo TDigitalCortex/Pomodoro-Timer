@@ -70,7 +70,6 @@
       box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
 
-    /* Current Time Display - Above Timer - BOLD restored */
     .current-time {
       font-size: 1rem;
       font-weight: 700;
@@ -610,7 +609,6 @@
         <button class="mode-btn" data-mode="custom" id="customModeBtn">Custom</button>
       </div>
 
-      <!-- Current Time Display - Above Timer - BOLD restored -->
       <div class="current-time" id="currentTimeDisplay">12:00:00</div>
 
       <div class="timer-circle">
@@ -877,25 +875,64 @@
   </div>
 
   <script>
-    // ========== ALARM PLAYER WITH MP3 SUPPORT ==========
+    // ========== ALARM PLAYER WITH PROPER AUDIO CONTEXT HANDLING ==========
+    // Preload audio files to ensure they play correctly the first time
+    const audioCache = {};
+
+    function preloadAlarmSound(soundFile) {
+      try {
+        const audio = new Audio(`sounds/${soundFile}`);
+        audio.preload = 'auto';
+        audio.load();
+        audioCache[soundFile] = audio;
+      } catch(e) {
+        console.log('Preload error:', e);
+      }
+    }
+
+    // Preload all sounds on page load
+    for (let i = 1; i <= 9; i++) {
+      preloadAlarmSound(`sound${i}.mp3`);
+    }
+
     function playAlarm(soundFile) {
       try {
-        // Try to play MP3 file
-        const audio = new Audio(`sounds/${soundFile}`);
-        audio.play().catch(() => {
-          // Fallback: if MP3 fails, try Web Audio API beep
-          playFallbackBeep();
-        });
+        // Try to use cached audio first
+        let audio = audioCache[soundFile];
+        
+        if (!audio) {
+          // If not cached, create new Audio object
+          audio = new Audio(`sounds/${soundFile}`);
+          audio.preload = 'auto';
+          audioCache[soundFile] = audio;
+        }
+
+        // Reset the audio to the beginning in case it was played before
+        audio.currentTime = 0;
+        
+        // Create a promise for playing
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            // If MP3 fails, try fallback
+            playFallbackBeep();
+          });
+        }
       } catch(e) {
-        // Fallback: use Web Audio API beep
+        // If any error occurs, use fallback
         playFallbackBeep();
       }
     }
 
-    // Fallback beep using Web Audio API (in case MP3 fails to load)
+    // Fallback beep using Web Audio API
     function playFallbackBeep() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // Resume context if it was suspended
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
         const now = audioCtx.currentTime;
         const gainNode = audioCtx.createGain();
         gainNode.connect(audioCtx.destination);
@@ -904,10 +941,9 @@
         osc.connect(gainNode);
         osc.frequency.value = 880;
         osc.type = 'sine';
-        osc.start();
+        osc.start(now);
         gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 1);
         osc.stop(now + 0.8);
-        audioCtx.resume();
       } catch(e) { console.log('Audio error:', e); }
     }
 
@@ -973,6 +1009,8 @@
         this.statusTimeElement = document.getElementById(statusTimeId);
         this.badgeElement = document.getElementById(badgeId);
         this.updateStatusDisplay();
+        // Preload the alarm sound for this timer
+        preloadAlarmSound(defaultAlarm);
       }
 
       updateStatusDisplay() {
@@ -992,6 +1030,7 @@
           this.interval = null;
         }
         this.isRunning = false;
+        // Play alarm sound when timer finishes
         playAlarm(this.alarmSound);
         if (this.onCompleteCallback && this.name === 'session') {
           this.onCompleteCallback(this.defaultMinutes);
@@ -1043,6 +1082,8 @@
 
       setAlarmSound(sound) {
         this.alarmSound = sound;
+        // Preload the new sound
+        preloadAlarmSound(sound);
       }
 
       getCurrentDisplay() {
