@@ -290,37 +290,31 @@
       transition: all 0.3s ease;
     }
 
-    /* SCROLL VIEW MODE (when checkbox is TRUE/checked) */
+    /* SCROLL VIEW MODE (when checkbox is TRUE/checked) - with INVISIBLE scrollbar */
     .task-list.scroll {
       max-height: 300px;
-      overflow-y: scroll;
-    }
-    
-    /* Make scrollbar invisible but keep scroll functionality */
-    .task-list.scroll::-webkit-scrollbar {
-      width: 8px;
-      background: transparent;
-    }
-    
-    .task-list.scroll::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    
-    .task-list.scroll::-webkit-scrollbar-thumb {
-      background: transparent;
-    }
-    
-    .task-list.scroll::-webkit-scrollbar-thumb:hover {
-      background: rgba(0, 0, 0, 0.1);
-    }
-    
-    /* For Firefox - make scrollbar invisible */
-    .task-list.scroll {
-      scrollbar-width: thin;
-      scrollbar-color: transparent transparent;
+      overflow-y: auto;
     }
 
-    /* LINE BREAK VIEW MODE (when checkbox is FALSE/unchecked) */
+    /* Make scrollbar INVISIBLE but keep scroll functionality - WebKit (Chrome, Safari, Edge) */
+    .task-list.scroll::-webkit-scrollbar {
+      width: 0px;
+      height: 0px;
+      background: transparent;
+      display: none;
+    }
+
+    /* Make scrollbar INVISIBLE for Firefox */
+    .task-list.scroll {
+      scrollbar-width: none;
+    }
+
+    /* Make scrollbar INVISIBLE for IE/Edge */
+    .task-list.scroll {
+      -ms-overflow-style: none;
+    }
+
+    /* LINE BREAK VIEW MODE (when checkbox is FALSE/unchecked) - text wraps, no scroll */
     .task-list.line-break {
       max-height: none;
       overflow-y: visible;
@@ -358,17 +352,21 @@
       border: none;
       outline: none;
       cursor: text;
-      line-height: 1.5;
-      max-width: 100%;
+      line-height: 1.4;
     }
 
-    /* Both modes use text wrapping for readability */
-    .task-list.scroll .task-text,
+    /* Line break mode - text wraps normally */
     .task-list.line-break .task-text {
       white-space: normal;
       word-wrap: break-word;
       word-break: break-word;
       overflow-wrap: break-word;
+    }
+
+    /* Scroll mode - text stays on one line with horizontal scroll */
+    .task-list.scroll .task-text {
+      white-space: nowrap;
+      overflow-x: auto;
     }
 
     .task-text:focus {
@@ -571,9 +569,6 @@
       .session-stats {
         flex-direction: column;
         gap: 0.3rem;
-      }
-      .task-list.scroll {
-        max-height: 200px;
       }
     }
   </style>
