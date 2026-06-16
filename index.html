@@ -656,7 +656,6 @@
         <div class="timer-digits" id="timerDisplay">25:00</div>
       </div>
 
-      <!-- Session View -->
       <div class="session-view" id="sessionView">
         <div class="session-stats">
           <div class="stat-item">
@@ -1017,19 +1016,8 @@
       document.getElementById('timeSpent').textContent = `${hours}h ${minutes}m`;
     }
 
-    // Get current session duration for time tracking
-    function getSessionDuration() {
-      const savedSettings = localStorage.getItem('pomodoro_settings');
-      if (savedSettings) {
-        try {
-          const settings = JSON.parse(savedSettings);
-          return settings.sessionDuration || 25;
-        } catch(e) { return 25; }
-      }
-      return 25;
-    }
-
-    function recordTaskCompletion() {
+    // Record a task completion with a specific duration
+    function recordTaskCompletionWithDuration(durationMinutes) {
       const today = new Date().toDateString();
       if (completionStats.todayDate !== today) {
         completionStats.todayCompleted = 0;
@@ -1037,14 +1025,13 @@
       }
       completionStats.todayCompleted++;
       completionStats.totalCompleted++;
-      // Use the actual session duration from settings
-      const sessionDuration = getSessionDuration();
-      completionStats.totalMinutes += sessionDuration;
+      completionStats.totalMinutes += durationMinutes;
       saveCompletionStats();
       updateSessionView();
     }
 
-    function decrementTaskCompletion() {
+    // Decrement a task completion with a specific duration
+    function decrementTaskCompletionWithDuration(durationMinutes) {
       const today = new Date().toDateString();
       if (completionStats.todayDate !== today) {
         completionStats.todayCompleted = 0;
@@ -1055,8 +1042,7 @@
       }
       if (completionStats.totalCompleted > 0) {
         completionStats.totalCompleted--;
-        const sessionDuration = getSessionDuration();
-        completionStats.totalMinutes = Math.max(0, completionStats.totalMinutes - sessionDuration);
+        completionStats.totalMinutes = Math.max(0, completionStats.totalMinutes - durationMinutes);
       }
       saveCompletionStats();
       updateSessionView();
@@ -1377,6 +1363,9 @@
     const addTaskBtn = document.getElementById('addTaskBtn');
     let taskScrollEnabled = true;
 
+    // Store the active timer duration when a task is checked
+    let lastCheckedDuration = 0;
+
     function saveTasks() {
       localStorage.setItem('pomodoro_tasks', JSON.stringify(tasks));
     }
@@ -1443,16 +1432,33 @@
         check.className = 'task-check';
         check.checked = task.completed;
         check.onchange = () => {
-          // Track completion state change
           const wasCompleted = task.completed;
           task.completed = check.checked;
           
+          // Get the duration based on which timer is currently active/viewed
+          let durationMinutes = 25; // default fallback
+          
+          // Get the currently active timer's duration
+          if (currentView === 'session') {
+            durationMinutes = sessionTimer.defaultMinutes;
+          } else if (currentView === 'shortBreak') {
+            durationMinutes = shortBreakTimer.defaultMinutes;
+          } else if (currentView === 'longBreak') {
+            durationMinutes = longBreakTimer.defaultMinutes;
+          } else if (currentView === 'custom') {
+            durationMinutes = customTimer.defaultMinutes;
+          }
+          
           if (task.completed && !wasCompleted) {
-            // Task was unchecked -> now checked: increment
-            recordTaskCompletion();
+            // Task was unchecked -> now checked: increment with current timer's duration
+            recordTaskCompletionWithDuration(durationMinutes);
+            // Store the duration used for this task for potential future uncheck
+            task.completedDuration = durationMinutes;
           } else if (!task.completed && wasCompleted) {
-            // Task was checked -> now unchecked: decrement
-            decrementTaskCompletion();
+            // Task was checked -> now unchecked: decrement with the stored duration
+            const usedDuration = task.completedDuration || durationMinutes;
+            decrementTaskCompletionWithDuration(usedDuration);
+            task.completedDuration = 0;
           }
           saveTasks();
           renderTasks();
@@ -1468,7 +1474,6 @@
         del.className = 'delete-task';
         del.innerHTML = '×';
         del.onclick = () => {
-          // If task was completed, keep stats intact (they were already recorded)
           tasks = tasks.filter(t => t.id !== task.id);
           saveTasks();
           renderTasks();
@@ -1485,7 +1490,7 @@
     function addTask() {
       const text = taskInput.value.trim();
       if (text === '') return;
-      tasks.push({ id: Date.now(), text: text, completed: false });
+      tasks.push({ id: Date.now(), text: text, completed: false, completedDuration: 0 });
       saveTasks();
       taskInput.value = '';
       renderTasks();
