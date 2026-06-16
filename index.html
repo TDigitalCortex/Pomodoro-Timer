@@ -517,7 +517,7 @@
       font-weight: 500;
       color: #2d3748;
       font-size: 0.9rem;
-      min-width: 180px;
+      min-width: 160px;
     }
 
     .settings-row input {
@@ -541,11 +541,45 @@
     }
 
     .settings-row select {
-      width: 160px;
+      width: 140px;
       padding: 0.5rem;
       border: 1px solid #cfdee9;
       border-radius: 0.5rem;
       font-size: 0.85rem;
+    }
+
+    .sound-select-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .sound-select-container select {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .test-sound-btn {
+      background: #f0f2f5;
+      border: none;
+      cursor: pointer;
+      padding: 0.4rem 0.7rem;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #4a5568;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .test-sound-btn:hover {
+      background: #e2e8f0;
+      transform: scale(0.97);
+    }
+
+    .test-sound-btn:active {
+      transform: scale(0.95);
     }
 
     .settings-modal-footer {
@@ -595,6 +629,13 @@
       }
       .current-time {
         font-size: 0.8rem;
+      }
+      .sound-select-container {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .settings-row label {
+        min-width: 120px;
       }
     }
   </style>
@@ -760,59 +801,71 @@
           <h3>Alarm Sounds (per timer)</h3>
           <div class="settings-row">
             <label>Session Alarm:</label>
-            <select id="sessionAlarm">
-              <option value="sound1.mp3">Sound 1</option>
-              <option value="sound2.mp3">Sound 2</option>
-              <option value="sound3.mp3">Sound 3</option>
-              <option value="sound4.mp3">Sound 4</option>
-              <option value="sound5.mp3">Sound 5</option>
-              <option value="sound6.mp3">Sound 6</option>
-              <option value="sound7.mp3">Sound 7</option>
-              <option value="sound8.mp3">Sound 8</option>
-              <option value="sound9.mp3">Sound 9</option>
-            </select>
+            <div class="sound-select-container">
+              <select id="sessionAlarm">
+                <option value="sound1.mp3">Sound 1</option>
+                <option value="sound2.mp3">Sound 2</option>
+                <option value="sound3.mp3">Sound 3</option>
+                <option value="sound4.mp3">Sound 4</option>
+                <option value="sound5.mp3">Sound 5</option>
+                <option value="sound6.mp3">Sound 6</option>
+                <option value="sound7.mp3">Sound 7</option>
+                <option value="sound8.mp3">Sound 8</option>
+                <option value="sound9.mp3">Sound 9</option>
+              </select>
+              <button class="test-sound-btn" data-test-sound="session">Test</button>
+            </div>
           </div>
           <div class="settings-row">
             <label>Short Break Alarm:</label>
-            <select id="shortBreakAlarm">
-              <option value="sound1.mp3">Sound 1</option>
-              <option value="sound2.mp3">Sound 2</option>
-              <option value="sound3.mp3">Sound 3</option>
-              <option value="sound4.mp3">Sound 4</option>
-              <option value="sound5.mp3">Sound 5</option>
-              <option value="sound6.mp3">Sound 6</option>
-              <option value="sound7.mp3">Sound 7</option>
-              <option value="sound8.mp3">Sound 8</option>
-              <option value="sound9.mp3">Sound 9</option>
-            </select>
+            <div class="sound-select-container">
+              <select id="shortBreakAlarm">
+                <option value="sound1.mp3">Sound 1</option>
+                <option value="sound2.mp3">Sound 2</option>
+                <option value="sound3.mp3">Sound 3</option>
+                <option value="sound4.mp3">Sound 4</option>
+                <option value="sound5.mp3">Sound 5</option>
+                <option value="sound6.mp3">Sound 6</option>
+                <option value="sound7.mp3">Sound 7</option>
+                <option value="sound8.mp3">Sound 8</option>
+                <option value="sound9.mp3">Sound 9</option>
+              </select>
+              <button class="test-sound-btn" data-test-sound="shortBreak">Test</button>
+            </div>
           </div>
           <div class="settings-row">
             <label>Long Break Alarm:</label>
-            <select id="longBreakAlarm">
-              <option value="sound1.mp3">Sound 1</option>
-              <option value="sound2.mp3">Sound 2</option>
-              <option value="sound3.mp3">Sound 3</option>
-              <option value="sound4.mp3">Sound 4</option>
-              <option value="sound5.mp3">Sound 5</option>
-              <option value="sound6.mp3">Sound 6</option>
-              <option value="sound7.mp3">Sound 7</option>
-              <option value="sound8.mp3">Sound 8</option>
-              <option value="sound9.mp3">Sound 9</option>
-            </select>
+            <div class="sound-select-container">
+              <select id="longBreakAlarm">
+                <option value="sound1.mp3">Sound 1</option>
+                <option value="sound2.mp3">Sound 2</option>
+                <option value="sound3.mp3">Sound 3</option>
+                <option value="sound4.mp3">Sound 4</option>
+                <option value="sound5.mp3">Sound 5</option>
+                <option value="sound6.mp3">Sound 6</option>
+                <option value="sound7.mp3">Sound 7</option>
+                <option value="sound8.mp3">Sound 8</option>
+                <option value="sound9.mp3">Sound 9</option>
+              </select>
+              <button class="test-sound-btn" data-test-sound="longBreak">Test</button>
+            </div>
           </div>
           <div class="settings-row">
             <label>Custom Timer Alarm:</label>
-            <select id="customAlarm">
-              <option value="sound1.mp3">Sound 1</option>
-              <option value="sound2.mp3">Sound 2</option>
-              <option value="sound3.mp3">Sound 3</option>
-              <option value="sound4.mp3">Sound 4</option>
-              <option value="sound5.mp3">Sound 5</option>
-              <option value="sound6.mp3">Sound 6</option>
-              <option value="sound7.mp3">Sound 7</option>
-              <option value="sound8.mp3">Sound 8</option>
-              <option value="sound9.mp3">Sound 9</option>
-            </select>
+            <div class="sound-select-container">
+              <select id="customAlarm">
+                <option value="sound1.mp3">Sound 1</option>
+                <option value="sound2.mp3">Sound 2</option>
+                <option value="sound3.mp3">Sound 3</option>
+                <option value="sound4.mp3">Sound 4</option>
+                <option value="sound5.mp3">Sound 5</option>
+                <option value="sound6.mp3">Sound 6</option>
+                <option value="sound7.mp3">Sound 7</option>
+                <option value="sound8.mp3">Sound 8</option>
+                <option value="sound9.mp3">Sound 9</option>
+              </select>
+              <button class="test-sound-btn" data-test-sound="custom">Test</button>
+            </div>
           </div>
         </div>
 
@@ -877,19 +930,17 @@
   <script>
     // ========== ALARM PLAYER WITH MP3 SUPPORT ==========
     function playAlarm(soundFile) {
-      console.log('Playing alarm:', soundFile);
       try {
         const audio = new Audio(`sounds/${soundFile}`);
-        audio.play().catch((err) => {
-          console.log('MP3 failed, using fallback beep:', err);
+        audio.play().catch(() => {
           playFallbackBeep();
         });
       } catch(e) {
-        console.log('Audio error, using fallback beep:', e);
         playFallbackBeep();
       }
     }
 
+    // Fallback beep using Web Audio API
     function playFallbackBeep() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -905,11 +956,10 @@
         gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 1);
         osc.stop(now + 0.8);
         audioCtx.resume();
-        console.log('Fallback beep played');
-      } catch(e) { console.log('Fallback audio error:', e); }
+      } catch(e) { console.log('Audio error:', e); }
     }
 
-    // Session tracking variables
+    // ========== SESSION TRACKING ==========
     let todaySessions = 0;
     let totalSessions = 0;
     let focusHours = 0;
@@ -958,7 +1008,7 @@
       }
     }
 
-    // 4 Independent Background Timers
+    // ========== 4 INDEPENDENT BACKGROUND TIMERS ==========
     class BackgroundTimer {
       constructor(name, defaultMinutes, statusTimeId, badgeId, defaultAlarm, onCompleteCallback) {
         this.name = name;
@@ -985,49 +1035,29 @@
       }
 
       finish() {
-        console.log('finish() called for:', this.name, 'currentSeconds:', this.currentSeconds);
         if (this.interval) {
           clearInterval(this.interval);
           this.interval = null;
         }
         this.isRunning = false;
-        
-        // Play alarm when timer reaches 0
-        if (this.currentSeconds === 0) {
-          console.log('Timer reached 0, playing alarm for:', this.name);
-          playAlarm(this.alarmSound);
-          if (this.onCompleteCallback && this.name === 'session') {
-            this.onCompleteCallback(this.defaultMinutes);
-          }
+        playAlarm(this.alarmSound);
+        if (this.onCompleteCallback && this.name === 'session') {
+          this.onCompleteCallback(this.defaultMinutes);
         }
-        this.updateStatusDisplay();
         updateAllDisplays();
       }
 
       tick() {
         if (this.currentSeconds <= 0) {
-          if (this.isRunning) {
-            this.finish();
-          }
+          if (this.isRunning) this.finish();
           return;
         }
         this.currentSeconds--;
-        this.updateStatusDisplay();
-        if (this.currentSeconds === 0) {
-          this.finish();
-        }
         updateAllDisplays();
+        if (this.currentSeconds === 0) this.finish();
       }
 
       start() {
-        console.log('start() called for:', this.name, 'currentSeconds:', this.currentSeconds);
-        // If timer is at 0, reset to default duration first
-        if (this.currentSeconds === 0) {
-          console.log('Timer at 0, resetting to default:', this.defaultMinutes);
-          this.currentSeconds = this.defaultMinutes * 60;
-          this.updateStatusDisplay();
-        }
-        
         if (this.interval) clearInterval(this.interval);
         this.isRunning = true;
         this.interval = setInterval(() => {
@@ -1046,10 +1076,8 @@
       }
 
       reset() {
-        console.log('reset() called for:', this.name);
         this.pause();
         this.currentSeconds = this.defaultMinutes * 60;
-        this.updateStatusDisplay();
         updateAllDisplays();
       }
 
@@ -1057,7 +1085,6 @@
         this.defaultMinutes = minutes;
         if (!this.isRunning) {
           this.currentSeconds = minutes * 60;
-          this.updateStatusDisplay();
           updateAllDisplays();
         }
       }
@@ -1208,6 +1235,20 @@
           }
         });
         updateAllDisplays();
+      });
+    });
+
+    // ========== TEST SOUND BUTTONS ==========
+    document.querySelectorAll('[data-test-sound]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const timerName = btn.dataset.testSound;
+        const selectId = `${timerName}Alarm`;
+        const select = document.getElementById(selectId);
+        if (select) {
+          const soundFile = select.value;
+          playAlarm(soundFile);
+        }
       });
     });
 
@@ -1404,6 +1445,10 @@
         document.getElementById('statusBarToggle').checked = statusBarEnabled;
         document.getElementById('taskScrollToggle').checked = taskScrollEnabled;
         document.getElementById('currentTimeColor').value = currentTimeColor;
+        document.getElementById('sessionAlarm').value = sessionAlarm;
+        document.getElementById('shortBreakAlarm').value = shortBreakAlarm;
+        document.getElementById('longBreakAlarm').value = longBreakAlarm;
+        document.getElementById('customAlarm').value = customAlarm;
         applyTaskDisplayMode();
         
         timerTextColor = settings.timerTextColor || '#ffffff';
@@ -1587,9 +1632,6 @@
     loadSessionData();
     loadSettings();
     updateAllDisplays();
-
-    // Test alarm on load (remove this after testing)
-    console.log('Timer initialized. Open console to see debug logs.');
   </script>
 </body>
 </html>
