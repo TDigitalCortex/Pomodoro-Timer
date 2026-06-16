@@ -290,13 +290,29 @@
       transition: all 0.3s ease;
     }
 
-    /* SCROLL MODE (when checkbox is TRUE/checked) */
+    /* SCROLL VIEW MODE (when checkbox is TRUE/checked) - with invisible scrollbar */
     .task-list.scroll {
       max-height: 300px;
       overflow-y: auto;
     }
 
-    /* LINE BREAK MODE (when checkbox is FALSE/unchecked) - text wraps, no scroll */
+    /* Hide scrollbar but keep functionality - WebKit browsers */
+    .task-list.scroll::-webkit-scrollbar {
+      width: 0px;
+      background: transparent;
+    }
+
+    /* Hide scrollbar for Firefox */
+    .task-list.scroll {
+      scrollbar-width: none;
+    }
+
+    /* Hide scrollbar for IE/Edge */
+    .task-list.scroll {
+      -ms-overflow-style: none;
+    }
+
+    /* LINE BREAK VIEW MODE (when checkbox is FALSE/unchecked) - text wraps, no scroll */
     .task-list.line-break {
       max-height: none;
       overflow-y: visible;
@@ -345,7 +361,7 @@
       overflow-wrap: break-word;
     }
 
-    /* Scroll mode - text stays on one line with ellipsis or scroll */
+    /* Scroll mode - text stays on one line with horizontal scroll */
     .task-list.scroll .task-text {
       white-space: nowrap;
       overflow-x: auto;
@@ -700,9 +716,8 @@
             <input type="checkbox" id="statusBarToggle" checked>
           </div>
           <div class="settings-row">
-            <label>Task Scroll (when exceeds limit):</label>
+            <label>Task View (when exceeds limit):</label>
             <input type="checkbox" id="taskScrollToggle" checked>
-            <span style="font-size:0.7rem; color:#718096;">(Unchecked = line break text)</span>
           </div>
         </div>
 
