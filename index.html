@@ -877,12 +877,15 @@
   <script>
     // ========== ALARM PLAYER WITH MP3 SUPPORT ==========
     function playAlarm(soundFile) {
+      console.log('Playing alarm:', soundFile);
       try {
         const audio = new Audio(`sounds/${soundFile}`);
-        audio.play().catch(() => {
+        audio.play().catch((err) => {
+          console.log('MP3 failed, using fallback beep:', err);
           playFallbackBeep();
         });
       } catch(e) {
+        console.log('Audio error, using fallback beep:', e);
         playFallbackBeep();
       }
     }
@@ -902,7 +905,8 @@
         gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 1);
         osc.stop(now + 0.8);
         audioCtx.resume();
-      } catch(e) { console.log('Audio error:', e); }
+        console.log('Fallback beep played');
+      } catch(e) { console.log('Fallback audio error:', e); }
     }
 
     // Session tracking variables
@@ -966,7 +970,6 @@
         this.onCompleteCallback = onCompleteCallback;
         this.statusTimeElement = document.getElementById(statusTimeId);
         this.badgeElement = document.getElementById(badgeId);
-        this.alarmPlayed = false; // Track if alarm has been played for this completion
         this.updateStatusDisplay();
       }
 
@@ -982,15 +985,16 @@
       }
 
       finish() {
+        console.log('finish() called for:', this.name, 'currentSeconds:', this.currentSeconds);
         if (this.interval) {
           clearInterval(this.interval);
           this.interval = null;
         }
         this.isRunning = false;
         
-        // Play alarm and trigger callback when timer reaches 0
-        if (this.currentSeconds === 0 && !this.alarmPlayed) {
-          this.alarmPlayed = true;
+        // Play alarm when timer reaches 0
+        if (this.currentSeconds === 0) {
+          console.log('Timer reached 0, playing alarm for:', this.name);
           playAlarm(this.alarmSound);
           if (this.onCompleteCallback && this.name === 'session') {
             this.onCompleteCallback(this.defaultMinutes);
@@ -1008,7 +1012,6 @@
           return;
         }
         this.currentSeconds--;
-        this.alarmPlayed = false; // Reset flag when ticking
         this.updateStatusDisplay();
         if (this.currentSeconds === 0) {
           this.finish();
@@ -1017,11 +1020,10 @@
       }
 
       start() {
-        // Reset alarm played flag
-        this.alarmPlayed = false;
-        
+        console.log('start() called for:', this.name, 'currentSeconds:', this.currentSeconds);
         // If timer is at 0, reset to default duration first
         if (this.currentSeconds === 0) {
+          console.log('Timer at 0, resetting to default:', this.defaultMinutes);
           this.currentSeconds = this.defaultMinutes * 60;
           this.updateStatusDisplay();
         }
@@ -1044,9 +1046,9 @@
       }
 
       reset() {
+        console.log('reset() called for:', this.name);
         this.pause();
         this.currentSeconds = this.defaultMinutes * 60;
-        this.alarmPlayed = false;
         this.updateStatusDisplay();
         updateAllDisplays();
       }
@@ -1055,7 +1057,6 @@
         this.defaultMinutes = minutes;
         if (!this.isRunning) {
           this.currentSeconds = minutes * 60;
-          this.alarmPlayed = false;
           this.updateStatusDisplay();
           updateAllDisplays();
         }
@@ -1586,6 +1587,9 @@
     loadSessionData();
     loadSettings();
     updateAllDisplays();
+
+    // Test alarm on load (remove this after testing)
+    console.log('Timer initialized. Open console to see debug logs.');
   </script>
 </body>
 </html>
