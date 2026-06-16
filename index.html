@@ -36,6 +36,7 @@
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
       padding: 2rem;
       text-align: center;
+      transition: background-color 0.3s ease;
     }
 
     /* Mode Selector */
@@ -74,6 +75,7 @@
     .timer-circle {
       text-align: center;
       margin: 1rem 0;
+      transition: all 0.3s ease;
     }
 
     .timer-digits {
@@ -87,6 +89,43 @@
       color: white;
       letter-spacing: 4px;
       transition: all 0.3s ease;
+    }
+
+    /* Session View (spanning sessions under timer) - Toggleable */
+    .session-view {
+      margin-top: 1rem;
+      padding: 0.8rem;
+      background: #f9fbfd;
+      border-radius: 1rem;
+      border: 1px solid #eef2f6;
+      transition: all 0.3s ease;
+    }
+
+    .session-view.hidden {
+      display: none;
+    }
+
+    .session-stats {
+      display: flex;
+      justify-content: space-around;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 0.3rem 0.5rem;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: #718096;
+    }
+
+    .stat-value {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #1a2c38;
     }
 
     /* Action Buttons */
@@ -182,7 +221,7 @@
     .status-badge.paused { background: #ed8936; }
     .status-badge.idle { background: #a0aec0; }
 
-    /* Tasks Section */
+    /* Tasks Section - Toggleable scroll/page-break */
     .tasks-section {
       margin-top: 2rem;
       border-top: 2px solid #edeff4;
@@ -240,10 +279,25 @@
       transform: translateY(-2px);
     }
 
+    /* Task container styles - toggle between scroll and page-break */
     .task-list {
       list-style: none;
+      transition: all 0.3s ease;
+    }
+
+    .task-list.scroll {
       max-height: 300px;
       overflow-y: auto;
+    }
+
+    .task-list.page-break {
+      max-height: none;
+      overflow-y: visible;
+    }
+
+    .task-list.page-break .task-item {
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
 
     .task-item {
@@ -399,7 +453,7 @@
       font-weight: 500;
       color: #2d3748;
       font-size: 0.9rem;
-      min-width: 140px;
+      min-width: 160px;
     }
 
     .settings-row input {
@@ -413,6 +467,12 @@
     .settings-row input[type="color"] {
       width: 70px;
       height: 40px;
+      cursor: pointer;
+    }
+
+    .settings-row input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
       cursor: pointer;
     }
 
@@ -466,12 +526,16 @@
       .status-bar {
         flex-direction: column;
       }
+      .session-stats {
+        flex-direction: column;
+        gap: 0.3rem;
+      }
     }
   </style>
 </head>
 <body>
   <div class="timer-container">
-    <div class="timer-card">
+    <div class="timer-card" id="timerCard">
       <!-- Mode Selector -->
       <div class="mode-selector">
         <button class="mode-btn active" data-mode="session" id="sessionModeBtn">Session</button>
@@ -483,6 +547,24 @@
       <!-- Main Timer Display -->
       <div class="timer-circle">
         <div class="timer-digits" id="timerDisplay">25:00</div>
+      </div>
+
+      <!-- Session View (spanning sessions under timer) - Toggleable -->
+      <div class="session-view" id="sessionView">
+        <div class="session-stats">
+          <div class="stat-item">
+            <div class="stat-label">Today's Sessions</div>
+            <div class="stat-value" id="todaySessions">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Total Sessions</div>
+            <div class="stat-value" id="totalSessions">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Focus Time (hrs)</div>
+            <div class="stat-value" id="focusTime">0</div>
+          </div>
+        </div>
       </div>
 
       <!-- Status Bar - Shows all 4 timers -->
@@ -537,7 +619,7 @@
     </div>
   </div>
 
-  <!-- Settings Modal with Individual Alarm Sounds for Each Timer -->
+  <!-- Settings Modal with New Display Options -->
   <div id="settingsOverlay" class="settings-overlay">
     <div class="settings-modal">
       <div class="settings-modal-header">
@@ -582,6 +664,18 @@
           <div class="settings-row">
             <label>Custom Time:</label>
             <input type="number" id="customTime" min="1" max="99" value="30">
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>Display</h3>
+          <div class="settings-row">
+            <label>Session View (Show spanning sessions):</label>
+            <input type="checkbox" id="sessionViewToggle">
+          </div>
+          <div class="settings-row">
+            <label>Task Scroll (when exceeds limit):</label>
+            <input type="checkbox" id="taskScrollToggle" checked>
           </div>
         </div>
 
@@ -678,6 +772,10 @@
           <div class="settings-row">
             <label>Task Text Color:</label>
             <input type="color" id="taskTextColor" value="#1a2c38">
+          </div>
+          <div class="settings-row">
+            <label>Task Card Color:</label>
+            <input type="color" id="taskCardColor" value="#f9fbfd">
           </div>
           <div class="settings-row">
             <label>Page Background:</label>
@@ -794,15 +892,65 @@
       } catch(e) { console.log('Audio error:', e); }
     }
 
+    // Session tracking variables
+    let todaySessions = 0;
+    let totalSessions = 0;
+    let focusHours = 0;
+    let sessionStartDate = new Date().toDateString();
+
+    function updateSessionStats() {
+      document.getElementById('todaySessions').textContent = todaySessions;
+      document.getElementById('totalSessions').textContent = totalSessions;
+      document.getElementById('focusTime').textContent = focusHours;
+    }
+
+    function recordCompletedSession(minutes) {
+      const today = new Date().toDateString();
+      if (sessionStartDate !== today) {
+        todaySessions = 0;
+        sessionStartDate = today;
+      }
+      todaySessions++;
+      totalSessions++;
+      focusHours = Math.round((totalSessions * 25) / 60);
+      updateSessionStats();
+      saveSessionData();
+    }
+
+    function saveSessionData() {
+      localStorage.setItem('pomodoro_session_data', JSON.stringify({
+        todaySessions, totalSessions, focusHours, sessionStartDate
+      }));
+    }
+
+    function loadSessionData() {
+      const saved = localStorage.getItem('pomodoro_session_data');
+      if (saved) {
+        const data = JSON.parse(saved);
+        todaySessions = data.todaySessions || 0;
+        totalSessions = data.totalSessions || 0;
+        focusHours = data.focusHours || 0;
+        sessionStartDate = data.sessionStartDate || new Date().toDateString();
+        
+        const today = new Date().toDateString();
+        if (sessionStartDate !== today) {
+          todaySessions = 0;
+          sessionStartDate = today;
+        }
+        updateSessionStats();
+      }
+    }
+
     // 4 Independent Background Timers
     class BackgroundTimer {
-      constructor(name, defaultMinutes, statusTimeId, badgeId, defaultAlarm) {
+      constructor(name, defaultMinutes, statusTimeId, badgeId, defaultAlarm, onCompleteCallback) {
         this.name = name;
         this.currentSeconds = defaultMinutes * 60;
         this.isRunning = false;
         this.interval = null;
         this.defaultMinutes = defaultMinutes;
         this.alarmSound = defaultAlarm;
+        this.onCompleteCallback = onCompleteCallback;
         this.statusTimeElement = document.getElementById(statusTimeId);
         this.badgeElement = document.getElementById(badgeId);
         this.updateStatusDisplay();
@@ -826,6 +974,9 @@
         }
         this.isRunning = false;
         playAlarm(this.alarmSound);
+        if (this.onCompleteCallback && this.name === 'session') {
+          this.onCompleteCallback(this.defaultMinutes);
+        }
         this.updateStatusDisplay();
       }
 
@@ -886,11 +1037,11 @@
       }
     }
 
-    // Initialize 4 background timers with default alarms
-    const sessionTimer = new BackgroundTimer('session', 25, 'sessionStatusTime', 'sessionBadge', 'Message Tones');
-    const shortBreakTimer = new BackgroundTimer('shortBreak', 5, 'shortBreakStatusTime', 'shortBreakBadge', 'Message Tones');
-    const longBreakTimer = new BackgroundTimer('longBreak', 15, 'longBreakStatusTime', 'longBreakBadge', 'Message Tones');
-    const customTimer = new BackgroundTimer('custom', 30, 'customStatusTime', 'customBadge', 'Message Tones');
+    // Initialize 4 background timers
+    const sessionTimer = new BackgroundTimer('session', 25, 'sessionStatusTime', 'sessionBadge', 'Message Tones', recordCompletedSession);
+    const shortBreakTimer = new BackgroundTimer('shortBreak', 5, 'shortBreakStatusTime', 'shortBreakBadge', 'Message Tones', null);
+    const longBreakTimer = new BackgroundTimer('longBreak', 15, 'longBreakStatusTime', 'longBreakBadge', 'Message Tones', null);
+    const customTimer = new BackgroundTimer('custom', 30, 'customStatusTime', 'customBadge', 'Message Tones', null);
 
     const timers = {
       session: sessionTimer,
@@ -923,12 +1074,10 @@
       }
     }
 
-    // Update main display every second
     setInterval(() => {
       updateMainDisplay();
     }, 1000);
 
-    // Update all timer names in UI
     function updateTimerNames(sessionName, shortName, longName, customName) {
       sessionModeBtn.textContent = sessionName;
       shortBreakModeBtn.textContent = shortName;
@@ -946,20 +1095,17 @@
       document.getElementById('customBadge').className = `status-badge ${customTimer.getIsRunning() ? 'running' : 'idle'}`;
     }
 
-    // Mode switching
     const modeBtns = document.querySelectorAll('.mode-btn');
     modeBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const mode = btn.dataset.mode;
         currentView = mode;
-        
         modeBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         updateMainDisplay();
       });
     });
 
-    // Start/Pause button controls the CURRENTLY VIEWED timer
     const playPauseBtn = document.getElementById('playPauseBtn');
     if (playPauseBtn) {
       playPauseBtn.onclick = () => {
@@ -985,7 +1131,6 @@
       document.getElementById('customBadge').className = `status-badge ${customTimer.getIsRunning() ? 'running' : 'idle'}`;
     }
 
-    // Reset button resets the CURRENTLY VIEWED timer
     const resetBtn = document.getElementById('resetBtn');
     if (resetBtn) {
       resetBtn.onclick = () => {
@@ -998,7 +1143,6 @@
       };
     }
 
-    // Click on status bar items switches view
     document.querySelectorAll('.status-item').forEach(item => {
       item.addEventListener('click', () => {
         const mode = item.dataset.status;
@@ -1019,6 +1163,7 @@
     const taskListContainer = document.getElementById('taskListContainer');
     const taskInput = document.getElementById('taskInput');
     const addTaskBtn = document.getElementById('addTaskBtn');
+    let taskScrollEnabled = true;
 
     function saveTasks() {
       localStorage.setItem('pomodoro_tasks', JSON.stringify(tasks));
@@ -1028,6 +1173,16 @@
       const saved = localStorage.getItem('pomodoro_tasks');
       if (saved) tasks = JSON.parse(saved);
       renderTasks();
+    }
+
+    function applyTaskDisplayMode() {
+      if (taskScrollEnabled) {
+        taskListContainer.classList.add('scroll');
+        taskListContainer.classList.remove('page-break');
+      } else {
+        taskListContainer.classList.add('page-break');
+        taskListContainer.classList.remove('scroll');
+      }
     }
 
     function renderTasks() {
@@ -1043,6 +1198,7 @@
         empty.className = 'empty-tasks';
         empty.innerText = 'No tasks yet — add something to focus on';
         taskListContainer.appendChild(empty);
+        applyTaskDisplayMode();
         return;
       }
       
@@ -1085,6 +1241,7 @@
         li.appendChild(del);
         taskListContainer.appendChild(li);
       });
+      applyTaskDisplayMode();
     }
 
     function addTask() {
@@ -1104,38 +1261,28 @@
     const settingsBtn = document.getElementById('settingsBtn');
     const closeSettingsBtn = document.querySelector('.settings-close-btn');
     const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    const sessionViewElement = document.getElementById('sessionView');
 
-    // Timer durations
-    let sessionDuration = 25;
-    let shortBreakDuration = 5;
-    let longBreakDuration = 15;
-    let customDuration = 30;
-    
-    // Timer names
-    let sessionName = 'Session';
-    let shortBreakName = 'Short Break';
-    let longBreakName = 'Long Break';
-    let customName = 'Custom';
-    
-    // Alarm sounds
-    let sessionAlarm = 'Message Tones';
-    let shortBreakAlarm = 'Message Tones';
-    let longBreakAlarm = 'Message Tones';
-    let customAlarm = 'Message Tones';
+    let sessionViewEnabled = true;
+    let sessionDuration = 25, shortBreakDuration = 5, longBreakDuration = 15, customDuration = 30;
+    let sessionName = 'Session', shortBreakName = 'Short Break', longBreakName = 'Long Break', customName = 'Custom';
+    let sessionAlarm = 'Message Tones', shortBreakAlarm = 'Message Tones', longBreakAlarm = 'Message Tones', customAlarm = 'Message Tones';
+    let timerTextColor = '#ffffff', timerBgColor = '#667eea';
+    let primaryBtnColor = '#667eea', primaryBtnHoverColor = '#5a67d8';
+    let actionBtnColor = '#f2f5f9', actionBtnTextColor = '#1f2e3a';
+    let taskTextColor = '#1a2c38', taskCardColor = '#f9fbfd', pageBgColor = '#667eea', cardBgColor = '#ffffff';
 
     function loadSettings() {
       const saved = localStorage.getItem('pomodoro_settings');
       if (saved) {
         const settings = JSON.parse(saved);
         
-        // Load names
         sessionName = settings.sessionName || 'Session';
         shortBreakName = settings.shortBreakName || 'Short Break';
         longBreakName = settings.longBreakName || 'Long Break';
         customName = settings.customName || 'Custom';
         updateTimerNames(sessionName, shortBreakName, longBreakName, customName);
         
-        // Load durations
         sessionDuration = settings.sessionDuration || 25;
         shortBreakDuration = settings.shortBreakDuration || 5;
         longBreakDuration = settings.longBreakDuration || 15;
@@ -1146,7 +1293,6 @@
         longBreakTimer.setDuration(longBreakDuration);
         customTimer.setDuration(customDuration);
         
-        // Load alarm sounds
         sessionAlarm = settings.sessionAlarm || 'Message Tones';
         shortBreakAlarm = settings.shortBreakAlarm || 'Message Tones';
         longBreakAlarm = settings.longBreakAlarm || 'Message Tones';
@@ -1157,52 +1303,75 @@
         longBreakTimer.setAlarmSound(longBreakAlarm);
         customTimer.setAlarmSound(customAlarm);
         
-        // Load colors
-        if (settings.pageBgColor) document.body.style.backgroundColor = settings.pageBgColor;
-        if (settings.cardBgColor) document.querySelector('.timer-card').style.backgroundColor = settings.cardBgColor;
-        if (settings.timerTextColor) mainDisplay.style.color = settings.timerTextColor;
-        if (settings.timerBgColor) mainDisplay.style.backgroundColor = settings.timerBgColor;
-        if (settings.taskTextColor) {
-          document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => {
-            el.style.color = settings.taskTextColor;
-          });
+        sessionViewEnabled = settings.sessionViewEnabled !== undefined ? settings.sessionViewEnabled : true;
+        taskScrollEnabled = settings.taskScrollEnabled !== undefined ? settings.taskScrollEnabled : true;
+        
+        if (!sessionViewEnabled) {
+          sessionViewElement.classList.add('hidden');
+        } else {
+          sessionViewElement.classList.remove('hidden');
         }
         
-        // Load button colors
-        if (settings.primaryBtnColor) {
-          const addBtn = document.getElementById('addTaskBtn');
-          if (addBtn) addBtn.style.backgroundColor = settings.primaryBtnColor;
-          const saveBtn = document.getElementById('saveSettingsBtn');
-          if (saveBtn) saveBtn.style.backgroundColor = settings.primaryBtnColor;
-        }
+        document.getElementById('sessionViewToggle').checked = sessionViewEnabled;
+        document.getElementById('taskScrollToggle').checked = taskScrollEnabled;
+        applyTaskDisplayMode();
         
-        if (settings.actionBtnColor) {
-          const btns = [playPauseBtn, resetBtn, settingsBtn];
-          btns.forEach(btn => {
-            if (btn) btn.style.backgroundColor = settings.actionBtnColor;
-          });
-        }
-        if (settings.actionBtnTextColor) {
-          const btns = [playPauseBtn, resetBtn, settingsBtn];
-          btns.forEach(btn => {
-            if (btn) btn.style.color = settings.actionBtnTextColor;
-          });
-        }
+        timerTextColor = settings.timerTextColor || '#ffffff';
+        timerBgColor = settings.timerBgColor || '#667eea';
+        primaryBtnColor = settings.primaryBtnColor || '#667eea';
+        primaryBtnHoverColor = settings.primaryBtnHoverColor || '#5a67d8';
+        actionBtnColor = settings.actionBtnColor || '#f2f5f9';
+        actionBtnTextColor = settings.actionBtnTextColor || '#1f2e3a';
+        taskTextColor = settings.taskTextColor || '#1a2c38';
+        taskCardColor = settings.taskCardColor || '#f9fbfd';
+        pageBgColor = settings.pageBgColor || '#667eea';
+        cardBgColor = settings.cardBgColor || '#ffffff';
         
-        // Load into input fields
-        document.getElementById('sessionName').value = sessionName;
-        document.getElementById('shortBreakName').value = shortBreakName;
-        document.getElementById('longBreakName').value = longBreakName;
-        document.getElementById('customName').value = customName;
-        document.getElementById('sessionTime').value = sessionDuration;
-        document.getElementById('shortBreakTime').value = shortBreakDuration;
-        document.getElementById('longBreakTime').value = longBreakDuration;
-        document.getElementById('customTime').value = customDuration;
-        document.getElementById('sessionAlarm').value = sessionAlarm;
-        document.getElementById('shortBreakAlarm').value = shortBreakAlarm;
-        document.getElementById('longBreakAlarm').value = longBreakAlarm;
-        document.getElementById('customAlarm').value = customAlarm;
+        applyColors();
       }
+    }
+
+    function applyColors() {
+      document.body.style.backgroundColor = pageBgColor;
+      document.querySelector('.timer-card').style.backgroundColor = cardBgColor;
+      mainDisplay.style.color = timerTextColor;
+      mainDisplay.style.backgroundColor = timerBgColor;
+      
+      document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => {
+        el.style.color = taskTextColor;
+      });
+      
+      document.querySelectorAll('.task-item').forEach(el => {
+        el.style.backgroundColor = taskCardColor;
+      });
+      
+      const addBtn = document.getElementById('addTaskBtn');
+      if (addBtn) addBtn.style.backgroundColor = primaryBtnColor;
+      const saveBtn = document.getElementById('saveSettingsBtn');
+      if (saveBtn) saveBtn.style.backgroundColor = primaryBtnColor;
+      
+      const btns = [playPauseBtn, resetBtn, settingsBtn];
+      btns.forEach(btn => {
+        if (btn) {
+          btn.style.backgroundColor = actionBtnColor;
+          btn.style.color = actionBtnTextColor;
+        }
+      });
+      
+      let style = document.getElementById('dynamicStyle');
+      if (!style) {
+        style = document.createElement('style');
+        style.id = 'dynamicStyle';
+        document.head.appendChild(style);
+      }
+      style.textContent = `
+        .add-task-btn:hover, .settings-save-btn:hover {
+          background-color: ${primaryBtnHoverColor} !important;
+        }
+        .mode-btn.active {
+          background-color: ${primaryBtnColor} !important;
+        }
+      `;
     }
 
     if (settingsBtn) {
@@ -1219,6 +1388,18 @@
         document.getElementById('shortBreakAlarm').value = shortBreakAlarm;
         document.getElementById('longBreakAlarm').value = longBreakAlarm;
         document.getElementById('customAlarm').value = customAlarm;
+        document.getElementById('sessionViewToggle').checked = sessionViewEnabled;
+        document.getElementById('taskScrollToggle').checked = taskScrollEnabled;
+        document.getElementById('timerTextColor').value = timerTextColor;
+        document.getElementById('timerBgColor').value = timerBgColor;
+        document.getElementById('primaryBtnColor').value = primaryBtnColor;
+        document.getElementById('primaryBtnHoverColor').value = primaryBtnHoverColor;
+        document.getElementById('actionBtnColor').value = actionBtnColor;
+        document.getElementById('actionBtnTextColor').value = actionBtnTextColor;
+        document.getElementById('taskTextColor').value = taskTextColor;
+        document.getElementById('taskCardColor').value = taskCardColor;
+        document.getElementById('pageBgColor').value = pageBgColor;
+        document.getElementById('cardBgColor').value = cardBgColor;
         settingsOverlay.style.display = 'flex';
       };
     }
@@ -1228,14 +1409,12 @@
 
     if (saveSettingsBtn) {
       saveSettingsBtn.onclick = () => {
-        // Save names
         sessionName = document.getElementById('sessionName').value || 'Session';
         shortBreakName = document.getElementById('shortBreakName').value || 'Short Break';
         longBreakName = document.getElementById('longBreakName').value || 'Long Break';
         customName = document.getElementById('customName').value || 'Custom';
         updateTimerNames(sessionName, shortBreakName, longBreakName, customName);
         
-        // Save durations
         sessionDuration = parseInt(document.getElementById('sessionTime').value) || 25;
         shortBreakDuration = parseInt(document.getElementById('shortBreakTime').value) || 5;
         longBreakDuration = parseInt(document.getElementById('longBreakTime').value) || 15;
@@ -1246,7 +1425,6 @@
         longBreakTimer.setDuration(longBreakDuration);
         customTimer.setDuration(customDuration);
         
-        // Save alarm sounds
         sessionAlarm = document.getElementById('sessionAlarm').value;
         shortBreakAlarm = document.getElementById('shortBreakAlarm').value;
         longBreakAlarm = document.getElementById('longBreakAlarm').value;
@@ -1257,69 +1435,45 @@
         longBreakTimer.setAlarmSound(longBreakAlarm);
         customTimer.setAlarmSound(customAlarm);
         
-        // Save colors
-        const timerTextColor = document.getElementById('timerTextColor').value;
-        const timerBgColor = document.getElementById('timerBgColor').value;
-        const primaryBtnColor = document.getElementById('primaryBtnColor').value;
-        const primaryBtnHoverColor = document.getElementById('primaryBtnHoverColor').value;
-        const actionBtnColor = document.getElementById('actionBtnColor').value;
-        const actionBtnTextColor = document.getElementById('actionBtnTextColor').value;
-        const taskTextColor = document.getElementById('taskTextColor').value;
-        const pageBgColor = document.getElementById('pageBgColor').value;
-        const cardBgColor = document.getElementById('cardBgColor').value;
+        sessionViewEnabled = document.getElementById('sessionViewToggle').checked;
+        taskScrollEnabled = document.getElementById('taskScrollToggle').checked;
+        
+        if (sessionViewEnabled) {
+          sessionViewElement.classList.remove('hidden');
+        } else {
+          sessionViewElement.classList.add('hidden');
+        }
+        
+        applyTaskDisplayMode();
+        
+        timerTextColor = document.getElementById('timerTextColor').value;
+        timerBgColor = document.getElementById('timerBgColor').value;
+        primaryBtnColor = document.getElementById('primaryBtnColor').value;
+        primaryBtnHoverColor = document.getElementById('primaryBtnHoverColor').value;
+        actionBtnColor = document.getElementById('actionBtnColor').value;
+        actionBtnTextColor = document.getElementById('actionBtnTextColor').value;
+        taskTextColor = document.getElementById('taskTextColor').value;
+        taskCardColor = document.getElementById('taskCardColor').value;
+        pageBgColor = document.getElementById('pageBgColor').value;
+        cardBgColor = document.getElementById('cardBgColor').value;
         
         localStorage.setItem('pomodoro_settings', JSON.stringify({
           sessionName, shortBreakName, longBreakName, customName,
           sessionDuration, shortBreakDuration, longBreakDuration, customDuration,
           sessionAlarm, shortBreakAlarm, longBreakAlarm, customAlarm,
+          sessionViewEnabled, taskScrollEnabled,
           timerTextColor, timerBgColor, primaryBtnColor, primaryBtnHoverColor,
-          actionBtnColor, actionBtnTextColor, taskTextColor, pageBgColor, cardBgColor
+          actionBtnColor, actionBtnTextColor, taskTextColor, taskCardColor, pageBgColor, cardBgColor
         }));
         
-        // Apply colors
-        document.body.style.backgroundColor = pageBgColor;
-        document.querySelector('.timer-card').style.backgroundColor = cardBgColor;
-        mainDisplay.style.color = timerTextColor;
-        mainDisplay.style.backgroundColor = timerBgColor;
-        document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => {
-          el.style.color = taskTextColor;
-        });
-        
-        const addBtn = document.getElementById('addTaskBtn');
-        if (addBtn) addBtn.style.backgroundColor = primaryBtnColor;
-        const saveBtn = document.getElementById('saveSettingsBtn');
-        if (saveBtn) saveBtn.style.backgroundColor = primaryBtnColor;
-        
-        const btns = [playPauseBtn, resetBtn, settingsBtn];
-        btns.forEach(btn => {
-          if (btn) {
-            btn.style.backgroundColor = actionBtnColor;
-            btn.style.color = actionBtnTextColor;
-          }
-        });
-        
-        let style = document.getElementById('dynamicStyle');
-        if (!style) {
-          style = document.createElement('style');
-          style.id = 'dynamicStyle';
-          document.head.appendChild(style);
-        }
-        style.textContent = `
-          .add-task-btn:hover, .settings-save-btn:hover {
-            background-color: ${primaryBtnHoverColor} !important;
-          }
-          .mode-btn.active {
-            background-color: ${primaryBtnColor} !important;
-          }
-        `;
-        
+        applyColors();
         settingsOverlay.style.display = 'none';
       };
     }
 
-    // Set active mode on load
     document.querySelector('.mode-btn[data-mode="session"]').classList.add('active');
     loadTasks();
+    loadSessionData();
     loadSettings();
     updateMainDisplay();
   </script>
