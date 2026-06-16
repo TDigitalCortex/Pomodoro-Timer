@@ -966,7 +966,7 @@
         this.onCompleteCallback = onCompleteCallback;
         this.statusTimeElement = document.getElementById(statusTimeId);
         this.badgeElement = document.getElementById(badgeId);
-        this.hasFinished = false; // Track if timer has finished to prevent double alarms
+        this.alarmPlayed = false; // Track if alarm has been played for this completion
         this.updateStatusDisplay();
       }
 
@@ -988,9 +988,9 @@
         }
         this.isRunning = false;
         
-        // Only play alarm and trigger callback if timer actually completed (reached 0)
-        if (this.currentSeconds <= 0 && !this.hasFinished) {
-          this.hasFinished = true;
+        // Play alarm and trigger callback when timer reaches 0
+        if (this.currentSeconds === 0 && !this.alarmPlayed) {
+          this.alarmPlayed = true;
           playAlarm(this.alarmSound);
           if (this.onCompleteCallback && this.name === 'session') {
             this.onCompleteCallback(this.defaultMinutes);
@@ -1008,7 +1008,7 @@
           return;
         }
         this.currentSeconds--;
-        this.hasFinished = false; // Reset flag when ticking
+        this.alarmPlayed = false; // Reset flag when ticking
         this.updateStatusDisplay();
         if (this.currentSeconds === 0) {
           this.finish();
@@ -1017,11 +1017,11 @@
       }
 
       start() {
-        // Reset the finished flag when starting
-        this.hasFinished = false;
+        // Reset alarm played flag
+        this.alarmPlayed = false;
         
-        // If timer is already at 0, reset to default duration first
-        if (this.currentSeconds <= 0) {
+        // If timer is at 0, reset to default duration first
+        if (this.currentSeconds === 0) {
           this.currentSeconds = this.defaultMinutes * 60;
           this.updateStatusDisplay();
         }
@@ -1046,7 +1046,7 @@
       reset() {
         this.pause();
         this.currentSeconds = this.defaultMinutes * 60;
-        this.hasFinished = false;
+        this.alarmPlayed = false;
         this.updateStatusDisplay();
         updateAllDisplays();
       }
@@ -1055,7 +1055,7 @@
         this.defaultMinutes = minutes;
         if (!this.isRunning) {
           this.currentSeconds = minutes * 60;
-          this.hasFinished = false;
+          this.alarmPlayed = false;
           this.updateStatusDisplay();
           updateAllDisplays();
         }
