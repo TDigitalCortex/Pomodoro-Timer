@@ -70,6 +70,29 @@
       box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
 
+    .flip-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .flip-btn {
+      background: #f0f2f5;
+      border: none;
+      padding: 0.4rem 1rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #4a5568;
+      transition: all 0.2s ease;
+    }
+
+    .flip-btn:hover {
+      background: #e2e8f0;
+      transform: translateY(-2px);
+    }
+
     .current-time {
       font-size: 1rem;
       font-weight: 700;
@@ -649,7 +672,7 @@
 <body>
   <div class="timer-container">
     <div class="timer-card" id="timerCard">
-      <div class="mode-selector">
+      <div class="mode-selector" id="mainModeSelector">
         <button class="mode-btn active" data-mode="session" id="sessionModeBtn">Session</button>
         <button class="mode-btn" data-mode="shortBreak" id="shortBreakModeBtn">Short Break</button>
         <button class="mode-btn" data-mode="longBreak" id="longBreakModeBtn">Long Break</button>
@@ -657,10 +680,15 @@
         <button class="mode-btn" data-mode="timer" id="timerModeBtn">⏱️ Timer</button>
       </div>
 
+      <!-- Flip Button -->
+      <div class="flip-container">
+        <button class="flip-btn" id="flipBtn">⟳ Flip View</button>
+      </div>
+
       <div class="current-time" id="currentTimeDisplay">12:00:00</div>
 
       <div class="timer-circle">
-        <div class="timer-digits" id="timerDisplay">00:00</div>
+        <div class="timer-digits" id="timerDisplay">25:00</div>
       </div>
 
       <div class="session-view" id="sessionView">
@@ -675,7 +703,7 @@
           </div>
           <div class="stat-item">
             <div class="stat-label">Time Spent</div>
-            <div class="stat-value" id="timeSpent">0h 0m</div>
+            <div class="stat-value" id="timeSpent">0m</div>
           </div>
         </div>
       </div>
@@ -1016,11 +1044,11 @@
 
     preloadSounds();
 
-    // ========== COMPLETION STATS TRACKING ==========
+    // ========== COMPLETION STATS TRACKING (with seconds precision) ==========
     let completionStats = {
       todayCompleted: 0,
       totalCompleted: 0,
-      totalMinutes: 0,
+      totalSeconds: 0,
       todayDate: new Date().toDateString()
     };
 
@@ -1043,16 +1071,27 @@
       localStorage.setItem('pomodoro_completion_stats', JSON.stringify(completionStats));
     }
 
+    function formatTimeSpent(totalSeconds) {
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      
+      if (hours > 0) {
+        return `${hours}h ${minutes}m ${seconds}s`;
+      } else if (minutes > 0) {
+        return `${minutes}m ${seconds}s`;
+      } else {
+        return `${seconds}s`;
+      }
+    }
+
     function updateSessionView() {
       document.getElementById('todayCompleted').textContent = completionStats.todayCompleted;
       document.getElementById('totalCompleted').textContent = completionStats.totalCompleted;
-      
-      const hours = Math.floor(completionStats.totalMinutes / 60);
-      const minutes = completionStats.totalMinutes % 60;
-      document.getElementById('timeSpent').textContent = `${hours}h ${minutes}m`;
+      document.getElementById('timeSpent').textContent = formatTimeSpent(completionStats.totalSeconds);
     }
 
-    function recordTaskCompletionWithDuration(durationMinutes) {
+    function recordTaskCompletionWithDuration(seconds) {
       const today = new Date().toDateString();
       if (completionStats.todayDate !== today) {
         completionStats.todayCompleted = 0;
@@ -1060,12 +1099,12 @@
       }
       completionStats.todayCompleted++;
       completionStats.totalCompleted++;
-      completionStats.totalMinutes += durationMinutes;
+      completionStats.totalSeconds += seconds;
       saveCompletionStats();
       updateSessionView();
     }
 
-    function decrementTaskCompletionWithDuration(durationMinutes) {
+    function decrementTaskCompletionWithDuration(seconds) {
       const today = new Date().toDateString();
       if (completionStats.todayDate !== today) {
         completionStats.todayCompleted = 0;
@@ -1076,13 +1115,13 @@
       }
       if (completionStats.totalCompleted > 0) {
         completionStats.totalCompleted--;
-        completionStats.totalMinutes = Math.max(0, completionStats.totalMinutes - durationMinutes);
+        completionStats.totalSeconds = Math.max(0, completionStats.totalSeconds - seconds);
       }
       saveCompletionStats();
       updateSessionView();
     }
 
-    // ========== SESSION TRACKING (Timer sessions) ==========
+    // ========== SESSION TRACKING ==========
     let todaySessions = 0;
     let totalSessions = 0;
     let focusHours = 0;
@@ -1308,6 +1347,9 @@
     const mainDisplay = document.getElementById('timerDisplay');
     const playPauseText = document.getElementById('playPauseText');
 
+    // Flip state: true = showing 4 timer view (Session, Short Break, Long Break, Custom), false = Timer view
+    let isFourTimerView = true;
+
     // Current time display
     const currentTimeElement = document.getElementById('currentTimeDisplay');
     let currentTimeEnabled = true;
@@ -1347,6 +1389,53 @@
 
     setInterval(updateAllDisplays, 1000);
     updateAllDisplays();
+
+    // ========== FLIP VIEW FUNCTIONALITY ==========
+    const flipBtn = document.getElementById('flipBtn');
+
+    function updateModeSelectorView() {
+      const modeBtns = document.querySelectorAll('.mode-btn');
+      modeBtns.forEach(btn => {
+        const mode = btn.dataset.mode;
+        if (isFourTimerView) {
+          // Show all 5 buttons
+          btn.style.display = '';
+        } else {
+          // Timer view: only show Timer button, hide others
+          if (mode === 'timer') {
+            btn.style.display = '';
+          } else {
+            btn.style.display = 'none';
+          }
+        }
+      });
+      
+      // Ensure the active button is visible
+      const activeBtn = document.querySelector(`.mode-btn[data-mode="${currentView}"]`);
+      if (activeBtn) {
+        activeBtn.style.display = '';
+        modeBtns.forEach(b => b.classList.remove('active'));
+        activeBtn.classList.add('active');
+      }
+      
+      // Update flip button text
+      flipBtn.textContent = isFourTimerView ? '⟳ Flip to Timer' : '⟳ Flip to 4 Timers';
+    }
+
+    if (flipBtn) {
+      flipBtn.onclick = () => {
+        isFourTimerView = !isFourTimerView;
+        // If switching to Timer view, set current view to timer
+        if (!isFourTimerView) {
+          currentView = 'timer';
+        } else {
+          // If switching back to 4-timer view, set to session
+          currentView = 'session';
+        }
+        updateModeSelectorView();
+        updateAllDisplays();
+      };
+    }
 
     function updateTimerNames(sessionName, shortName, longName, customName, timerName) {
       sessionModeBtn.textContent = sessionName;
@@ -1409,6 +1498,11 @@
       item.addEventListener('click', () => {
         const mode = item.dataset.status;
         currentView = mode;
+        // Ensure the button is visible (if in timer view and mode is not timer, switch to 4-timer view)
+        if (!isFourTimerView && mode !== 'timer') {
+          isFourTimerView = true;
+          updateModeSelectorView();
+        }
         modeBtns.forEach(btn => {
           if (btn.dataset.mode === mode) {
             btn.classList.add('active');
@@ -1482,16 +1576,15 @@
     }
 
     function getDurationForCurrentView() {
-      if (currentView === 'session') return sessionTimer.defaultMinutes;
-      if (currentView === 'shortBreak') return shortBreakTimer.defaultMinutes;
-      if (currentView === 'longBreak') return longBreakTimer.defaultMinutes;
-      if (currentView === 'custom') return customTimer.defaultMinutes;
+      if (currentView === 'session') return sessionTimer.defaultMinutes * 60;
+      if (currentView === 'shortBreak') return shortBreakTimer.defaultMinutes * 60;
+      if (currentView === 'longBreak') return longBreakTimer.defaultMinutes * 60;
+      if (currentView === 'custom') return customTimer.defaultMinutes * 60;
       if (currentView === 'timer') {
-        // For count-up timer, use elapsed time rounded up to nearest minute
         const seconds = timerTimer.getElapsedSeconds();
-        return Math.ceil(seconds / 60);
+        return Math.max(1, seconds);
       }
-      return 25;
+      return 25 * 60;
     }
 
     function renderTasks() {
@@ -1523,26 +1616,20 @@
           const wasCompleted = task.completed;
           task.completed = check.checked;
           
-          let durationMinutes = 25;
+          let durationSeconds = 25 * 60;
           
-          // If Timer (count-up) was active, use the elapsed time
           if (currentView === 'timer') {
-            const seconds = timerTimer.getElapsedSeconds();
-            // Only count if more than 1 second has elapsed
-            durationMinutes = Math.max(1, Math.ceil(seconds / 60));
-            if (durationMinutes < 1) durationMinutes = 1;
-          } else {
-            if (currentView === 'session') durationMinutes = sessionTimer.defaultMinutes;
-            else if (currentView === 'shortBreak') durationMinutes = shortBreakTimer.defaultMinutes;
-            else if (currentView === 'longBreak') durationMinutes = longBreakTimer.defaultMinutes;
-            else if (currentView === 'custom') durationMinutes = customTimer.defaultMinutes;
-          }
+            durationSeconds = Math.max(1, timerTimer.getElapsedSeconds());
+          } else if (currentView === 'session') durationSeconds = sessionTimer.defaultMinutes * 60;
+          else if (currentView === 'shortBreak') durationSeconds = shortBreakTimer.defaultMinutes * 60;
+          else if (currentView === 'longBreak') durationSeconds = longBreakTimer.defaultMinutes * 60;
+          else if (currentView === 'custom') durationSeconds = customTimer.defaultMinutes * 60;
           
           if (task.completed && !wasCompleted) {
-            recordTaskCompletionWithDuration(durationMinutes);
-            task.completedDuration = durationMinutes;
+            recordTaskCompletionWithDuration(durationSeconds);
+            task.completedDuration = durationSeconds;
           } else if (!task.completed && wasCompleted) {
-            const usedDuration = task.completedDuration || durationMinutes;
+            const usedDuration = task.completedDuration || durationSeconds;
             decrementTaskCompletionWithDuration(usedDuration);
             task.completedDuration = 0;
           }
@@ -1861,6 +1948,7 @@
     loadSessionData();
     loadCompletionStats();
     loadSettings();
+    updateModeSelectorView();
     updateAllDisplays();
   </script>
 </body>
