@@ -928,11 +928,42 @@
   </div>
 
   <script>
-    // ========== ALARM PLAYER WITH MP3 SUPPORT ==========
+    // ========== SOUND PRELOADER AND PLAYER ==========
+    // Preload all sounds so they're ready when needed
+    const soundCache = {};
+    const soundFiles = ['sound1.mp3', 'sound2.mp3', 'sound3.mp3', 'sound4.mp3', 'sound5.mp3', 'sound6.mp3', 'sound7.mp3', 'sound8.mp3', 'sound9.mp3'];
+
+    function preloadSounds() {
+      soundFiles.forEach(file => {
+        try {
+          const audio = new Audio(`sounds/${file}`);
+          audio.load();
+          soundCache[file] = audio;
+          console.log(`Preloaded: ${file}`);
+        } catch(e) {
+          console.log(`Could not preload ${file}:`, e);
+        }
+      });
+    }
+
+    // Play alarm sound using cached audio or create new
     function playAlarm(soundFile) {
       try {
-        // Create a new Audio object with the sound file
+        // Try to use cached audio
+        if (soundCache[soundFile]) {
+          const audio = soundCache[soundFile];
+          // Clone the audio to allow overlapping sounds if needed
+          const clone = audio.cloneNode();
+          clone.play().catch((err) => {
+            console.log('Clone playback failed, using fallback beep:', err);
+            playFallbackBeep();
+          });
+          return;
+        }
+        
+        // If not cached, create new Audio
         const audio = new Audio(`sounds/${soundFile}`);
+        audio.load();
         audio.play().catch((err) => {
           console.log('MP3 playback failed, using fallback beep:', err);
           playFallbackBeep();
@@ -961,6 +992,9 @@
         audioCtx.resume();
       } catch(e) { console.log('Audio error:', e); }
     }
+
+    // Preload sounds on page load
+    preloadSounds();
 
     // ========== SESSION TRACKING ==========
     let todaySessions = 0;
@@ -1023,7 +1057,6 @@
         this.onCompleteCallback = onCompleteCallback;
         this.statusTimeElement = document.getElementById(statusTimeId);
         this.badgeElement = document.getElementById(badgeId);
-        // Flag to track if timer has completed and needs reset before starting again
         this.hasCompleted = false;
         this.updateStatusDisplay();
       }
@@ -1067,7 +1100,6 @@
       }
 
       start() {
-        // If the timer has completed, reset it before starting
         if (this.hasCompleted || this.currentSeconds <= 0) {
           this.currentSeconds = this.defaultMinutes * 60;
           this.hasCompleted = false;
