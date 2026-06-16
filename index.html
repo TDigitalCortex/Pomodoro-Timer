@@ -39,7 +39,6 @@
       transition: background-color 0.3s ease;
     }
 
-    /* Mode Selector */
     .mode-selector {
       display: flex;
       gap: 0.8rem;
@@ -71,7 +70,6 @@
       box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
 
-    /* Timer Display */
     .timer-circle {
       text-align: center;
       margin: 1rem 0;
@@ -91,7 +89,6 @@
       transition: all 0.3s ease;
     }
 
-    /* Session View */
     .session-view {
       margin-top: 1rem;
       padding: 0.8rem;
@@ -128,7 +125,6 @@
       color: #1a2c38;
     }
 
-    /* Status Bar */
     .status-bar {
       display: flex;
       justify-content: space-between;
@@ -188,7 +184,6 @@
     .status-badge.paused { background: #ed8936; }
     .status-badge.idle { background: #a0aec0; }
 
-    /* Action Buttons */
     .action-buttons {
       display: flex;
       justify-content: center;
@@ -226,7 +221,6 @@
       transform: scale(0.95);
     }
 
-    /* Tasks Section */
     .tasks-section {
       margin-top: 2rem;
       border-top: 2px solid #edeff4;
@@ -426,7 +420,6 @@
       border: 1px dashed #dce5ec;
     }
 
-    /* Settings Modal */
     .settings-overlay {
       display: none;
       position: fixed;
@@ -565,7 +558,6 @@
       transform: translateY(-2px);
     }
 
-    /* Responsive */
     @media (max-width: 600px) {
       .action-buttons {
         flex-direction: column;
@@ -593,7 +585,6 @@
 <body>
   <div class="timer-container">
     <div class="timer-card" id="timerCard">
-      <!-- Mode Selector -->
       <div class="mode-selector">
         <button class="mode-btn active" data-mode="session" id="sessionModeBtn">Session</button>
         <button class="mode-btn" data-mode="shortBreak" id="shortBreakModeBtn">Short Break</button>
@@ -601,12 +592,10 @@
         <button class="mode-btn" data-mode="custom" id="customModeBtn">Custom</button>
       </div>
 
-      <!-- Main Timer Display -->
       <div class="timer-circle">
         <div class="timer-digits" id="timerDisplay">25:00</div>
       </div>
 
-      <!-- Session View -->
       <div class="session-view" id="sessionView">
         <div class="session-stats">
           <div class="stat-item">
@@ -624,7 +613,6 @@
         </div>
       </div>
 
-      <!-- Status Bar -->
       <div class="status-bar" id="statusBar">
         <div class="status-item session" data-status="session">
           <div class="status-label" id="sessionStatusLabel">🍅 Session <span class="status-badge" id="sessionBadge"></span></div>
@@ -644,7 +632,6 @@
         </div>
       </div>
 
-      <!-- Action Buttons -->
       <div class="action-buttons">
         <button class="icon-btn" id="playPauseBtn">
           <span class="btn-icon">▶</span>
@@ -660,7 +647,6 @@
         </button>
       </div>
 
-      <!-- Tasks Section -->
       <div class="tasks-section">
         <div class="tasks-header">
           <h3>Tasks</h3>
@@ -676,7 +662,6 @@
     </div>
   </div>
 
-  <!-- Settings Modal -->
   <div id="settingsOverlay" class="settings-overlay">
     <div class="settings-modal">
       <div class="settings-modal-header">
@@ -1017,6 +1002,7 @@
         this.updateStatusDisplay();
       }
 
+      // This method now ONLY updates the display, it doesn't change any values
       updateStatusDisplay() {
         if (this.statusTimeElement) {
           const mins = Math.floor(this.currentSeconds / 60);
@@ -1038,7 +1024,8 @@
         if (this.onCompleteCallback && this.name === 'session') {
           this.onCompleteCallback(this.defaultMinutes);
         }
-        this.updateStatusDisplay();
+        // Update all displays after finishing
+        updateAllDisplays();
       }
 
       tick() {
@@ -1047,7 +1034,8 @@
           return;
         }
         this.currentSeconds--;
-        this.updateStatusDisplay();
+        // Update all displays after changing the value
+        updateAllDisplays();
         if (this.currentSeconds === 0) this.finish();
       }
 
@@ -1057,7 +1045,8 @@
         this.interval = setInterval(() => {
           if (this.isRunning) this.tick();
         }, 1000);
-        this.updateStatusDisplay();
+        // Update all displays immediately after starting
+        updateAllDisplays();
       }
 
       pause() {
@@ -1066,20 +1055,20 @@
           clearInterval(this.interval);
           this.interval = null;
         }
-        this.updateStatusDisplay();
+        updateAllDisplays();
       }
 
       reset() {
         this.pause();
         this.currentSeconds = this.defaultMinutes * 60;
-        this.updateStatusDisplay();
+        updateAllDisplays();
       }
 
       setDuration(minutes) {
         this.defaultMinutes = minutes;
         if (!this.isRunning) {
           this.currentSeconds = minutes * 60;
-          this.updateStatusDisplay();
+          updateAllDisplays();
         }
       }
 
@@ -1127,24 +1116,26 @@
     const mainDisplay = document.getElementById('timerDisplay');
     const playPauseText = document.getElementById('playPauseText');
 
-    function updateMainDisplay() {
+    // SINGLE function that updates ALL displays from ALL timers
+    function updateAllDisplays() {
+      // Update main display
       const timer = timers[currentView];
       if (timer) {
         mainDisplay.textContent = timer.getCurrentDisplay();
         playPauseText.innerText = timer.getIsRunning() ? 'Pause' : 'Start';
       }
-    }
-
-    // SINGLE interval for ALL updates - prevents desync
-    function updateAllDisplays() {
-      // Update main display
-      updateMainDisplay();
       
-      // Update all status bar displays
+      // Update all status bar displays from the timers' current values
       sessionTimer.updateStatusDisplay();
       shortBreakTimer.updateStatusDisplay();
       longBreakTimer.updateStatusDisplay();
       customTimer.updateStatusDisplay();
+      
+      // Update badges
+      document.getElementById('sessionBadge').className = `status-badge ${sessionTimer.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('shortBreakBadge').className = `status-badge ${shortBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('longBreakBadge').className = `status-badge ${longBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('customBadge').className = `status-badge ${customTimer.getIsRunning() ? 'running' : 'idle'}`;
     }
 
     // Run every second - single source of truth
@@ -1166,10 +1157,7 @@
       longBreakStatusLabel.innerHTML = `☕ ${longName} <span class="status-badge" id="longBreakBadge"></span>`;
       customStatusLabel.innerHTML = `⚙ ${customName} <span class="status-badge" id="customBadge"></span>`;
       
-      document.getElementById('sessionBadge').className = `status-badge ${sessionTimer.getIsRunning() ? 'running' : 'idle'}`;
-      document.getElementById('shortBreakBadge').className = `status-badge ${shortBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
-      document.getElementById('longBreakBadge').className = `status-badge ${longBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
-      document.getElementById('customBadge').className = `status-badge ${customTimer.getIsRunning() ? 'running' : 'idle'}`;
+      updateAllDisplays();
     }
 
     const modeBtns = document.querySelectorAll('.mode-btn');
@@ -1179,7 +1167,7 @@
         currentView = mode;
         modeBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        updateMainDisplay();
+        updateAllDisplays();
       });
     });
 
@@ -1190,21 +1178,12 @@
         if (timer) {
           if (timer.getIsRunning()) {
             timer.pause();
-            playPauseText.innerText = 'Start';
           } else {
             timer.start();
-            playPauseText.innerText = 'Pause';
           }
           updateAllDisplays();
         }
       };
-    }
-
-    function updateBadges() {
-      document.getElementById('sessionBadge').className = `status-badge ${sessionTimer.getIsRunning() ? 'running' : 'idle'}`;
-      document.getElementById('shortBreakBadge').className = `status-badge ${shortBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
-      document.getElementById('longBreakBadge').className = `status-badge ${longBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
-      document.getElementById('customBadge').className = `status-badge ${customTimer.getIsRunning() ? 'running' : 'idle'}`;
     }
 
     const resetBtn = document.getElementById('resetBtn');
@@ -1214,7 +1193,6 @@
         if (timer) {
           timer.reset();
           updateAllDisplays();
-          updateBadges();
         }
       };
     }
@@ -1230,7 +1208,7 @@
             btn.classList.remove('active');
           }
         });
-        updateMainDisplay();
+        updateAllDisplays();
       });
     });
 
