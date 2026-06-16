@@ -1558,7 +1558,7 @@
         updateAllDisplays();
       }
       
-      flipBtn.textContent = isView1 ? '⟳ Flip to Timers' : '⟳ Flip to Session-Custom';
+      flipBtn.textContent = isView1 ? '⟳ Flip to Timers' : '⟳ Flip to Sessions';
     }
 
     if (flipBtn) {
@@ -1585,14 +1585,14 @@
       timer3ModeBtn.textContent = `⏱️ ${t3Name}`;
       timer4ModeBtn.textContent = `⏱️ ${t4Name}`;
       
-      sessionStatusLabel.innerHTML = `🍅 ${sessionName} <span class="status-badge" id="sessionBadge"></span>`;
-      shortBreakStatusLabel.innerHTML = `🌿 ${shortName} <span class="status-badge" id="shortBreakBadge"></span>`;
-      longBreakStatusLabel.innerHTML = `☕ ${longName} <span class="status-badge" id="longBreakBadge"></span>`;
-      customStatusLabel.innerHTML = `⚙ ${customName} <span class="status-badge" id="customBadge"></span>`;
-      timer1StatusLabel.innerHTML = `⏱️ ${t1Name} <span class="status-badge" id="timer1Badge"></span>`;
-      timer2StatusLabel.innerHTML = `⏱️ ${t2Name} <span class="status-badge" id="timer2Badge"></span>`;
-      timer3StatusLabel.innerHTML = `⏱️ ${t3Name} <span class="status-badge" id="timer3Badge"></span>`;
-      timer4StatusLabel.innerHTML = `⏱️ ${t4Name} <span class="status-badge" id="timer4Badge"></span>`;
+      sessionStatusLabel.innerHTML = `${sessionName} <span class="status-badge" id="sessionBadge"></span>`;
+      shortBreakStatusLabel.innerHTML = `${shortName} <span class="status-badge" id="shortBreakBadge"></span>`;
+      longBreakStatusLabel.innerHTML = `${longName} <span class="status-badge" id="longBreakBadge"></span>`;
+      customStatusLabel.innerHTML = `${customName} <span class="status-badge" id="customBadge"></span>`;
+      timer1StatusLabel.innerHTML = `${t1Name} <span class="status-badge" id="timer1Badge"></span>`;
+      timer2StatusLabel.innerHTML = `${t2Name} <span class="status-badge" id="timer2Badge"></span>`;
+      timer3StatusLabel.innerHTML = `${t3Name} <span class="status-badge" id="timer3Badge"></span>`;
+      timer4StatusLabel.innerHTML = `${t4Name} <span class="status-badge" id="timer4Badge"></span>`;
       
       document.getElementById('sessionBadge').className = `status-badge ${sessionTimer.getIsRunning() ? 'running' : 'idle'}`;
       document.getElementById('shortBreakBadge').className = `status-badge ${shortBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
