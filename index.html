@@ -70,6 +70,21 @@
       box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
 
+    /* Current Time Display - Above Timer */
+    .current-time {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #718096;
+      margin-bottom: 0.5rem;
+      transition: all 0.3s ease;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+
+    .current-time.hidden {
+      display: none;
+    }
+
     .timer-circle {
       text-align: center;
       margin: 1rem 0;
@@ -579,6 +594,9 @@
         flex-direction: column;
         gap: 0.3rem;
       }
+      .current-time {
+        font-size: 0.8rem;
+      }
     }
   </style>
 </head>
@@ -591,6 +609,9 @@
         <button class="mode-btn" data-mode="longBreak" id="longBreakModeBtn">Long Break</button>
         <button class="mode-btn" data-mode="custom" id="customModeBtn">Custom</button>
       </div>
+
+      <!-- Current Time Display - Above Timer -->
+      <div class="current-time" id="currentTimeDisplay">12:00:00</div>
 
       <div class="timer-circle">
         <div class="timer-digits" id="timerDisplay">25:00</div>
@@ -711,6 +732,10 @@
 
         <div class="settings-group">
           <h3>Display</h3>
+          <div class="settings-row">
+            <label>Show Current Time:</label>
+            <input type="checkbox" id="currentTimeToggle" checked>
+          </div>
           <div class="settings-row">
             <label>Session View (Show spanning sessions):</label>
             <input type="checkbox" id="sessionViewToggle">
@@ -1002,7 +1027,6 @@
         this.updateStatusDisplay();
       }
 
-      // This method now ONLY updates the display, it doesn't change any values
       updateStatusDisplay() {
         if (this.statusTimeElement) {
           const mins = Math.floor(this.currentSeconds / 60);
@@ -1024,7 +1048,6 @@
         if (this.onCompleteCallback && this.name === 'session') {
           this.onCompleteCallback(this.defaultMinutes);
         }
-        // Update all displays after finishing
         updateAllDisplays();
       }
 
@@ -1034,7 +1057,6 @@
           return;
         }
         this.currentSeconds--;
-        // Update all displays after changing the value
         updateAllDisplays();
         if (this.currentSeconds === 0) this.finish();
       }
@@ -1045,7 +1067,6 @@
         this.interval = setInterval(() => {
           if (this.isRunning) this.tick();
         }, 1000);
-        // Update all displays immediately after starting
         updateAllDisplays();
       }
 
@@ -1115,6 +1136,24 @@
     let currentView = 'session';
     const mainDisplay = document.getElementById('timerDisplay');
     const playPauseText = document.getElementById('playPauseText');
+
+    // Current time display
+    const currentTimeElement = document.getElementById('currentTimeDisplay');
+    let currentTimeEnabled = true;
+
+    function updateCurrentTime() {
+      if (!currentTimeEnabled) return;
+      const now = new Date();
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const seconds = now.getSeconds().toString().padStart(2, '0');
+      currentTimeElement.textContent = `${hours}:${minutes}:${seconds}`;
+    }
+
+    // Update current time every second
+    setInterval(updateCurrentTime, 1000);
+    // Initial update
+    updateCurrentTime();
 
     // SINGLE function that updates ALL displays from ALL timers
     function updateAllDisplays() {
@@ -1377,6 +1416,7 @@
         sessionViewEnabled = settings.sessionViewEnabled !== undefined ? settings.sessionViewEnabled : true;
         statusBarEnabled = settings.statusBarEnabled !== undefined ? settings.statusBarEnabled : true;
         taskScrollEnabled = settings.taskScrollEnabled !== undefined ? settings.taskScrollEnabled : true;
+        currentTimeEnabled = settings.currentTimeEnabled !== undefined ? settings.currentTimeEnabled : true;
         
         if (!sessionViewEnabled) {
           sessionViewElement.classList.add('hidden');
@@ -1390,6 +1430,13 @@
           statusBarElement.classList.remove('hidden');
         }
         
+        if (!currentTimeEnabled) {
+          currentTimeElement.classList.add('hidden');
+        } else {
+          currentTimeElement.classList.remove('hidden');
+        }
+        
+        document.getElementById('currentTimeToggle').checked = currentTimeEnabled;
         document.getElementById('sessionViewToggle').checked = sessionViewEnabled;
         document.getElementById('statusBarToggle').checked = statusBarEnabled;
         document.getElementById('taskScrollToggle').checked = taskScrollEnabled;
@@ -1467,6 +1514,7 @@
         document.getElementById('shortBreakAlarm').value = shortBreakAlarm;
         document.getElementById('longBreakAlarm').value = longBreakAlarm;
         document.getElementById('customAlarm').value = customAlarm;
+        document.getElementById('currentTimeToggle').checked = currentTimeEnabled;
         document.getElementById('sessionViewToggle').checked = sessionViewEnabled;
         document.getElementById('statusBarToggle').checked = statusBarEnabled;
         document.getElementById('taskScrollToggle').checked = taskScrollEnabled;
@@ -1515,9 +1563,16 @@
         longBreakTimer.setAlarmSound(longBreakAlarm);
         customTimer.setAlarmSound(customAlarm);
         
+        currentTimeEnabled = document.getElementById('currentTimeToggle').checked;
         sessionViewEnabled = document.getElementById('sessionViewToggle').checked;
         statusBarEnabled = document.getElementById('statusBarToggle').checked;
         taskScrollEnabled = document.getElementById('taskScrollToggle').checked;
+        
+        if (currentTimeEnabled) {
+          currentTimeElement.classList.remove('hidden');
+        } else {
+          currentTimeElement.classList.add('hidden');
+        }
         
         if (sessionViewEnabled) {
           sessionViewElement.classList.remove('hidden');
@@ -1548,7 +1603,7 @@
           sessionName, shortBreakName, longBreakName, customName,
           sessionDuration, shortBreakDuration, longBreakDuration, customDuration,
           sessionAlarm, shortBreakAlarm, longBreakAlarm, customAlarm,
-          sessionViewEnabled, statusBarEnabled, taskScrollEnabled,
+          currentTimeEnabled, sessionViewEnabled, statusBarEnabled, taskScrollEnabled,
           timerTextColor, timerBgColor, primaryBtnColor, primaryBtnHoverColor,
           actionBtnColor, actionBtnTextColor, taskTextColor, taskCardColor, pageBgColor, cardBgColor
         }));
