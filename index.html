@@ -1021,6 +1021,7 @@
         this.statusTimeElement = document.getElementById(statusTimeId);
         this.badgeElement = document.getElementById(badgeId);
         this.updateStatusDisplay();
+        this.completed = false; // Track if timer has completed
       }
 
       updateStatusDisplay() {
@@ -1040,10 +1041,13 @@
           this.interval = null;
         }
         this.isRunning = false;
+        this.completed = true;
         playAlarm(this.alarmSound);
         if (this.onCompleteCallback && this.name === 'session') {
           this.onCompleteCallback(this.defaultMinutes);
         }
+        // Keep showing 00:00 instead of resetting immediately
+        // The display stays at 00:00
         updateAllDisplays();
       }
 
@@ -1058,8 +1062,13 @@
       }
 
       start() {
+        // If timer has completed, reset it first before starting
+        if (this.completed) {
+          this.reset();
+        }
         if (this.interval) clearInterval(this.interval);
         this.isRunning = true;
+        this.completed = false;
         this.interval = setInterval(() => {
           if (this.isRunning) this.tick();
         }, 1000);
@@ -1078,13 +1087,18 @@
       reset() {
         this.pause();
         this.currentSeconds = this.defaultMinutes * 60;
+        this.completed = false;
         updateAllDisplays();
       }
 
       setDuration(minutes) {
         this.defaultMinutes = minutes;
-        if (!this.isRunning) {
+        if (!this.isRunning && !this.completed) {
           this.currentSeconds = minutes * 60;
+          updateAllDisplays();
+        } else if (this.completed) {
+          this.currentSeconds = minutes * 60;
+          this.completed = false;
           updateAllDisplays();
         }
       }
