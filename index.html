@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Pomodoro Timer - 5 Background Timers</title>
+  <title>Pomodoro Timer - 8 Background Timers</title>
   <style>
     * {
       margin: 0;
@@ -197,7 +197,10 @@
     .status-item.shortBreak { border-left: 3px solid #48bb78; }
     .status-item.longBreak { border-left: 3px solid #ed8936; }
     .status-item.custom { border-left: 3px solid #9f7aea; }
-    .status-item.timer { border-left: 3px solid #e53e3e; }
+    .status-item.timer1 { border-left: 3px solid #e53e3e; }
+    .status-item.timer2 { border-left: 3px solid #d69e2e; }
+    .status-item.timer3 { border-left: 3px solid #38a169; }
+    .status-item.timer4 { border-left: 3px solid #805ad5; }
 
     .status-label {
       font-size: 0.6rem;
@@ -673,16 +676,20 @@
   <div class="timer-container">
     <div class="timer-card" id="timerCard">
       <div class="mode-selector" id="mainModeSelector">
+        <!-- View 1: Session-Custom -->
         <button class="mode-btn active" data-mode="session" id="sessionModeBtn">Session</button>
         <button class="mode-btn" data-mode="shortBreak" id="shortBreakModeBtn">Short Break</button>
         <button class="mode-btn" data-mode="longBreak" id="longBreakModeBtn">Long Break</button>
         <button class="mode-btn" data-mode="custom" id="customModeBtn">Custom</button>
-        <button class="mode-btn" data-mode="timer" id="timerModeBtn">⏱️ Timer</button>
+        <!-- View 2: Timer 1-4 -->
+        <button class="mode-btn" data-mode="timer1" id="timer1ModeBtn" style="display:none;">⏱️ Timer 1</button>
+        <button class="mode-btn" data-mode="timer2" id="timer2ModeBtn" style="display:none;">⏱️ Timer 2</button>
+        <button class="mode-btn" data-mode="timer3" id="timer3ModeBtn" style="display:none;">⏱️ Timer 3</button>
+        <button class="mode-btn" data-mode="timer4" id="timer4ModeBtn" style="display:none;">⏱️ Timer 4</button>
       </div>
 
-      <!-- Flip Button -->
       <div class="flip-container">
-        <button class="flip-btn" id="flipBtn">⟳ Flip View</button>
+        <button class="flip-btn" id="flipBtn">⟳ Flip to Timers</button>
       </div>
 
       <div class="current-time" id="currentTimeDisplay">12:00:00</div>
@@ -703,12 +710,13 @@
           </div>
           <div class="stat-item">
             <div class="stat-label">Time Spent</div>
-            <div class="stat-value" id="timeSpent">0m</div>
+            <div class="stat-value" id="timeSpent">0s</div>
           </div>
         </div>
       </div>
 
       <div class="status-bar" id="statusBar">
+        <!-- View 1: Session-Custom -->
         <div class="status-item session" data-status="session">
           <div class="status-label" id="sessionStatusLabel">🍅 Session <span class="status-badge" id="sessionBadge"></span></div>
           <div class="status-time" id="sessionStatusTime">25:00</div>
@@ -725,9 +733,22 @@
           <div class="status-label" id="customStatusLabel">⚙ Custom <span class="status-badge" id="customBadge"></span></div>
           <div class="status-time" id="customStatusTime">30:00</div>
         </div>
-        <div class="status-item timer" data-status="timer">
-          <div class="status-label" id="timerStatusLabel">⏱️ Timer <span class="status-badge" id="timerBadge"></span></div>
-          <div class="status-time" id="timerStatusTime">00:00</div>
+        <!-- View 2: Timer 1-4 -->
+        <div class="status-item timer1" data-status="timer1" style="display:none;">
+          <div class="status-label" id="timer1StatusLabel">⏱️ Timer 1 <span class="status-badge" id="timer1Badge"></span></div>
+          <div class="status-time" id="timer1StatusTime">00:00</div>
+        </div>
+        <div class="status-item timer2" data-status="timer2" style="display:none;">
+          <div class="status-label" id="timer2StatusLabel">⏱️ Timer 2 <span class="status-badge" id="timer2Badge"></span></div>
+          <div class="status-time" id="timer2StatusTime">00:00</div>
+        </div>
+        <div class="status-item timer3" data-status="timer3" style="display:none;">
+          <div class="status-label" id="timer3StatusLabel">⏱️ Timer 3 <span class="status-badge" id="timer3Badge"></span></div>
+          <div class="status-time" id="timer3StatusTime">00:00</div>
+        </div>
+        <div class="status-item timer4" data-status="timer4" style="display:none;">
+          <div class="status-label" id="timer4StatusLabel">⏱️ Timer 4 <span class="status-badge" id="timer4Badge"></span></div>
+          <div class="status-time" id="timer4StatusTime">00:00</div>
         </div>
       </div>
 
@@ -769,7 +790,7 @@
       </div>
       <div class="settings-modal-body">
         <div class="settings-group">
-          <h3>Timer Names</h3>
+          <h3>Timer Names (View 1: Session-Custom)</h3>
           <div class="settings-row">
             <label>Session Timer Name:</label>
             <input type="text" id="sessionName" value="Session" maxlength="20">
@@ -786,9 +807,25 @@
             <label>Custom Timer Name:</label>
             <input type="text" id="customName" value="Custom" maxlength="20">
           </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>Timer Names (View 2: Timer 1-4)</h3>
           <div class="settings-row">
-            <label>Timer Name:</label>
-            <input type="text" id="timerName" value="Timer" maxlength="20">
+            <label>Timer 1 Name:</label>
+            <input type="text" id="timer1Name" value="Timer 1" maxlength="20">
+          </div>
+          <div class="settings-row">
+            <label>Timer 2 Name:</label>
+            <input type="text" id="timer2Name" value="Timer 2" maxlength="20">
+          </div>
+          <div class="settings-row">
+            <label>Timer 3 Name:</label>
+            <input type="text" id="timer3Name" value="Timer 3" maxlength="20">
+          </div>
+          <div class="settings-row">
+            <label>Timer 4 Name:</label>
+            <input type="text" id="timer4Name" value="Timer 4" maxlength="20">
           </div>
         </div>
 
@@ -811,7 +848,7 @@
             <input type="number" id="customTime" min="1" max="99" value="30">
           </div>
           <div class="settings-row">
-            <label style="color:#e53e3e;">Timer (count-up):</label>
+            <label style="color:#e53e3e;">Timer 1-4 (count-up):</label>
             <span style="font-size:0.8rem; color:#718096;">Counts up indefinitely</span>
           </div>
         </div>
@@ -915,9 +952,9 @@
             </div>
           </div>
           <div class="settings-row">
-            <label style="color:#e53e3e;">Timer (count-up) Alarm:</label>
+            <label style="color:#e53e3e;">Timer 1 Alarm:</label>
             <div class="sound-select-container">
-              <select id="timerAlarm">
+              <select id="timer1Alarm">
                 <option value="sound1.mp3">Sound 1</option>
                 <option value="sound2.mp3">Sound 2</option>
                 <option value="sound3.mp3">Sound 3</option>
@@ -928,7 +965,58 @@
                 <option value="sound8.mp3">Sound 8</option>
                 <option value="sound9.mp3">Sound 9</option>
               </select>
-              <button class="test-sound-btn" data-test-sound="timer">Test</button>
+              <button class="test-sound-btn" data-test-sound="timer1">Test</button>
+            </div>
+          </div>
+          <div class="settings-row">
+            <label style="color:#d69e2e;">Timer 2 Alarm:</label>
+            <div class="sound-select-container">
+              <select id="timer2Alarm">
+                <option value="sound1.mp3">Sound 1</option>
+                <option value="sound2.mp3">Sound 2</option>
+                <option value="sound3.mp3">Sound 3</option>
+                <option value="sound4.mp3">Sound 4</option>
+                <option value="sound5.mp3">Sound 5</option>
+                <option value="sound6.mp3">Sound 6</option>
+                <option value="sound7.mp3">Sound 7</option>
+                <option value="sound8.mp3">Sound 8</option>
+                <option value="sound9.mp3">Sound 9</option>
+              </select>
+              <button class="test-sound-btn" data-test-sound="timer2">Test</button>
+            </div>
+          </div>
+          <div class="settings-row">
+            <label style="color:#38a169;">Timer 3 Alarm:</label>
+            <div class="sound-select-container">
+              <select id="timer3Alarm">
+                <option value="sound1.mp3">Sound 1</option>
+                <option value="sound2.mp3">Sound 2</option>
+                <option value="sound3.mp3">Sound 3</option>
+                <option value="sound4.mp3">Sound 4</option>
+                <option value="sound5.mp3">Sound 5</option>
+                <option value="sound6.mp3">Sound 6</option>
+                <option value="sound7.mp3">Sound 7</option>
+                <option value="sound8.mp3">Sound 8</option>
+                <option value="sound9.mp3">Sound 9</option>
+              </select>
+              <button class="test-sound-btn" data-test-sound="timer3">Test</button>
+            </div>
+          </div>
+          <div class="settings-row">
+            <label style="color:#805ad5;">Timer 4 Alarm:</label>
+            <div class="sound-select-container">
+              <select id="timer4Alarm">
+                <option value="sound1.mp3">Sound 1</option>
+                <option value="sound2.mp3">Sound 2</option>
+                <option value="sound3.mp3">Sound 3</option>
+                <option value="sound4.mp3">Sound 4</option>
+                <option value="sound5.mp3">Sound 5</option>
+                <option value="sound6.mp3">Sound 6</option>
+                <option value="sound7.mp3">Sound 7</option>
+                <option value="sound8.mp3">Sound 8</option>
+                <option value="sound9.mp3">Sound 9</option>
+              </select>
+              <button class="test-sound-btn" data-test-sound="timer4">Test</button>
             </div>
           </div>
         </div>
@@ -1044,7 +1132,7 @@
 
     preloadSounds();
 
-    // ========== COMPLETION STATS TRACKING (with seconds precision) ==========
+    // ========== COMPLETION STATS TRACKING ==========
     let completionStats = {
       todayCompleted: 0,
       totalCompleted: 0,
@@ -1170,7 +1258,7 @@
       }
     }
 
-    // ========== 5 INDEPENDENT BACKGROUND TIMERS ==========
+    // ========== 8 INDEPENDENT BACKGROUND TIMERS ==========
     class BackgroundTimer {
       constructor(name, defaultMinutes, statusTimeId, badgeId, defaultAlarm, onCompleteCallback, isCountUp) {
         this.name = name;
@@ -1314,19 +1402,25 @@
       }
     }
 
-    // Initialize 5 background timers
+    // Initialize 8 background timers
     const sessionTimer = new BackgroundTimer('session', 25, 'sessionStatusTime', 'sessionBadge', 'sound1.mp3', recordCompletedSession, false);
     const shortBreakTimer = new BackgroundTimer('shortBreak', 5, 'shortBreakStatusTime', 'shortBreakBadge', 'sound2.mp3', null, false);
     const longBreakTimer = new BackgroundTimer('longBreak', 15, 'longBreakStatusTime', 'longBreakBadge', 'sound3.mp3', null, false);
     const customTimer = new BackgroundTimer('custom', 30, 'customStatusTime', 'customBadge', 'sound4.mp3', null, false);
-    const timerTimer = new BackgroundTimer('timer', 0, 'timerStatusTime', 'timerBadge', 'sound5.mp3', null, true);
+    const timer1 = new BackgroundTimer('timer1', 0, 'timer1StatusTime', 'timer1Badge', 'sound5.mp3', null, true);
+    const timer2 = new BackgroundTimer('timer2', 0, 'timer2StatusTime', 'timer2Badge', 'sound6.mp3', null, true);
+    const timer3 = new BackgroundTimer('timer3', 0, 'timer3StatusTime', 'timer3Badge', 'sound7.mp3', null, true);
+    const timer4 = new BackgroundTimer('timer4', 0, 'timer4StatusTime', 'timer4Badge', 'sound8.mp3', null, true);
 
     const timers = {
       session: sessionTimer,
       shortBreak: shortBreakTimer,
       longBreak: longBreakTimer,
       custom: customTimer,
-      timer: timerTimer
+      timer1: timer1,
+      timer2: timer2,
+      timer3: timer3,
+      timer4: timer4
     };
 
     // Timer name elements
@@ -1334,21 +1428,27 @@
     const shortBreakModeBtn = document.getElementById('shortBreakModeBtn');
     const longBreakModeBtn = document.getElementById('longBreakModeBtn');
     const customModeBtn = document.getElementById('customModeBtn');
-    const timerModeBtn = document.getElementById('timerModeBtn');
+    const timer1ModeBtn = document.getElementById('timer1ModeBtn');
+    const timer2ModeBtn = document.getElementById('timer2ModeBtn');
+    const timer3ModeBtn = document.getElementById('timer3ModeBtn');
+    const timer4ModeBtn = document.getElementById('timer4ModeBtn');
     
     const sessionStatusLabel = document.getElementById('sessionStatusLabel');
     const shortBreakStatusLabel = document.getElementById('shortBreakStatusLabel');
     const longBreakStatusLabel = document.getElementById('longBreakStatusLabel');
     const customStatusLabel = document.getElementById('customStatusLabel');
-    const timerStatusLabel = document.getElementById('timerStatusLabel');
+    const timer1StatusLabel = document.getElementById('timer1StatusLabel');
+    const timer2StatusLabel = document.getElementById('timer2StatusLabel');
+    const timer3StatusLabel = document.getElementById('timer3StatusLabel');
+    const timer4StatusLabel = document.getElementById('timer4StatusLabel');
 
     // Current active view
     let currentView = 'session';
     const mainDisplay = document.getElementById('timerDisplay');
     const playPauseText = document.getElementById('playPauseText');
 
-    // Flip state: true = showing 4 timer view (Session, Short Break, Long Break, Custom), false = Timer view
-    let isFourTimerView = true;
+    // Flip state: true = View 1 (Session-Custom), false = View 2 (Timer 1-4)
+    let isView1 = true;
 
     // Current time display
     const currentTimeElement = document.getElementById('currentTimeDisplay');
@@ -1378,13 +1478,19 @@
       shortBreakTimer.updateStatusDisplay();
       longBreakTimer.updateStatusDisplay();
       customTimer.updateStatusDisplay();
-      timerTimer.updateStatusDisplay();
+      timer1.updateStatusDisplay();
+      timer2.updateStatusDisplay();
+      timer3.updateStatusDisplay();
+      timer4.updateStatusDisplay();
       
       document.getElementById('sessionBadge').className = `status-badge ${sessionTimer.getIsRunning() ? 'running' : 'idle'}`;
       document.getElementById('shortBreakBadge').className = `status-badge ${shortBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
       document.getElementById('longBreakBadge').className = `status-badge ${longBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
       document.getElementById('customBadge').className = `status-badge ${customTimer.getIsRunning() ? 'running' : 'idle'}`;
-      document.getElementById('timerBadge').className = `status-badge ${timerTimer.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('timer1Badge').className = `status-badge ${timer1.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('timer2Badge').className = `status-badge ${timer2.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('timer3Badge').className = `status-badge ${timer3.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('timer4Badge').className = `status-badge ${timer4.getIsRunning() ? 'running' : 'idle'}`;
     }
 
     setInterval(updateAllDisplays, 1000);
@@ -1394,15 +1500,20 @@
     const flipBtn = document.getElementById('flipBtn');
 
     function updateModeSelectorView() {
-      const modeBtns = document.querySelectorAll('.mode-btn');
-      modeBtns.forEach(btn => {
+      const view1Buttons = ['session', 'shortBreak', 'longBreak', 'custom'];
+      const view2Buttons = ['timer1', 'timer2', 'timer3', 'timer4'];
+      
+      const allBtns = document.querySelectorAll('.mode-btn');
+      allBtns.forEach(btn => {
         const mode = btn.dataset.mode;
-        if (isFourTimerView) {
-          // Show all 5 buttons
-          btn.style.display = '';
+        if (isView1) {
+          if (view1Buttons.includes(mode)) {
+            btn.style.display = '';
+          } else {
+            btn.style.display = 'none';
+          }
         } else {
-          // Timer view: only show Timer button, hide others
-          if (mode === 'timer') {
+          if (view2Buttons.includes(mode)) {
             btn.style.display = '';
           } else {
             btn.style.display = 'none';
@@ -1410,51 +1521,87 @@
         }
       });
       
-      // Ensure the active button is visible
+      // Update status bar visibility
+      document.querySelectorAll('.status-item').forEach(item => {
+        const mode = item.dataset.status;
+        if (isView1) {
+          if (view1Buttons.includes(mode)) {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        } else {
+          if (view2Buttons.includes(mode)) {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        }
+      });
+      
+      // Ensure the active button is visible and active
       const activeBtn = document.querySelector(`.mode-btn[data-mode="${currentView}"]`);
       if (activeBtn) {
         activeBtn.style.display = '';
-        modeBtns.forEach(b => b.classList.remove('active'));
+        allBtns.forEach(b => b.classList.remove('active'));
         activeBtn.classList.add('active');
+      } else {
+        // If current view not visible, switch to first button of current view
+        const firstView = isView1 ? 'session' : 'timer1';
+        currentView = firstView;
+        const newActive = document.querySelector(`.mode-btn[data-mode="${firstView}"]`);
+        if (newActive) {
+          newActive.style.display = '';
+          allBtns.forEach(b => b.classList.remove('active'));
+          newActive.classList.add('active');
+        }
+        updateAllDisplays();
       }
       
-      // Update flip button text
-      flipBtn.textContent = isFourTimerView ? '⟳ Flip to Timer' : '⟳ Flip to 4 Timers';
+      flipBtn.textContent = isView1 ? '⟳ Flip to Timers' : '⟳ Flip to Session-Custom';
     }
 
     if (flipBtn) {
       flipBtn.onclick = () => {
-        isFourTimerView = !isFourTimerView;
-        // If switching to Timer view, set current view to timer
-        if (!isFourTimerView) {
-          currentView = 'timer';
-        } else {
-          // If switching back to 4-timer view, set to session
+        isView1 = !isView1;
+        // Set default view for the new mode
+        if (isView1) {
           currentView = 'session';
+        } else {
+          currentView = 'timer1';
         }
         updateModeSelectorView();
         updateAllDisplays();
       };
     }
 
-    function updateTimerNames(sessionName, shortName, longName, customName, timerName) {
+    function updateTimerNames(sessionName, shortName, longName, customName, t1Name, t2Name, t3Name, t4Name) {
       sessionModeBtn.textContent = sessionName;
       shortBreakModeBtn.textContent = shortName;
       longBreakModeBtn.textContent = longName;
       customModeBtn.textContent = customName;
-      timerModeBtn.textContent = `⏱️ ${timerName}`;
+      timer1ModeBtn.textContent = `⏱️ ${t1Name}`;
+      timer2ModeBtn.textContent = `⏱️ ${t2Name}`;
+      timer3ModeBtn.textContent = `⏱️ ${t3Name}`;
+      timer4ModeBtn.textContent = `⏱️ ${t4Name}`;
       
       sessionStatusLabel.innerHTML = `🍅 ${sessionName} <span class="status-badge" id="sessionBadge"></span>`;
       shortBreakStatusLabel.innerHTML = `🌿 ${shortName} <span class="status-badge" id="shortBreakBadge"></span>`;
       longBreakStatusLabel.innerHTML = `☕ ${longName} <span class="status-badge" id="longBreakBadge"></span>`;
       customStatusLabel.innerHTML = `⚙ ${customName} <span class="status-badge" id="customBadge"></span>`;
-      timerStatusLabel.innerHTML = `⏱️ ${timerName} <span class="status-badge" id="timerBadge"></span>`;
+      timer1StatusLabel.innerHTML = `⏱️ ${t1Name} <span class="status-badge" id="timer1Badge"></span>`;
+      timer2StatusLabel.innerHTML = `⏱️ ${t2Name} <span class="status-badge" id="timer2Badge"></span>`;
+      timer3StatusLabel.innerHTML = `⏱️ ${t3Name} <span class="status-badge" id="timer3Badge"></span>`;
+      timer4StatusLabel.innerHTML = `⏱️ ${t4Name} <span class="status-badge" id="timer4Badge"></span>`;
       
       document.getElementById('sessionBadge').className = `status-badge ${sessionTimer.getIsRunning() ? 'running' : 'idle'}`;
       document.getElementById('shortBreakBadge').className = `status-badge ${shortBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
       document.getElementById('longBreakBadge').className = `status-badge ${longBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
       document.getElementById('customBadge').className = `status-badge ${customTimer.getIsRunning() ? 'running' : 'idle'}`;
-      document.getElementById('timerBadge').className = `status-badge ${timerTimer.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('timer1Badge').className = `status-badge ${timer1.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('timer2Badge').className = `status-badge ${timer2.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('timer3Badge').className = `status-badge ${timer3.getIsRunning() ? 'running' : 'idle'}`;
+      document.getElementById('timer4Badge').className = `status-badge ${timer4.getIsRunning() ? 'running' : 'idle'}`;
     }
 
     const modeBtns = document.querySelectorAll('.mode-btn');
@@ -1498,9 +1645,14 @@
       item.addEventListener('click', () => {
         const mode = item.dataset.status;
         currentView = mode;
-        // Ensure the button is visible (if in timer view and mode is not timer, switch to 4-timer view)
-        if (!isFourTimerView && mode !== 'timer') {
-          isFourTimerView = true;
+        // If switching to a timer from view 2, ensure we're in the right view
+        const view1Buttons = ['session', 'shortBreak', 'longBreak', 'custom'];
+        const view2Buttons = ['timer1', 'timer2', 'timer3', 'timer4'];
+        if (view2Buttons.includes(mode) && isView1) {
+          isView1 = false;
+          updateModeSelectorView();
+        } else if (view1Buttons.includes(mode) && !isView1) {
+          isView1 = true;
           updateModeSelectorView();
         }
         modeBtns.forEach(btn => {
@@ -1528,7 +1680,7 @@
       });
     });
 
-    // ========== TASKS MODULE WITH COMPLETION TRACKING ==========
+    // ========== TASKS MODULE ==========
     let tasks = [];
     const taskListContainer = document.getElementById('taskListContainer');
     const taskInput = document.getElementById('taskInput');
@@ -1580,10 +1732,11 @@
       if (currentView === 'shortBreak') return shortBreakTimer.defaultMinutes * 60;
       if (currentView === 'longBreak') return longBreakTimer.defaultMinutes * 60;
       if (currentView === 'custom') return customTimer.defaultMinutes * 60;
-      if (currentView === 'timer') {
-        const seconds = timerTimer.getElapsedSeconds();
-        return Math.max(1, seconds);
-      }
+      // For timer1-4, use elapsed seconds
+      if (currentView === 'timer1') return Math.max(1, timer1.getElapsedSeconds());
+      if (currentView === 'timer2') return Math.max(1, timer2.getElapsedSeconds());
+      if (currentView === 'timer3') return Math.max(1, timer3.getElapsedSeconds());
+      if (currentView === 'timer4') return Math.max(1, timer4.getElapsedSeconds());
       return 25 * 60;
     }
 
@@ -1616,14 +1769,7 @@
           const wasCompleted = task.completed;
           task.completed = check.checked;
           
-          let durationSeconds = 25 * 60;
-          
-          if (currentView === 'timer') {
-            durationSeconds = Math.max(1, timerTimer.getElapsedSeconds());
-          } else if (currentView === 'session') durationSeconds = sessionTimer.defaultMinutes * 60;
-          else if (currentView === 'shortBreak') durationSeconds = shortBreakTimer.defaultMinutes * 60;
-          else if (currentView === 'longBreak') durationSeconds = longBreakTimer.defaultMinutes * 60;
-          else if (currentView === 'custom') durationSeconds = customTimer.defaultMinutes * 60;
+          let durationSeconds = getDurationForCurrentView();
           
           if (task.completed && !wasCompleted) {
             recordTaskCompletionWithDuration(durationSeconds);
@@ -1683,8 +1829,10 @@
     let sessionViewEnabled = true;
     let statusBarEnabled = true;
     let sessionDuration = 25, shortBreakDuration = 5, longBreakDuration = 15, customDuration = 30;
-    let sessionName = 'Session', shortBreakName = 'Short Break', longBreakName = 'Long Break', customName = 'Custom', timerName = 'Timer';
-    let sessionAlarm = 'sound1.mp3', shortBreakAlarm = 'sound2.mp3', longBreakAlarm = 'sound3.mp3', customAlarm = 'sound4.mp3', timerAlarm = 'sound5.mp3';
+    let sessionName = 'Session', shortBreakName = 'Short Break', longBreakName = 'Long Break', customName = 'Custom';
+    let t1Name = 'Timer 1', t2Name = 'Timer 2', t3Name = 'Timer 3', t4Name = 'Timer 4';
+    let sessionAlarm = 'sound1.mp3', shortBreakAlarm = 'sound2.mp3', longBreakAlarm = 'sound3.mp3', customAlarm = 'sound4.mp3';
+    let t1Alarm = 'sound5.mp3', t2Alarm = 'sound6.mp3', t3Alarm = 'sound7.mp3', t4Alarm = 'sound8.mp3';
     let timerTextColor = '#ffffff', timerBgColor = '#667eea';
     let primaryBtnColor = '#667eea', primaryBtnHoverColor = '#5a67d8';
     let actionBtnColor = '#f2f5f9', actionBtnTextColor = '#1f2e3a';
@@ -1699,8 +1847,11 @@
         shortBreakName = settings.shortBreakName || 'Short Break';
         longBreakName = settings.longBreakName || 'Long Break';
         customName = settings.customName || 'Custom';
-        timerName = settings.timerName || 'Timer';
-        updateTimerNames(sessionName, shortBreakName, longBreakName, customName, timerName);
+        t1Name = settings.t1Name || 'Timer 1';
+        t2Name = settings.t2Name || 'Timer 2';
+        t3Name = settings.t3Name || 'Timer 3';
+        t4Name = settings.t4Name || 'Timer 4';
+        updateTimerNames(sessionName, shortBreakName, longBreakName, customName, t1Name, t2Name, t3Name, t4Name);
         
         sessionDuration = settings.sessionDuration || 25;
         shortBreakDuration = settings.shortBreakDuration || 5;
@@ -1716,13 +1867,19 @@
         shortBreakAlarm = settings.shortBreakAlarm || 'sound2.mp3';
         longBreakAlarm = settings.longBreakAlarm || 'sound3.mp3';
         customAlarm = settings.customAlarm || 'sound4.mp3';
-        timerAlarm = settings.timerAlarm || 'sound5.mp3';
+        t1Alarm = settings.t1Alarm || 'sound5.mp3';
+        t2Alarm = settings.t2Alarm || 'sound6.mp3';
+        t3Alarm = settings.t3Alarm || 'sound7.mp3';
+        t4Alarm = settings.t4Alarm || 'sound8.mp3';
         
         sessionTimer.setAlarmSound(sessionAlarm);
         shortBreakTimer.setAlarmSound(shortBreakAlarm);
         longBreakTimer.setAlarmSound(longBreakAlarm);
         customTimer.setAlarmSound(customAlarm);
-        timerTimer.setAlarmSound(timerAlarm);
+        timer1.setAlarmSound(t1Alarm);
+        timer2.setAlarmSound(t2Alarm);
+        timer3.setAlarmSound(t3Alarm);
+        timer4.setAlarmSound(t4Alarm);
         
         currentTimeEnabled = settings.currentTimeEnabled !== undefined ? settings.currentTimeEnabled : true;
         currentTimeColor = settings.currentTimeColor || '#718096';
@@ -1759,7 +1916,10 @@
         document.getElementById('shortBreakAlarm').value = shortBreakAlarm;
         document.getElementById('longBreakAlarm').value = longBreakAlarm;
         document.getElementById('customAlarm').value = customAlarm;
-        document.getElementById('timerAlarm').value = timerAlarm;
+        document.getElementById('timer1Alarm').value = t1Alarm;
+        document.getElementById('timer2Alarm').value = t2Alarm;
+        document.getElementById('timer3Alarm').value = t3Alarm;
+        document.getElementById('timer4Alarm').value = t4Alarm;
         applyTaskDisplayMode();
         
         timerTextColor = settings.timerTextColor || '#ffffff';
@@ -1827,7 +1987,10 @@
         document.getElementById('shortBreakName').value = shortBreakName;
         document.getElementById('longBreakName').value = longBreakName;
         document.getElementById('customName').value = customName;
-        document.getElementById('timerName').value = timerName;
+        document.getElementById('timer1Name').value = t1Name;
+        document.getElementById('timer2Name').value = t2Name;
+        document.getElementById('timer3Name').value = t3Name;
+        document.getElementById('timer4Name').value = t4Name;
         document.getElementById('sessionTime').value = sessionDuration;
         document.getElementById('shortBreakTime').value = shortBreakDuration;
         document.getElementById('longBreakTime').value = longBreakDuration;
@@ -1836,7 +1999,10 @@
         document.getElementById('shortBreakAlarm').value = shortBreakAlarm;
         document.getElementById('longBreakAlarm').value = longBreakAlarm;
         document.getElementById('customAlarm').value = customAlarm;
-        document.getElementById('timerAlarm').value = timerAlarm;
+        document.getElementById('timer1Alarm').value = t1Alarm;
+        document.getElementById('timer2Alarm').value = t2Alarm;
+        document.getElementById('timer3Alarm').value = t3Alarm;
+        document.getElementById('timer4Alarm').value = t4Alarm;
         document.getElementById('currentTimeToggle').checked = currentTimeEnabled;
         document.getElementById('currentTimeColor').value = currentTimeColor;
         document.getElementById('sessionViewToggle').checked = sessionViewEnabled;
@@ -1865,8 +2031,11 @@
         shortBreakName = document.getElementById('shortBreakName').value || 'Short Break';
         longBreakName = document.getElementById('longBreakName').value || 'Long Break';
         customName = document.getElementById('customName').value || 'Custom';
-        timerName = document.getElementById('timerName').value || 'Timer';
-        updateTimerNames(sessionName, shortBreakName, longBreakName, customName, timerName);
+        t1Name = document.getElementById('timer1Name').value || 'Timer 1';
+        t2Name = document.getElementById('timer2Name').value || 'Timer 2';
+        t3Name = document.getElementById('timer3Name').value || 'Timer 3';
+        t4Name = document.getElementById('timer4Name').value || 'Timer 4';
+        updateTimerNames(sessionName, shortBreakName, longBreakName, customName, t1Name, t2Name, t3Name, t4Name);
         
         sessionDuration = parseInt(document.getElementById('sessionTime').value) || 25;
         shortBreakDuration = parseInt(document.getElementById('shortBreakTime').value) || 5;
@@ -1882,13 +2051,19 @@
         shortBreakAlarm = document.getElementById('shortBreakAlarm').value;
         longBreakAlarm = document.getElementById('longBreakAlarm').value;
         customAlarm = document.getElementById('customAlarm').value;
-        timerAlarm = document.getElementById('timerAlarm').value;
+        t1Alarm = document.getElementById('timer1Alarm').value;
+        t2Alarm = document.getElementById('timer2Alarm').value;
+        t3Alarm = document.getElementById('timer3Alarm').value;
+        t4Alarm = document.getElementById('timer4Alarm').value;
         
         sessionTimer.setAlarmSound(sessionAlarm);
         shortBreakTimer.setAlarmSound(shortBreakAlarm);
         longBreakTimer.setAlarmSound(longBreakAlarm);
         customTimer.setAlarmSound(customAlarm);
-        timerTimer.setAlarmSound(timerAlarm);
+        timer1.setAlarmSound(t1Alarm);
+        timer2.setAlarmSound(t2Alarm);
+        timer3.setAlarmSound(t3Alarm);
+        timer4.setAlarmSound(t4Alarm);
         
         currentTimeEnabled = document.getElementById('currentTimeToggle').checked;
         currentTimeColor = document.getElementById('currentTimeColor').value;
@@ -1930,9 +2105,11 @@
         cardBgColor = document.getElementById('cardBgColor').value;
         
         localStorage.setItem('pomodoro_settings', JSON.stringify({
-          sessionName, shortBreakName, longBreakName, customName, timerName,
+          sessionName, shortBreakName, longBreakName, customName,
+          t1Name, t2Name, t3Name, t4Name,
           sessionDuration, shortBreakDuration, longBreakDuration, customDuration,
-          sessionAlarm, shortBreakAlarm, longBreakAlarm, customAlarm, timerAlarm,
+          sessionAlarm, shortBreakAlarm, longBreakAlarm, customAlarm,
+          t1Alarm, t2Alarm, t3Alarm, t4Alarm,
           currentTimeEnabled, currentTimeColor, sessionViewEnabled, statusBarEnabled, taskScrollEnabled,
           timerTextColor, timerBgColor, primaryBtnColor, primaryBtnHoverColor,
           actionBtnColor, actionBtnTextColor, taskTextColor, taskCardColor, pageBgColor, cardBgColor
