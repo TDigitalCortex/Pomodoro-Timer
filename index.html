@@ -70,9 +70,10 @@
       box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
 
+    /* Current Time Display - Above Timer - BOLD restored */
     .current-time {
       font-size: 1rem;
-      font-weight: 500;
+      font-weight: 700;
       color: #718096;
       margin-bottom: 0.5rem;
       transition: all 0.3s ease;
@@ -609,6 +610,7 @@
         <button class="mode-btn" data-mode="custom" id="customModeBtn">Custom</button>
       </div>
 
+      <!-- Current Time Display - Above Timer - BOLD restored -->
       <div class="current-time" id="currentTimeDisplay">12:00:00</div>
 
       <div class="timer-circle">
@@ -909,7 +911,7 @@
       } catch(e) { console.log('Audio error:', e); }
     }
 
-    // ========== SESSION TRACKING ==========
+    // Session tracking variables
     let todaySessions = 0;
     let totalSessions = 0;
     let focusHours = 0;
@@ -958,7 +960,7 @@
       }
     }
 
-    // ========== 4 INDEPENDENT BACKGROUND TIMERS ==========
+    // 4 Independent Background Timers
     class BackgroundTimer {
       constructor(name, defaultMinutes, statusTimeId, badgeId, defaultAlarm, onCompleteCallback) {
         this.name = name;
@@ -1054,7 +1056,7 @@
       }
     }
 
-    // Initialize 4 background timers
+    // Initialize 4 background timers with default sound files
     const sessionTimer = new BackgroundTimer('session', 25, 'sessionStatusTime', 'sessionBadge', 'sound1.mp3', recordCompletedSession);
     const shortBreakTimer = new BackgroundTimer('shortBreak', 5, 'shortBreakStatusTime', 'shortBreakBadge', 'sound2.mp3', null);
     const longBreakTimer = new BackgroundTimer('longBreak', 15, 'longBreakStatusTime', 'longBreakBadge', 'sound3.mp3', null);
