@@ -284,7 +284,7 @@
       transform: translateY(-2px);
     }
 
-    /* Task container styles */
+    /* Task container styles - SCROLL VIEW with HIDDEN scrollbar */
     .task-list {
       list-style: none;
       transition: all 0.3s ease;
@@ -294,28 +294,32 @@
     .task-list.scroll {
       max-height: 300px;
       overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 5px;
     }
 
-    /* Hide scrollbar but keep functionality - WebKit browsers */
+    /* Completely hide scrollbar but keep functionality */
     .task-list.scroll::-webkit-scrollbar {
       width: 0px;
       background: transparent;
+      display: none;
     }
-
-    /* Hide scrollbar for Firefox */
+    
+    /* For Firefox */
     .task-list.scroll {
       scrollbar-width: none;
     }
-
-    /* Hide scrollbar for IE/Edge */
+    
+    /* For IE/Edge */
     .task-list.scroll {
       -ms-overflow-style: none;
     }
 
-    /* LINE BREAK VIEW MODE (when checkbox is FALSE/unchecked) - text wraps, no scroll */
+    /* LINE BREAK VIEW MODE (when checkbox is FALSE/unchecked) */
     .task-list.line-break {
       max-height: none;
       overflow-y: visible;
+      overflow-x: visible;
     }
 
     .task-item {
@@ -350,10 +354,11 @@
       border: none;
       outline: none;
       cursor: text;
-      line-height: 1.4;
+      line-height: 1.5;
+      max-width: 100%;
     }
 
-    /* Line break mode - text wraps normally */
+    /* Line break mode - text wraps naturally */
     .task-list.line-break .task-text {
       white-space: normal;
       word-wrap: break-word;
@@ -361,10 +366,12 @@
       overflow-wrap: break-word;
     }
 
-    /* Scroll mode - text stays on one line with horizontal scroll */
+    /* Scroll mode - text wraps for readability, no horizontal scroll */
     .task-list.scroll .task-text {
-      white-space: nowrap;
-      overflow-x: auto;
+      white-space: normal;
+      word-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .task-text:focus {
@@ -567,6 +574,9 @@
       .session-stats {
         flex-direction: column;
         gap: 0.3rem;
+      }
+      .task-list.scroll {
+        max-height: 200px;
       }
     }
   </style>
