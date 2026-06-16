@@ -284,7 +284,7 @@
       transform: translateY(-2px);
     }
 
-    /* Task container styles - toggle between scroll and line-break */
+    /* Task container styles */
     .task-list {
       list-style: none;
       transition: all 0.3s ease;
@@ -302,18 +302,6 @@
       overflow-y: visible;
     }
 
-    .task-list.line-break .task-text {
-      white-space: normal;
-      word-wrap: break-word;
-      word-break: break-word;
-      line-height: 1.4;
-    }
-
-    .task-list.line-break .task-item {
-      height: auto;
-      min-height: auto;
-    }
-
     .task-item {
       background: #f9fbfd;
       border-radius: 0.8rem;
@@ -323,6 +311,7 @@
       align-items: flex-start;
       gap: 12px;
       border: 1px solid #eef2f6;
+      transition: background-color 0.3s ease;
     }
 
     .task-check {
@@ -330,33 +319,40 @@
       height: 1.2rem;
       cursor: pointer;
       flex-shrink: 0;
-      margin-top: 0.1rem;
+      margin-top: 0.2rem;
     }
 
+    /* Task text - editable div for proper line breaks */
     .task-text {
       flex: 1;
       font-size: 0.95rem;
-      border: none;
-      background: transparent;
       padding: 0.2rem 0;
       font-family: inherit;
       color: #1a2c38;
       text-align: left;
+      background: transparent;
+      border: none;
+      outline: none;
+      cursor: text;
+      line-height: 1.4;
+    }
+
+    /* Line break mode - text wraps normally */
+    .task-list.line-break .task-text {
+      white-space: normal;
+      word-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+
+    /* Scroll mode - text stays on one line with ellipsis or scroll */
+    .task-list.scroll .task-text {
       white-space: nowrap;
       overflow-x: auto;
     }
 
     .task-text:focus {
-      outline: none;
       border-bottom: 1px dashed #667eea;
-    }
-
-    /* Line break mode text styling */
-    .task-list.line-break .task-text {
-      white-space: normal;
-      word-wrap: break-word;
-      word-break: break-word;
-      overflow-x: visible;
     }
 
     .task-completed .task-text {
@@ -377,6 +373,7 @@
       justify-content: center;
       border-radius: 50%;
       flex-shrink: 0;
+      transition: all 0.2s ease;
     }
 
     .delete-task:hover {
@@ -1215,6 +1212,27 @@
       }
     }
 
+    // Create an editable div for task text (supports line breaks)
+    function createEditableDiv(content, onSave) {
+      const div = document.createElement('div');
+      div.className = 'task-text';
+      div.contentEditable = 'true';
+      div.textContent = content;
+      div.addEventListener('blur', () => {
+        const newText = div.textContent.trim();
+        if (newText !== content) {
+          onSave(newText || 'Untitled');
+        }
+      });
+      div.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          div.blur();
+        }
+      });
+      return div;
+    }
+
     function renderTasks() {
       if (!taskListContainer) return;
       taskListContainer.innerHTML = '';
@@ -1246,16 +1264,11 @@
           renderTasks();
         };
         
-        const text = document.createElement('input');
-        text.type = 'text';
-        text.className = 'task-text';
-        text.value = task.text;
-        text.onblur = () => {
-          task.text = text.value.trim() || 'Untitled';
+        const textDiv = createEditableDiv(task.text, (newText) => {
+          task.text = newText;
           saveTasks();
           renderTasks();
-        };
-        text.onkeypress = (e) => { if (e.key === 'Enter') text.blur(); };
+        });
         
         const del = document.createElement('button');
         del.className = 'delete-task';
@@ -1267,7 +1280,7 @@
         };
         
         li.appendChild(check);
-        li.appendChild(text);
+        li.appendChild(textDiv);
         li.appendChild(del);
         taskListContainer.appendChild(li);
       });
