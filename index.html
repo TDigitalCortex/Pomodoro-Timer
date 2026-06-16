@@ -875,105 +875,67 @@
   </div>
 
   <script>
-    // ========== ROBUST AUDIO SYSTEM ==========
-    // Preload and cache audio files
-    const audioCache = {};
-    let audioContextInitialized = false;
-
-    // Initialize audio context on first user interaction
-    function initAudioContext() {
-      if (!audioContextInitialized) {
-        try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          if (ctx.state === 'suspended') {
-            ctx.resume();
-          }
-          audioContextInitialized = true;
-          console.log('Audio context initialized');
-        } catch(e) {
-          console.log('Audio context init error:', e);
-        }
-      }
-    }
-
-    // Preload all sound files
-    function preloadAllSounds() {
-      for (let i = 1; i <= 9; i++) {
-        const soundFile = `sound${i}.mp3`;
-        try {
-          const audio = new Audio(`sounds/${soundFile}`);
-          audio.preload = 'auto';
-          audio.load();
-          audioCache[soundFile] = audio;
-          console.log(`Preloaded: ${soundFile}`);
-        } catch(e) {
-          console.log(`Failed to preload ${soundFile}:`, e);
-        }
-      }
-    }
-
-    // Preload sounds on page load
-    preloadAllSounds();
-
-    // Play alarm sound with robust fallback
+    // ========== ALARM PLAYER - FIXED ==========
     function playAlarm(soundFile) {
-      // Initialize audio context if not already done
-      initAudioContext();
+      console.log('Playing alarm:', soundFile);
       
       try {
-        let audio = audioCache[soundFile];
-        
-        // If not cached, create it
-        if (!audio) {
-          audio = new Audio(`sounds/${soundFile}`);
-          audio.preload = 'auto';
-          audioCache[soundFile] = audio;
-        }
-
-        // Reset to beginning
-        audio.currentTime = 0;
-        
-        // Try to play with a promise
-        const playPromise = audio.play();
-        
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log(`Playing: ${soundFile}`);
-            })
-            .catch((error) => {
-              console.log('MP3 playback failed, using fallback:', error);
-              playFallbackBeep();
-            });
-        }
+        // Try to play MP3 file
+        const audio = new Audio(`sounds/${soundFile}`);
+        audio.volume = 0.8;
+        audio.play().catch((err) => {
+          console.log('MP3 playback failed, using fallback beep:', err);
+          playFallbackBeep();
+        });
       } catch(e) {
-        console.log('PlayAlarm error:', e);
+        console.log('MP3 error, using fallback beep:', e);
         playFallbackBeep();
       }
     }
 
     // Fallback beep using Web Audio API
     function playFallbackBeep() {
+      console.log('Playing fallback beep');
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        // Resume if suspended
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
         const now = audioCtx.currentTime;
         const gainNode = audioCtx.createGain();
         gainNode.connect(audioCtx.destination);
         gainNode.gain.setValueAtTime(0.3, now);
+        
+        // Create a series of beeps
         const osc = audioCtx.createOscillator();
         osc.connect(gainNode);
         osc.frequency.value = 880;
         osc.type = 'sine';
         osc.start(now);
-        gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 1);
         osc.stop(now + 0.8);
-        console.log('Fallback beep played');
-      } catch(e) {
-        console.log('Fallback beep error:', e);
+        
+        // Second beep for emphasis
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        gain2.connect(audioCtx.destination);
+        gain2.gain.setValueAtTime(0.3, now + 0.3);
+        osc2.connect(gain2);
+        osc2.frequency.value = 660;
+        osc2.type = 'sine';
+        osc2.start(now + 0.3);
+        osc2.stop(now + 1.1);
+        
+        // Third beep
+        const osc3 = audioCtx.createOscillator();
+        const gain3 = audioCtx.createGain();
+        gain3.connect(audioCtx.destination);
+        gain3.gain.setValueAtTime(0.3, now + 0.6);
+        osc3.connect(gain3);
+        osc3.frequency.value = 880;
+        osc3.type = 'sine';
+        osc3.start(now + 0.6);
+        osc3.stop(now + 1.4);
+        
+        audioCtx.resume();
+      } catch(e) { 
+        console.log('Fallback beep error:', e); 
       }
     }
 
@@ -1038,7 +1000,6 @@
         this.onCompleteCallback = onCompleteCallback;
         this.statusTimeElement = document.getElementById(statusTimeId);
         this.badgeElement = document.getElementById(badgeId);
-        this.hasAlarmPlayed = false;
         this.updateStatusDisplay();
       }
 
@@ -1054,14 +1015,14 @@
       }
 
       finish() {
+        console.log(`${this.name} timer finished! Playing sound: ${this.alarmSound}`);
         if (this.interval) {
           clearInterval(this.interval);
           this.interval = null;
         }
         this.isRunning = false;
-        this.hasAlarmPlayed = false;
         
-        // Play alarm sound when timer finishes
+        // Play the alarm sound
         playAlarm(this.alarmSound);
         
         if (this.onCompleteCallback && this.name === 'session') {
@@ -1077,15 +1038,12 @@
         }
         this.currentSeconds--;
         updateAllDisplays();
-        if (this.currentSeconds === 0) {
-          this.finish();
-        }
+        if (this.currentSeconds === 0) this.finish();
       }
 
       start() {
         if (this.interval) clearInterval(this.interval);
         this.isRunning = true;
-        this.hasAlarmPlayed = false;
         this.interval = setInterval(() => {
           if (this.isRunning) this.tick();
         }, 1000);
@@ -1104,7 +1062,6 @@
       reset() {
         this.pause();
         this.currentSeconds = this.defaultMinutes * 60;
-        this.hasAlarmPlayed = false;
         updateAllDisplays();
       }
 
@@ -1118,15 +1075,6 @@
 
       setAlarmSound(sound) {
         this.alarmSound = sound;
-        // Preload the new sound
-        if (!audioCache[sound]) {
-          try {
-            const audio = new Audio(`sounds/${sound}`);
-            audio.preload = 'auto';
-            audio.load();
-            audioCache[sound] = audio;
-          } catch(e) {}
-        }
       }
 
       getCurrentDisplay() {
@@ -1140,7 +1088,7 @@
       }
     }
 
-    // Initialize 4 background timers
+    // Initialize 4 background timers with default sound files
     const sessionTimer = new BackgroundTimer('session', 25, 'sessionStatusTime', 'sessionBadge', 'sound1.mp3', recordCompletedSession);
     const shortBreakTimer = new BackgroundTimer('shortBreak', 5, 'shortBreakStatusTime', 'shortBreakBadge', 'sound2.mp3', null);
     const longBreakTimer = new BackgroundTimer('longBreak', 15, 'longBreakStatusTime', 'longBreakBadge', 'sound3.mp3', null);
@@ -1236,9 +1184,6 @@
     const playPauseBtn = document.getElementById('playPauseBtn');
     if (playPauseBtn) {
       playPauseBtn.onclick = () => {
-        // Initialize audio context on user interaction
-        initAudioContext();
-        
         const timer = timers[currentView];
         if (timer) {
           if (timer.getIsRunning()) {
