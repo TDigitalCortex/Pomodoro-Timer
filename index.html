@@ -290,10 +290,11 @@
       transition: all 0.3s ease;
     }
 
-    /* SCROLL VIEW MODE (when checkbox is TRUE/checked) - with invisible scrollbar */
+    /* SCROLL VIEW MODE (when checkbox is TRUE/checked) - with invisible scrollbar and bottom spacing */
     .task-list.scroll {
       max-height: 300px;
       overflow-y: auto;
+      padding-bottom: 8px;
     }
 
     /* Hide scrollbar but keep functionality - WebKit browsers */
@@ -316,6 +317,7 @@
     .task-list.line-break {
       max-height: none;
       overflow-y: visible;
+      padding-bottom: 0;
     }
 
     .task-item {
@@ -328,6 +330,11 @@
       gap: 12px;
       border: 1px solid #eef2f6;
       transition: background-color 0.3s ease;
+    }
+
+    /* Add extra spacing at the bottom of the last task item in scroll mode */
+    .task-list.scroll .task-item:last-child {
+      margin-bottom: 0;
     }
 
     .task-check {
