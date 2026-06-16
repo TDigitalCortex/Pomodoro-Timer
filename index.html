@@ -656,7 +656,7 @@
         <div class="timer-digits" id="timerDisplay">25:00</div>
       </div>
 
-      <!-- Session View - Updated with Completion Stats -->
+      <!-- Session View -->
       <div class="session-view" id="sessionView">
         <div class="session-stats">
           <div class="stat-item">
@@ -1017,6 +1017,18 @@
       document.getElementById('timeSpent').textContent = `${hours}h ${minutes}m`;
     }
 
+    // Get current session duration for time tracking
+    function getSessionDuration() {
+      const savedSettings = localStorage.getItem('pomodoro_settings');
+      if (savedSettings) {
+        try {
+          const settings = JSON.parse(savedSettings);
+          return settings.sessionDuration || 25;
+        } catch(e) { return 25; }
+      }
+      return 25;
+    }
+
     function recordTaskCompletion() {
       const today = new Date().toDateString();
       if (completionStats.todayDate !== today) {
@@ -1025,8 +1037,27 @@
       }
       completionStats.todayCompleted++;
       completionStats.totalCompleted++;
-      // Add 25 minutes per completed task (session duration)
-      completionStats.totalMinutes += 25;
+      // Use the actual session duration from settings
+      const sessionDuration = getSessionDuration();
+      completionStats.totalMinutes += sessionDuration;
+      saveCompletionStats();
+      updateSessionView();
+    }
+
+    function decrementTaskCompletion() {
+      const today = new Date().toDateString();
+      if (completionStats.todayDate !== today) {
+        completionStats.todayCompleted = 0;
+        completionStats.todayDate = today;
+      }
+      if (completionStats.todayCompleted > 0) {
+        completionStats.todayCompleted--;
+      }
+      if (completionStats.totalCompleted > 0) {
+        completionStats.totalCompleted--;
+        const sessionDuration = getSessionDuration();
+        completionStats.totalMinutes = Math.max(0, completionStats.totalMinutes - sessionDuration);
+      }
       saveCompletionStats();
       updateSessionView();
     }
@@ -1345,7 +1376,6 @@
     const taskInput = document.getElementById('taskInput');
     const addTaskBtn = document.getElementById('addTaskBtn');
     let taskScrollEnabled = true;
-    let isUpdatingCompletion = false;
 
     function saveTasks() {
       localStorage.setItem('pomodoro_tasks', JSON.stringify(tasks));
@@ -1413,13 +1443,16 @@
         check.className = 'task-check';
         check.checked = task.completed;
         check.onchange = () => {
-          // Toggle completed state
+          // Track completion state change
           const wasCompleted = task.completed;
           task.completed = check.checked;
           
-          // If task is NOW completed (was not completed before), record it
           if (task.completed && !wasCompleted) {
+            // Task was unchecked -> now checked: increment
             recordTaskCompletion();
+          } else if (!task.completed && wasCompleted) {
+            // Task was checked -> now unchecked: decrement
+            decrementTaskCompletion();
           }
           saveTasks();
           renderTasks();
@@ -1436,7 +1469,6 @@
         del.innerHTML = '×';
         del.onclick = () => {
           // If task was completed, keep stats intact (they were already recorded)
-          // Just remove the task from the list
           tasks = tasks.filter(t => t.id !== task.id);
           saveTasks();
           renderTasks();
