@@ -875,63 +875,58 @@
   </div>
 
   <script>
-    // ========== ALARM PLAYER - FIXED ==========
+    // ========== ALARM PLAYER - FIXED FOR MP3 FILES ==========
     function playAlarm(soundFile) {
       console.log('Playing alarm:', soundFile);
       
       try {
-        // Try to play MP3 file
+        // Create audio element with the MP3 file
         const audio = new Audio(`sounds/${soundFile}`);
         audio.volume = 0.8;
-        audio.play().catch((err) => {
-          console.log('MP3 playback failed, using fallback beep:', err);
-          playFallbackBeep();
-        });
+        
+        // Play the sound
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            console.log('MP3 played successfully:', soundFile);
+          }).catch((err) => {
+            console.log('MP3 playback failed, using fallback beep:', err);
+            playFallbackBeep();
+          });
+        }
       } catch(e) {
         console.log('MP3 error, using fallback beep:', e);
         playFallbackBeep();
       }
     }
 
-    // Fallback beep using Web Audio API
+    // Fallback beep using Web Audio API - more robust
     function playFallbackBeep() {
       console.log('Playing fallback beep');
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const now = audioCtx.currentTime;
+        
+        // Create a gain node for volume control
         const gainNode = audioCtx.createGain();
         gainNode.connect(audioCtx.destination);
         gainNode.gain.setValueAtTime(0.3, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
         
-        // Create a series of beeps
-        const osc = audioCtx.createOscillator();
-        osc.connect(gainNode);
-        osc.frequency.value = 880;
-        osc.type = 'sine';
-        osc.start(now);
-        osc.stop(now + 0.8);
+        // Play 3 beeps in sequence
+        const frequencies = [880, 660, 880];
+        const startTimes = [now, now + 0.3, now + 0.6];
+        const durations = [0.3, 0.3, 0.4];
         
-        // Second beep for emphasis
-        const osc2 = audioCtx.createOscillator();
-        const gain2 = audioCtx.createGain();
-        gain2.connect(audioCtx.destination);
-        gain2.gain.setValueAtTime(0.3, now + 0.3);
-        osc2.connect(gain2);
-        osc2.frequency.value = 660;
-        osc2.type = 'sine';
-        osc2.start(now + 0.3);
-        osc2.stop(now + 1.1);
-        
-        // Third beep
-        const osc3 = audioCtx.createOscillator();
-        const gain3 = audioCtx.createGain();
-        gain3.connect(audioCtx.destination);
-        gain3.gain.setValueAtTime(0.3, now + 0.6);
-        osc3.connect(gain3);
-        osc3.frequency.value = 880;
-        osc3.type = 'sine';
-        osc3.start(now + 0.6);
-        osc3.stop(now + 1.4);
+        for (let i = 0; i < frequencies.length; i++) {
+          const osc = audioCtx.createOscillator();
+          osc.connect(gainNode);
+          osc.frequency.value = frequencies[i];
+          osc.type = 'sine';
+          osc.start(startTimes[i]);
+          osc.stop(startTimes[i] + durations[i]);
+        }
         
         audioCtx.resume();
       } catch(e) { 
@@ -1022,7 +1017,7 @@
         }
         this.isRunning = false;
         
-        // Play the alarm sound
+        // Play the alarm sound immediately
         playAlarm(this.alarmSound);
         
         if (this.onCompleteCallback && this.name === 'session') {
