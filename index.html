@@ -128,45 +128,7 @@
       color: #1a2c38;
     }
 
-    /* Action Buttons */
-    .action-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 1.5rem;
-      margin: 1.5rem 0;
-      flex-wrap: wrap;
-    }
-
-    .icon-btn {
-      background: #f2f5f9;
-      border: none;
-      cursor: pointer;
-      padding: 0.7rem 1.5rem;
-      border-radius: 3rem;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 500;
-      color: #1f2e3a;
-      font-size: 1rem;
-      justify-content: center;
-    }
-
-    .btn-icon {
-      font-size: 1.2rem;
-    }
-
-    .icon-btn:hover {
-      background: #e6edf4;
-      transform: scale(0.97);
-    }
-
-    .icon-btn:active {
-      transform: scale(0.95);
-    }
-
-    /* Status Bar - Shows all 4 timers */
+    /* Status Bar - Shows all 4 timers (toggleable) */
     .status-bar {
       display: flex;
       justify-content: space-between;
@@ -177,6 +139,11 @@
       border-radius: 1rem;
       border: 1px solid #eef2f6;
       flex-wrap: wrap;
+      transition: all 0.3s ease;
+    }
+
+    .status-bar.hidden {
+      display: none;
     }
 
     .status-item {
@@ -221,7 +188,45 @@
     .status-badge.paused { background: #ed8936; }
     .status-badge.idle { background: #a0aec0; }
 
-    /* Tasks Section - Toggleable scroll/page-break */
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+      flex-wrap: wrap;
+    }
+
+    .icon-btn {
+      background: #f2f5f9;
+      border: none;
+      cursor: pointer;
+      padding: 0.7rem 1.5rem;
+      border-radius: 3rem;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      color: #1f2e3a;
+      font-size: 1rem;
+      justify-content: center;
+    }
+
+    .btn-icon {
+      font-size: 1.2rem;
+    }
+
+    .icon-btn:hover {
+      background: #e6edf4;
+      transform: scale(0.97);
+    }
+
+    .icon-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Tasks Section */
     .tasks-section {
       margin-top: 2rem;
       border-top: 2px solid #edeff4;
@@ -279,25 +284,34 @@
       transform: translateY(-2px);
     }
 
-    /* Task container styles - toggle between scroll and page-break */
+    /* Task container styles - toggle between scroll and line-break */
     .task-list {
       list-style: none;
       transition: all 0.3s ease;
     }
 
+    /* SCROLL MODE (when checkbox is TRUE/checked) */
     .task-list.scroll {
       max-height: 300px;
       overflow-y: auto;
     }
 
-    .task-list.page-break {
+    /* LINE BREAK MODE (when checkbox is FALSE/unchecked) - text wraps, no scroll */
+    .task-list.line-break {
       max-height: none;
       overflow-y: visible;
     }
 
-    .task-list.page-break .task-item {
-      break-inside: avoid;
-      page-break-inside: avoid;
+    .task-list.line-break .task-text {
+      white-space: normal;
+      word-wrap: break-word;
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    .task-list.line-break .task-item {
+      height: auto;
+      min-height: auto;
     }
 
     .task-item {
@@ -306,7 +320,7 @@
       padding: 0.8rem;
       margin-bottom: 0.6rem;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 12px;
       border: 1px solid #eef2f6;
     }
@@ -316,6 +330,7 @@
       height: 1.2rem;
       cursor: pointer;
       flex-shrink: 0;
+      margin-top: 0.1rem;
     }
 
     .task-text {
@@ -327,11 +342,21 @@
       font-family: inherit;
       color: #1a2c38;
       text-align: left;
+      white-space: nowrap;
+      overflow-x: auto;
     }
 
     .task-text:focus {
       outline: none;
       border-bottom: 1px dashed #667eea;
+    }
+
+    /* Line break mode text styling */
+    .task-list.line-break .task-text {
+      white-space: normal;
+      word-wrap: break-word;
+      word-break: break-word;
+      overflow-x: visible;
     }
 
     .task-completed .task-text {
@@ -453,7 +478,7 @@
       font-weight: 500;
       color: #2d3748;
       font-size: 0.9rem;
-      min-width: 160px;
+      min-width: 180px;
     }
 
     .settings-row input {
@@ -567,8 +592,8 @@
         </div>
       </div>
 
-      <!-- Status Bar - Shows all 4 timers -->
-      <div class="status-bar">
+      <!-- Status Bar - Shows all 4 timers (toggleable) -->
+      <div class="status-bar" id="statusBar">
         <div class="status-item session" data-status="session">
           <div class="status-label" id="sessionStatusLabel">🍅 Session <span class="status-badge" id="sessionBadge"></span></div>
           <div class="status-time" id="sessionStatusTime">25:00</div>
@@ -619,7 +644,7 @@
     </div>
   </div>
 
-  <!-- Settings Modal with New Display Options -->
+  <!-- Settings Modal with Display Options -->
   <div id="settingsOverlay" class="settings-overlay">
     <div class="settings-modal">
       <div class="settings-modal-header">
@@ -674,8 +699,13 @@
             <input type="checkbox" id="sessionViewToggle">
           </div>
           <div class="settings-row">
+            <label>Status Bar (Show running timers):</label>
+            <input type="checkbox" id="statusBarToggle" checked>
+          </div>
+          <div class="settings-row">
             <label>Task Scroll (when exceeds limit):</label>
             <input type="checkbox" id="taskScrollToggle" checked>
+            <span style="font-size:0.7rem; color:#718096;">(Unchecked = line break text)</span>
           </div>
         </div>
 
@@ -1178,9 +1208,9 @@
     function applyTaskDisplayMode() {
       if (taskScrollEnabled) {
         taskListContainer.classList.add('scroll');
-        taskListContainer.classList.remove('page-break');
+        taskListContainer.classList.remove('line-break');
       } else {
-        taskListContainer.classList.add('page-break');
+        taskListContainer.classList.add('line-break');
         taskListContainer.classList.remove('scroll');
       }
     }
@@ -1262,8 +1292,10 @@
     const closeSettingsBtn = document.querySelector('.settings-close-btn');
     const saveSettingsBtn = document.getElementById('saveSettingsBtn');
     const sessionViewElement = document.getElementById('sessionView');
+    const statusBarElement = document.getElementById('statusBar');
 
     let sessionViewEnabled = true;
+    let statusBarEnabled = true;
     let sessionDuration = 25, shortBreakDuration = 5, longBreakDuration = 15, customDuration = 30;
     let sessionName = 'Session', shortBreakName = 'Short Break', longBreakName = 'Long Break', customName = 'Custom';
     let sessionAlarm = 'Message Tones', shortBreakAlarm = 'Message Tones', longBreakAlarm = 'Message Tones', customAlarm = 'Message Tones';
@@ -1304,6 +1336,7 @@
         customTimer.setAlarmSound(customAlarm);
         
         sessionViewEnabled = settings.sessionViewEnabled !== undefined ? settings.sessionViewEnabled : true;
+        statusBarEnabled = settings.statusBarEnabled !== undefined ? settings.statusBarEnabled : true;
         taskScrollEnabled = settings.taskScrollEnabled !== undefined ? settings.taskScrollEnabled : true;
         
         if (!sessionViewEnabled) {
@@ -1312,7 +1345,14 @@
           sessionViewElement.classList.remove('hidden');
         }
         
+        if (!statusBarEnabled) {
+          statusBarElement.classList.add('hidden');
+        } else {
+          statusBarElement.classList.remove('hidden');
+        }
+        
         document.getElementById('sessionViewToggle').checked = sessionViewEnabled;
+        document.getElementById('statusBarToggle').checked = statusBarEnabled;
         document.getElementById('taskScrollToggle').checked = taskScrollEnabled;
         applyTaskDisplayMode();
         
@@ -1389,6 +1429,7 @@
         document.getElementById('longBreakAlarm').value = longBreakAlarm;
         document.getElementById('customAlarm').value = customAlarm;
         document.getElementById('sessionViewToggle').checked = sessionViewEnabled;
+        document.getElementById('statusBarToggle').checked = statusBarEnabled;
         document.getElementById('taskScrollToggle').checked = taskScrollEnabled;
         document.getElementById('timerTextColor').value = timerTextColor;
         document.getElementById('timerBgColor').value = timerBgColor;
@@ -1436,12 +1477,19 @@
         customTimer.setAlarmSound(customAlarm);
         
         sessionViewEnabled = document.getElementById('sessionViewToggle').checked;
+        statusBarEnabled = document.getElementById('statusBarToggle').checked;
         taskScrollEnabled = document.getElementById('taskScrollToggle').checked;
         
         if (sessionViewEnabled) {
           sessionViewElement.classList.remove('hidden');
         } else {
           sessionViewElement.classList.add('hidden');
+        }
+        
+        if (statusBarEnabled) {
+          statusBarElement.classList.remove('hidden');
+        } else {
+          statusBarElement.classList.add('hidden');
         }
         
         applyTaskDisplayMode();
@@ -1461,7 +1509,7 @@
           sessionName, shortBreakName, longBreakName, customName,
           sessionDuration, shortBreakDuration, longBreakDuration, customDuration,
           sessionAlarm, shortBreakAlarm, longBreakAlarm, customAlarm,
-          sessionViewEnabled, taskScrollEnabled,
+          sessionViewEnabled, statusBarEnabled, taskScrollEnabled,
           timerTextColor, timerBgColor, primaryBtnColor, primaryBtnHoverColor,
           actionBtnColor, actionBtnTextColor, taskTextColor, taskCardColor, pageBgColor, cardBgColor
         }));
