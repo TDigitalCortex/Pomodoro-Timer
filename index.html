@@ -751,6 +751,14 @@
         </div>
 
         <div class="settings-group">
+          <h3>Current Time Color</h3>
+          <div class="settings-row">
+            <label>Current Time Text Color:</label>
+            <input type="color" id="currentTimeColor" value="#718096">
+          </div>
+        </div>
+
+        <div class="settings-group">
           <h3>Alarm Sounds (per timer)</h3>
           <div class="settings-row">
             <label>Session Alarm:</label>
@@ -1140,6 +1148,7 @@
     // Current time display
     const currentTimeElement = document.getElementById('currentTimeDisplay');
     let currentTimeEnabled = true;
+    let currentTimeColor = '#718096';
 
     function updateCurrentTime() {
       if (!currentTimeEnabled) return;
@@ -1413,10 +1422,20 @@
         longBreakTimer.setAlarmSound(longBreakAlarm);
         customTimer.setAlarmSound(customAlarm);
         
+        currentTimeEnabled = settings.currentTimeEnabled !== undefined ? settings.currentTimeEnabled : true;
+        currentTimeColor = settings.currentTimeColor || '#718096';
         sessionViewEnabled = settings.sessionViewEnabled !== undefined ? settings.sessionViewEnabled : true;
         statusBarEnabled = settings.statusBarEnabled !== undefined ? settings.statusBarEnabled : true;
         taskScrollEnabled = settings.taskScrollEnabled !== undefined ? settings.taskScrollEnabled : true;
-        currentTimeEnabled = settings.currentTimeEnabled !== undefined ? settings.currentTimeEnabled : true;
+        
+        // Apply current time color
+        currentTimeElement.style.color = currentTimeColor;
+        
+        if (!currentTimeEnabled) {
+          currentTimeElement.classList.add('hidden');
+        } else {
+          currentTimeElement.classList.remove('hidden');
+        }
         
         if (!sessionViewEnabled) {
           sessionViewElement.classList.add('hidden');
@@ -1430,16 +1449,11 @@
           statusBarElement.classList.remove('hidden');
         }
         
-        if (!currentTimeEnabled) {
-          currentTimeElement.classList.add('hidden');
-        } else {
-          currentTimeElement.classList.remove('hidden');
-        }
-        
         document.getElementById('currentTimeToggle').checked = currentTimeEnabled;
         document.getElementById('sessionViewToggle').checked = sessionViewEnabled;
         document.getElementById('statusBarToggle').checked = statusBarEnabled;
         document.getElementById('taskScrollToggle').checked = taskScrollEnabled;
+        document.getElementById('currentTimeColor').value = currentTimeColor;
         applyTaskDisplayMode();
         
         timerTextColor = settings.timerTextColor || '#ffffff';
@@ -1462,6 +1476,7 @@
       document.querySelector('.timer-card').style.backgroundColor = cardBgColor;
       mainDisplay.style.color = timerTextColor;
       mainDisplay.style.backgroundColor = timerBgColor;
+      currentTimeElement.style.color = currentTimeColor;
       
       document.querySelectorAll('.task-text, .tasks-header h3').forEach(el => {
         el.style.color = taskTextColor;
@@ -1515,6 +1530,7 @@
         document.getElementById('longBreakAlarm').value = longBreakAlarm;
         document.getElementById('customAlarm').value = customAlarm;
         document.getElementById('currentTimeToggle').checked = currentTimeEnabled;
+        document.getElementById('currentTimeColor').value = currentTimeColor;
         document.getElementById('sessionViewToggle').checked = sessionViewEnabled;
         document.getElementById('statusBarToggle').checked = statusBarEnabled;
         document.getElementById('taskScrollToggle').checked = taskScrollEnabled;
@@ -1564,9 +1580,13 @@
         customTimer.setAlarmSound(customAlarm);
         
         currentTimeEnabled = document.getElementById('currentTimeToggle').checked;
+        currentTimeColor = document.getElementById('currentTimeColor').value;
         sessionViewEnabled = document.getElementById('sessionViewToggle').checked;
         statusBarEnabled = document.getElementById('statusBarToggle').checked;
         taskScrollEnabled = document.getElementById('taskScrollToggle').checked;
+        
+        // Apply current time color
+        currentTimeElement.style.color = currentTimeColor;
         
         if (currentTimeEnabled) {
           currentTimeElement.classList.remove('hidden');
@@ -1603,7 +1623,7 @@
           sessionName, shortBreakName, longBreakName, customName,
           sessionDuration, shortBreakDuration, longBreakDuration, customDuration,
           sessionAlarm, shortBreakAlarm, longBreakAlarm, customAlarm,
-          currentTimeEnabled, sessionViewEnabled, statusBarEnabled, taskScrollEnabled,
+          currentTimeEnabled, currentTimeColor, sessionViewEnabled, statusBarEnabled, taskScrollEnabled,
           timerTextColor, timerBgColor, primaryBtnColor, primaryBtnHoverColor,
           actionBtnColor, actionBtnTextColor, taskTextColor, taskCardColor, pageBgColor, cardBgColor
         }));
