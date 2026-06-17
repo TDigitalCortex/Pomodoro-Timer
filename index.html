@@ -824,6 +824,34 @@
       font-size: 0.85rem;
     }
 
+    /* Timer duration edit with h, m, s */
+    .duration-edit-container {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      flex-wrap: wrap;
+    }
+
+    .duration-edit-container input {
+      width: 45px;
+      padding: 0.3rem 0.2rem;
+      border: 1px solid #cfdee9;
+      border-radius: 0.3rem;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    .duration-edit-container .shorthand {
+      font-size: 0.7rem;
+      color: #718096;
+      font-weight: 600;
+    }
+
+    .duration-edit-container .sep {
+      font-size: 0.8rem;
+      color: #4a5568;
+    }
+
     .sound-select-container {
       display: flex;
       align-items: center;
@@ -929,6 +957,12 @@
       }
       .tasks-header-actions {
         justify-content: flex-start;
+      }
+      .duration-edit-container input {
+        width: 40px;
+      }
+      .time-edit-container input {
+        width: 40px;
       }
     }
   </style>
@@ -1150,22 +1184,58 @@
         </div>
 
         <div class="settings-group">
-          <h3>Timer Duration (minutes)</h3>
+          <h3>Timer Duration (h : m : s)</h3>
           <div class="settings-row">
             <label>Session Time:</label>
-            <input type="number" id="sessionTime" min="1" max="99" value="25">
+            <div class="duration-edit-container">
+              <input type="number" id="sessionHours" min="0" max="99" value="0" step="1">
+              <span class="shorthand">h</span>
+              <span class="sep">:</span>
+              <input type="number" id="sessionMins" min="0" max="59" value="25" step="1">
+              <span class="shorthand">m</span>
+              <span class="sep">:</span>
+              <input type="number" id="sessionSecs" min="0" max="59" value="0" step="1">
+              <span class="shorthand">s</span>
+            </div>
           </div>
           <div class="settings-row">
             <label>Short Break:</label>
-            <input type="number" id="shortBreakTime" min="1" max="99" value="5">
+            <div class="duration-edit-container">
+              <input type="number" id="shortBreakHours" min="0" max="99" value="0" step="1">
+              <span class="shorthand">h</span>
+              <span class="sep">:</span>
+              <input type="number" id="shortBreakMins" min="0" max="59" value="5" step="1">
+              <span class="shorthand">m</span>
+              <span class="sep">:</span>
+              <input type="number" id="shortBreakSecs" min="0" max="59" value="0" step="1">
+              <span class="shorthand">s</span>
+            </div>
           </div>
           <div class="settings-row">
             <label>Long Break:</label>
-            <input type="number" id="longBreakTime" min="1" max="99" value="15">
+            <div class="duration-edit-container">
+              <input type="number" id="longBreakHours" min="0" max="99" value="0" step="1">
+              <span class="shorthand">h</span>
+              <span class="sep">:</span>
+              <input type="number" id="longBreakMins" min="0" max="59" value="15" step="1">
+              <span class="shorthand">m</span>
+              <span class="sep">:</span>
+              <input type="number" id="longBreakSecs" min="0" max="59" value="0" step="1">
+              <span class="shorthand">s</span>
+            </div>
           </div>
           <div class="settings-row">
             <label>Custom Time:</label>
-            <input type="number" id="customTime" min="1" max="99" value="30">
+            <div class="duration-edit-container">
+              <input type="number" id="customHours" min="0" max="99" value="0" step="1">
+              <span class="shorthand">h</span>
+              <span class="sep">:</span>
+              <input type="number" id="customMins" min="0" max="59" value="30" step="1">
+              <span class="shorthand">m</span>
+              <span class="sep">:</span>
+              <input type="number" id="customSecs" min="0" max="59" value="0" step="1">
+              <span class="shorthand">s</span>
+            </div>
           </div>
           <div class="settings-row">
             <label style="color:#e53e3e;">Timer 1-4 (count-up):</label>
@@ -2535,6 +2605,27 @@
     let actionBtnColor = '#f2f5f9', actionBtnTextColor = '#1f2e3a';
     let taskTextColor = '#1a2c38', taskCardColor = '#f9fbfd', pageBgColor = '#667eea', cardBgColor = '#ffffff';
 
+    // Helper: Get total minutes from h:m:s inputs
+    function getTotalMinutes(hoursId, minsId, secsId) {
+      const h = parseInt(document.getElementById(hoursId).value) || 0;
+      const m = parseInt(document.getElementById(minsId).value) || 0;
+      const s = parseInt(document.getElementById(secsId).value) || 0;
+      // Convert to total minutes (round up if seconds >= 30)
+      const totalSeconds = (h * 3600) + (m * 60) + s;
+      return Math.ceil(totalSeconds / 60);
+    }
+
+    // Helper: Set h:m:s inputs from total minutes
+    function setDurationInputs(hoursId, minsId, secsId, totalMinutes) {
+      const totalSeconds = totalMinutes * 60;
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      document.getElementById(hoursId).value = h;
+      document.getElementById(minsId).value = m;
+      document.getElementById(secsId).value = s;
+    }
+
     function loadSettings() {
       const saved = localStorage.getItem('pomodoro_settings');
       if (saved) {
@@ -2554,6 +2645,12 @@
         shortBreakDuration = settings.shortBreakDuration || 5;
         longBreakDuration = settings.longBreakDuration || 15;
         customDuration = settings.customDuration || 30;
+        
+        // Set duration inputs
+        setDurationInputs('sessionHours', 'sessionMins', 'sessionSecs', sessionDuration);
+        setDurationInputs('shortBreakHours', 'shortBreakMins', 'shortBreakSecs', shortBreakDuration);
+        setDurationInputs('longBreakHours', 'longBreakMins', 'longBreakSecs', longBreakDuration);
+        setDurationInputs('customHours', 'customMins', 'customSecs', customDuration);
         
         sessionTimer.setDuration(sessionDuration);
         shortBreakTimer.setDuration(shortBreakDuration);
@@ -2688,10 +2785,7 @@
         document.getElementById('timer2Name').value = t2Name;
         document.getElementById('timer3Name').value = t3Name;
         document.getElementById('timer4Name').value = t4Name;
-        document.getElementById('sessionTime').value = sessionDuration;
-        document.getElementById('shortBreakTime').value = shortBreakDuration;
-        document.getElementById('longBreakTime').value = longBreakDuration;
-        document.getElementById('customTime').value = customDuration;
+        // Duration inputs already set by loadSettings
         document.getElementById('sessionAlarm').value = sessionAlarm;
         document.getElementById('shortBreakAlarm').value = shortBreakAlarm;
         document.getElementById('longBreakAlarm').value = longBreakAlarm;
@@ -2734,10 +2828,17 @@
         t4Name = document.getElementById('timer4Name').value || 'Timer 4';
         updateTimerNames(sessionName, shortBreakName, longBreakName, customName, t1Name, t2Name, t3Name, t4Name);
         
-        sessionDuration = parseInt(document.getElementById('sessionTime').value) || 25;
-        shortBreakDuration = parseInt(document.getElementById('shortBreakTime').value) || 5;
-        longBreakDuration = parseInt(document.getElementById('longBreakTime').value) || 15;
-        customDuration = parseInt(document.getElementById('customTime').value) || 30;
+        // Get durations from h:m:s inputs
+        sessionDuration = getTotalMinutes('sessionHours', 'sessionMins', 'sessionSecs');
+        shortBreakDuration = getTotalMinutes('shortBreakHours', 'shortBreakMins', 'shortBreakSecs');
+        longBreakDuration = getTotalMinutes('longBreakHours', 'longBreakMins', 'longBreakSecs');
+        customDuration = getTotalMinutes('customHours', 'customMins', 'customSecs');
+        
+        // Ensure minimum of 1 minute
+        if (sessionDuration < 1) sessionDuration = 1;
+        if (shortBreakDuration < 1) shortBreakDuration = 1;
+        if (longBreakDuration < 1) longBreakDuration = 1;
+        if (customDuration < 1) customDuration = 1;
         
         sessionTimer.setDuration(sessionDuration);
         shortBreakTimer.setDuration(shortBreakDuration);
