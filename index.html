@@ -1493,10 +1493,13 @@
   <script>
     // ========== MOBILE-FRIENDLY SOUND PRELOADER ==========
     // This preloads all sounds and makes them ready for playback on mobile
+    // When Start is clicked, it forces preloading of all sounds
     
     // Audio context for mobile
     let audioContext = null;
     let audioUnlocked = false;
+    let soundsPreloaded = false;
+    let preloadAttempted = false;
     
     function getAudioContext() {
       if (!audioContext) {
@@ -1529,17 +1532,26 @@
     document.addEventListener('touchstart', unlockAudio, { once: false });
     document.addEventListener('keydown', unlockAudio, { once: false });
     
-    // ========== SOUND PRELOADING - ACTUALLY WORKS ON MOBILE ==========
-    // We preload sounds by creating Audio elements and storing them
-    // On mobile, we need to use the 'canplaythrough' event to ensure they're ready
-    
+    // ========== SOUND PRELOADING - FORCES LOAD ON START ==========
     const soundCache = {};
     const soundFiles = ['sound1.mp3', 'sound2.mp3', 'sound3.mp3', 'sound4.mp3', 'sound5.mp3', 'sound6.mp3', 'sound7.mp3', 'sound8.mp3', 'sound9.mp3'];
-    let soundsReady = false;
+    let loadedCount = 0;
+    let preloadCallbacks = [];
+    
+    function onSoundsReady(callback) {
+      if (soundsPreloaded) {
+        callback();
+      } else {
+        preloadCallbacks.push(callback);
+      }
+    }
     
     function preloadSounds() {
+      if (preloadAttempted) return;
+      preloadAttempted = true;
+      
       console.log('Starting sound preload...');
-      let loadedCount = 0;
+      loadedCount = 0;
       
       soundFiles.forEach(file => {
         try {
@@ -1551,8 +1563,10 @@
             loadedCount++;
             console.log(`Sound ready: ${file} (${loadedCount}/${soundFiles.length})`);
             if (loadedCount === soundFiles.length) {
-              soundsReady = true;
+              soundsPreloaded = true;
               console.log('All sounds preloaded and ready!');
+              preloadCallbacks.forEach(cb => cb());
+              preloadCallbacks = [];
             }
           });
           
@@ -1561,8 +1575,10 @@
             console.log(`Error loading ${file}:`, e);
             loadedCount++;
             if (loadedCount === soundFiles.length) {
-              soundsReady = true;
+              soundsPreloaded = true;
               console.log('All sounds attempted (some may have errors)');
+              preloadCallbacks.forEach(cb => cb());
+              preloadCallbacks = [];
             }
           });
           
@@ -1575,20 +1591,44 @@
       });
     }
     
+    // Force preload when Start button is clicked
+    function forcePreloadSounds() {
+      if (!preloadAttempted) {
+        preloadSounds();
+      } else if (!soundsPreloaded) {
+        // Try reloading any sounds that haven't loaded
+        soundFiles.forEach(file => {
+          try {
+            if (soundCache[file] && soundCache[file].readyState < 2) {
+              console.log(`Reloading: ${file}`);
+              soundCache[file].load();
+            }
+          } catch(e) {}
+        });
+      }
+    }
+    
     // Start preloading immediately
-    setTimeout(preloadSounds, 50);
+    setTimeout(preloadSounds, 100);
     
     // Also preload on page load as backup
     if (document.readyState === 'complete') {
-      preloadSounds();
+      if (!preloadAttempted) preloadSounds();
     } else {
-      window.addEventListener('load', preloadSounds);
+      window.addEventListener('load', () => {
+        if (!preloadAttempted) preloadSounds();
+      });
     }
     
     // ========== PLAY ALARM - WORKS WITH PRELOADED SOUNDS ==========
     function playAlarm(soundFile) {
       // Unlock audio context on first play attempt
       unlockAudio();
+      
+      // Force preload if not done yet
+      if (!soundsPreloaded) {
+        forcePreloadSounds();
+      }
       
       console.log(`Attempting to play: ${soundFile}`);
       
@@ -1606,19 +1646,19 @@
                 console.log(`Successfully played: ${soundFile}`);
               }).catch((err) => {
                 console.log(`Cached playback failed:`, err);
-                // Try creating a new audio as fallback
                 playNewAudio(soundFile);
               });
             }
           } else {
             // Audio not ready yet, wait for it
             console.log(`Waiting for ${soundFile} to load...`);
-            audio.addEventListener('canplaythrough', () => {
+            const playOnLoad = () => {
               const playPromise = audio.play();
               if (playPromise !== undefined) {
                 playPromise.catch(() => playNewAudio(soundFile));
               }
-            }, { once: true });
+            };
+            audio.addEventListener('canplaythrough', playOnLoad, { once: true });
             
             // Fallback: try again after a short delay
             setTimeout(() => {
@@ -1627,7 +1667,7 @@
               if (playPromise !== undefined) {
                 playPromise.catch(() => playNewAudio(soundFile));
               }
-            }, 500);
+            }, 800);
           }
           return;
         }
@@ -1860,6 +1900,10 @@
       }
 
       start() {
+        // Force preload sounds when any timer starts
+        forcePreloadSounds();
+        unlockAudio();
+        
         if (!this.isCountUp && (this.hasCompleted || this.currentSeconds <= 0)) {
           this.currentSeconds = this.defaultMinutes * 60;
           this.hasCompleted = false;
@@ -1950,6 +1994,41 @@
       timer2: timer2,
       timer3: timer3,
       timer4: timer4
+    };
+
+    // Override start method to force preload on Start button click
+    const originalStart = timers.session.start;
+    timers.session.start = function() {
+      forcePreloadSounds();
+      originalStart.call(this);
+    };
+    timers.shortBreak.start = function() {
+      forcePreloadSounds();
+      originalStart.call(this);
+    };
+    timers.longBreak.start = function() {
+      forcePreloadSounds();
+      originalStart.call(this);
+    };
+    timers.custom.start = function() {
+      forcePreloadSounds();
+      originalStart.call(this);
+    };
+    timers.timer1.start = function() {
+      forcePreloadSounds();
+      originalStart.call(this);
+    };
+    timers.timer2.start = function() {
+      forcePreloadSounds();
+      originalStart.call(this);
+    };
+    timers.timer3.start = function() {
+      forcePreloadSounds();
+      originalStart.call(this);
+    };
+    timers.timer4.start = function() {
+      forcePreloadSounds();
+      originalStart.call(this);
     };
 
     // Timer name elements
@@ -2195,6 +2274,7 @@
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         unlockAudio();
+        forcePreloadSounds();
         const timerName = btn.dataset.testSound;
         const selectId = `${timerName}Alarm`;
         const select = document.getElementById(selectId);
