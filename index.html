@@ -602,15 +602,6 @@
       color: #4a5568;
     }
 
-    .task-settings-row input {
-      width: 80px;
-      padding: 0.3rem 0.5rem;
-      border: 1px solid #cfdee9;
-      border-radius: 0.4rem;
-      font-size: 0.85rem;
-      text-align: center;
-    }
-
     .task-settings-row .edit-btn {
       background: #667eea;
       color: white;
@@ -623,6 +614,34 @@
 
     .task-settings-row .edit-btn:hover {
       background: #5a67d8;
+    }
+
+    /* Time edit row with mins and secs */
+    .time-edit-container {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      flex-wrap: wrap;
+    }
+
+    .time-edit-container input {
+      width: 50px;
+      padding: 0.3rem 0.2rem;
+      border: 1px solid #cfdee9;
+      border-radius: 0.3rem;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    .time-edit-container .shorthand {
+      font-size: 0.7rem;
+      color: #718096;
+      font-weight: 500;
+    }
+
+    .time-edit-container .sep {
+      font-size: 0.8rem;
+      color: #4a5568;
     }
 
     .task-settings-footer {
@@ -1060,9 +1079,12 @@
         </div>
         <div class="task-settings-row" id="editTimeRow" style="display:none;">
           <label>Set Time Spent</label>
-          <div style="display:flex; gap:0.5rem; align-items:center;">
-            <input type="number" id="tskTimeInput" min="0" value="0" step="1">
-            <span style="font-size:0.8rem; color:#718096;">seconds</span>
+          <div class="time-edit-container">
+            <input type="number" id="tskMinsInput" min="0" value="0" step="1">
+            <span class="shorthand">m</span>
+            <span class="sep">:</span>
+            <input type="number" id="tskSecsInput" min="0" max="59" value="0" step="1">
+            <span class="shorthand">s</span>
             <button class="edit-btn" id="saveTimeBtn">Save</button>
           </div>
         </div>
@@ -1967,7 +1989,8 @@
     const editTimeBtn = document.getElementById('editTimeBtn');
     const saveTimeBtn = document.getElementById('saveTimeBtn');
     const editTimeRow = document.getElementById('editTimeRow');
-    const tskTimeInput = document.getElementById('tskTimeInput');
+    const tskMinsInput = document.getElementById('tskMinsInput');
+    const tskSecsInput = document.getElementById('tskSecsInput');
 
     function formatDate(timestamp) {
       if (!timestamp) return 'Never';
@@ -1986,7 +2009,12 @@
       document.getElementById('tskCompleted').textContent = task.completedAt ? formatDate(task.completedAt) : 'Not completed';
       const timeSpentSeconds = task.completedDuration || 0;
       document.getElementById('tskTimeSpent').textContent = formatTimeSpent(timeSpentSeconds);
-      tskTimeInput.value = timeSpentSeconds;
+      
+      const mins = Math.floor(timeSpentSeconds / 60);
+      const secs = timeSpentSeconds % 60;
+      tskMinsInput.value = mins;
+      tskSecsInput.value = secs;
+      
       editTimeRow.style.display = 'none';
       
       taskSettingsOverlay.style.display = 'flex';
@@ -2179,7 +2207,6 @@
         actionsDiv.appendChild(cogBtn);
       }
       
-      // Restore button for hidden/deleted tasks
       if (status === 'hidden') {
         const restoreBtn = document.createElement('button');
         restoreBtn.className = 'delete-task';
@@ -2206,13 +2233,11 @@
         permDelBtn.innerHTML = '🗑️';
         permDelBtn.title = 'Permanently delete (erases from stats)';
         permDelBtn.onclick = () => {
-          // Delete immediately without popup
           eraseDeletedTask(task.id);
         };
         actionsDiv.appendChild(permDelBtn);
       }
       
-      // Delete button for active tasks
       if (status === 'active') {
         const delBtn = document.createElement('button');
         delBtn.className = 'delete-task';
@@ -2224,7 +2249,6 @@
         actionsDiv.appendChild(delBtn);
       }
       
-      // Delete button for hidden tasks (moves to deleted)
       if (status === 'hidden') {
         const delBtn = document.createElement('button');
         delBtn.className = 'delete-task';
@@ -2354,7 +2378,6 @@
     if (addTaskBtn) addTaskBtn.onclick = addTask;
     if (taskInput) taskInput.onkeypress = (e) => { if (e.key === 'Enter') addTask(); };
 
-    // Toggle Hidden view
     hideBtn.onclick = () => {
       showHidden = !showHidden;
       if (showHidden) {
@@ -2363,7 +2386,6 @@
       renderTasks();
     };
 
-    // Toggle Deleted view
     deletedBtn.onclick = () => {
       showDeleted = !showDeleted;
       if (showDeleted) {
@@ -2382,7 +2404,9 @@
       const allTasks = [...tasks, ...hiddenTasks, ...deletedTasks];
       const task = allTasks.find(t => t.id === selectedTaskId);
       if (task) {
-        tskTimeInput.value = task.completedDuration || 0;
+        const seconds = task.completedDuration || 0;
+        tskMinsInput.value = Math.floor(seconds / 60);
+        tskSecsInput.value = seconds % 60;
       }
     };
 
@@ -2392,7 +2416,9 @@
       if (!task) return;
       
       const oldDuration = task.completedDuration || 0;
-      const newDuration = parseInt(tskTimeInput.value) || 0;
+      const mins = parseInt(tskMinsInput.value) || 0;
+      const secs = parseInt(tskSecsInput.value) || 0;
+      const newDuration = (mins * 60) + secs;
       
       if (task.completed && task.completedDuration) {
         const diff = newDuration - oldDuration;
