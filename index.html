@@ -2271,17 +2271,16 @@
       const actionsDiv = document.createElement('div');
       actionsDiv.className = 'task-actions';
       
-      if (status === 'active') {
-        const cogBtn = document.createElement('button');
-        cogBtn.className = 'task-cog-btn';
-        cogBtn.innerHTML = '⚙';
-        cogBtn.title = 'Task Settings';
-        cogBtn.onclick = (e) => {
-          e.stopPropagation();
-          openTaskSettings(task.id);
-        };
-        actionsDiv.appendChild(cogBtn);
-      }
+      // Cog button for ALL task types (active, hidden, deleted)
+      const cogBtn = document.createElement('button');
+      cogBtn.className = 'task-cog-btn';
+      cogBtn.innerHTML = '⚙';
+      cogBtn.title = 'Task Settings';
+      cogBtn.onclick = (e) => {
+        e.stopPropagation();
+        openTaskSettings(task.id);
+      };
+      actionsDiv.appendChild(cogBtn);
       
       if (status === 'hidden') {
         const restoreBtn = document.createElement('button');
@@ -2292,6 +2291,15 @@
           restoreHiddenTask(task.id);
         };
         actionsDiv.appendChild(restoreBtn);
+        
+        const delBtn = document.createElement('button');
+        delBtn.className = 'delete-task';
+        delBtn.innerHTML = '×';
+        delBtn.title = 'Move to deleted';
+        delBtn.onclick = () => {
+          moveHiddenToDeleted(task.id);
+        };
+        actionsDiv.appendChild(delBtn);
       }
       
       if (status === 'deleted') {
@@ -2321,17 +2329,6 @@
         delBtn.title = 'Move to deleted';
         delBtn.onclick = () => {
           moveToDeleted(task.id);
-        };
-        actionsDiv.appendChild(delBtn);
-      }
-      
-      if (status === 'hidden') {
-        const delBtn = document.createElement('button');
-        delBtn.className = 'delete-task';
-        delBtn.innerHTML = '×';
-        delBtn.title = 'Move to deleted';
-        delBtn.onclick = () => {
-          moveHiddenToDeleted(task.id);
         };
         actionsDiv.appendChild(delBtn);
       }
