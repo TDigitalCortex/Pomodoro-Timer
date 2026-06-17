@@ -1178,7 +1178,6 @@
 
         <div class="settings-group">
           <h3>Alarm Sounds (per timer)</h3>
-          <!-- Same as before - kept concise -->
           <div class="settings-row">
             <label>Session Alarm:</label>
             <div class="sound-select-container">
@@ -2207,9 +2206,8 @@
         permDelBtn.innerHTML = '🗑️';
         permDelBtn.title = 'Permanently delete (erases from stats)';
         permDelBtn.onclick = () => {
-          if (confirm('Permanently delete this task? This will remove it from stats.')) {
-            eraseDeletedTask(task.id);
-          }
+          // Delete immediately without popup
+          eraseDeletedTask(task.id);
         };
         actionsDiv.appendChild(permDelBtn);
       }
@@ -2359,7 +2357,6 @@
     // Toggle Hidden view
     hideBtn.onclick = () => {
       showHidden = !showHidden;
-      // If showing hidden, hide deleted
       if (showHidden) {
         showDeleted = false;
       }
@@ -2369,7 +2366,6 @@
     // Toggle Deleted view
     deletedBtn.onclick = () => {
       showDeleted = !showDeleted;
-      // If showing deleted, hide hidden
       if (showDeleted) {
         showHidden = false;
       }
@@ -2439,12 +2435,10 @@
 
     taskSettingsEraseBtn.onclick = () => {
       if (selectedTaskId) {
-        // Check if in deleted tasks
         const inDeleted = deletedTasks.find(t => t.id === selectedTaskId);
         if (inDeleted) {
           eraseDeletedTask(selectedTaskId);
         } else {
-          // Move to deleted first then erase
           const inActive = tasks.find(t => t.id === selectedTaskId);
           if (inActive) {
             tasks.splice(tasks.indexOf(inActive), 1);
