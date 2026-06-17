@@ -1491,57 +1491,182 @@
   </div>
 
   <script>
-    // ========== SOUND PRELOADER AND PLAYER ==========
+    // ========== SOUND PRELOADER AND PLAYER - OPTIMIZED FOR MOBILE ==========
+    // Mobile-friendly sound preloading with fallbacks
+    
+    // Audio context for mobile (needs user gesture to unlock)
+    let audioContext = null;
+    
+    function getAudioContext() {
+      if (!audioContext) {
+        try {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch(e) {
+          console.log('AudioContext not supported');
+        }
+      }
+      return audioContext;
+    }
+    
+    // Unlock audio context on first user interaction (required for mobile)
+    function unlockAudio() {
+      const ctx = getAudioContext();
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume().then(() => {
+          console.log('AudioContext resumed');
+        }).catch(e => {
+          console.log('Could not resume AudioContext:', e);
+        });
+      }
+    }
+    
+    // Listen for any user interaction to unlock audio
+    document.addEventListener('click', unlockAudio, { once: true });
+    document.addEventListener('touchstart', unlockAudio, { once: true });
+    
+    // Sound cache with preloading support
     const soundCache = {};
     const soundFiles = ['sound1.mp3', 'sound2.mp3', 'sound3.mp3', 'sound4.mp3', 'sound5.mp3', 'sound6.mp3', 'sound7.mp3', 'sound8.mp3', 'sound9.mp3'];
-
+    
+    // Preload sounds asynchronously (doesn't block page load)
     function preloadSounds() {
       soundFiles.forEach(file => {
         try {
-          const audio = new Audio(`sounds/${file}`);
+          const audio = new Audio();
+          audio.preload = 'auto';
+          audio.src = `sounds/${file}`;
           audio.load();
           soundCache[file] = audio;
+          console.log(`Preloading: ${file}`);
         } catch(e) {
           console.log(`Could not preload ${file}:`, e);
         }
       });
     }
-
+    
+    // Start preloading after page load
+    if (document.readyState === 'complete') {
+      preloadSounds();
+    } else {
+      window.addEventListener('load', preloadSounds);
+    }
+    
+    // Play alarm - mobile optimized
     function playAlarm(soundFile) {
+      // Unlock audio context on first play attempt
+      unlockAudio();
+      
       try {
+        // Try to use cached audio
         if (soundCache[soundFile]) {
           const audio = soundCache[soundFile];
-          const clone = audio.cloneNode();
-          clone.play().catch(() => playFallbackBeep());
+          // Reset audio to beginning
+          audio.currentTime = 0;
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise.catch((err) => {
+              console.log('Cached playback failed, using fallback:', err);
+              playFallbackBeep();
+            });
+          }
           return;
         }
+        
+        // If not cached, create new Audio
         const audio = new Audio(`sounds/${soundFile}`);
         audio.load();
-        audio.play().catch(() => playFallbackBeep());
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => {
+            console.log('MP3 playback failed, using fallback:', err);
+            playFallbackBeep();
+          });
+        }
       } catch(e) {
+        console.log('MP3 creation failed, using fallback:', e);
         playFallbackBeep();
       }
     }
-
+    
+    // Fallback beep using Web Audio API (works on mobile)
     function playFallbackBeep() {
       try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const now = audioCtx.currentTime;
-        const gainNode = audioCtx.createGain();
-        gainNode.connect(audioCtx.destination);
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        
+        // Resume context if suspended
+        if (ctx.state === 'suspended') {
+          ctx.resume();
+        }
+        
+        const now = ctx.currentTime;
+        const gainNode = ctx.createGain();
+        gainNode.connect(ctx.destination);
         gainNode.gain.setValueAtTime(0.3, now);
-        const osc = audioCtx.createOscillator();
+        
+        const osc = ctx.createOscillator();
         osc.connect(gainNode);
         osc.frequency.value = 880;
         osc.type = 'sine';
-        osc.start();
-        gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 1);
+        osc.start(now);
+        gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 0.8);
         osc.stop(now + 0.8);
-        audioCtx.resume();
-      } catch(e) { console.log('Audio error:', e); }
+        
+        // Also try a simple oscillator for mobile compatibility
+        setTimeout(() => {
+          try {
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            gain2.connect(ctx.destination);
+            gain2.gain.setValueAtTime(0.2, ctx.currentTime);
+            osc2.connect(gain2);
+            osc2.frequency.value = 660;
+            osc2.type = 'square';
+            osc2.start(ctx.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
+            osc2.stop(ctx.currentTime + 0.5);
+          } catch(e) {}
+        }, 200);
+        
+      } catch(e) { 
+        console.log('Web Audio fallback error:', e); 
+        // Last resort: use oscillator with try-catch
+        try {
+          const ctx = getAudioContext();
+          if (ctx) {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            gain.connect(ctx.destination);
+            osc.connect(gain);
+            osc.frequency.value = 880;
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            osc.start(ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.8);
+            osc.stop(ctx.currentTime + 0.8);
+          }
+        } catch(e2) {}
+      }
     }
-
-    preloadSounds();
+    
+    // Simple beep for testing (immediate)
+    function playSimpleBeep() {
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        if (ctx.state === 'suspended') ctx.resume();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        gain.connect(ctx.destination);
+        osc.connect(gain);
+        osc.frequency.value = 880;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        osc.start(ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
+        osc.stop(ctx.currentTime + 0.5);
+      } catch(e) {}
+    }
 
     // ========== COMPLETION STATS TRACKING ==========
     let completionStats = {
@@ -1686,6 +1811,7 @@
         }
         this.isRunning = false;
         this.hasCompleted = true;
+        // Play alarm using mobile-friendly function
         playAlarm(this.alarmSound);
         if (this.onCompleteCallback && this.name === 'session') {
           this.onCompleteCallback(this.defaultMinutes);
@@ -2042,16 +2168,21 @@
       });
     });
 
-    // ========== TEST SOUND BUTTONS ==========
+    // ========== TEST SOUND BUTTONS (mobile optimized) ==========
     document.querySelectorAll('[data-test-sound]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
+        // Unlock audio on any click
+        unlockAudio();
         const timerName = btn.dataset.testSound;
         const selectId = `${timerName}Alarm`;
         const select = document.getElementById(selectId);
         if (select) {
           const soundFile = select.value;
+          // Play with a small delay to ensure audio context is ready
           playAlarm(soundFile);
+          // Also try simple beep as backup
+          setTimeout(playSimpleBeep, 100);
         }
       });
     });
@@ -2292,7 +2423,7 @@
       const actionsDiv = document.createElement('div');
       actionsDiv.className = 'task-actions';
       
-      // Cog button for ALL task types (active, hidden, deleted)
+      // Cog button for ALL task types
       const cogBtn = document.createElement('button');
       cogBtn.className = 'task-cog-btn';
       cogBtn.innerHTML = '⚙';
@@ -2303,16 +2434,15 @@
       };
       actionsDiv.appendChild(cogBtn);
       
-      // Hide button for ACTIVE tasks only (between Cog and Delete)
       if (status === 'active') {
-        const hideBtn = document.createElement('button');
-        hideBtn.className = 'task-hide-btn';
-        hideBtn.innerHTML = '➖';
-        hideBtn.title = 'Hide task (moves to hidden)';
-        hideBtn.onclick = () => {
+        const hideBtnEl = document.createElement('button');
+        hideBtnEl.className = 'task-hide-btn';
+        hideBtnEl.innerHTML = '➖';
+        hideBtnEl.title = 'Hide task (moves to hidden)';
+        hideBtnEl.onclick = () => {
           moveToHidden(task.id);
         };
-        actionsDiv.appendChild(hideBtn);
+        actionsDiv.appendChild(hideBtnEl);
       }
       
       if (status === 'hidden') {
@@ -2355,7 +2485,6 @@
         actionsDiv.appendChild(permDelBtn);
       }
       
-      // Delete button for active tasks (after Hide)
       if (status === 'active') {
         const delBtn = document.createElement('button');
         delBtn.className = 'delete-task';
@@ -2636,18 +2765,6 @@
     let actionBtnColor = '#f2f5f9', actionBtnTextColor = '#1f2e3a';
     let taskTextColor = '#1a2c38', taskCardColor = '#f9fbfd', pageBgColor = '#667eea', cardBgColor = '#ffffff';
 
-    // Helper: Get total MINUTES from h:m:s inputs (for compatibility with existing code)
-    function getTotalMinutesFromInputs(hoursId, minsId, secsId) {
-      const h = parseInt(document.getElementById(hoursId).value) || 0;
-      const m = parseInt(document.getElementById(minsId).value) || 0;
-      const s = parseInt(document.getElementById(secsId).value) || 0;
-      // Convert to total seconds then to minutes (NO rounding - exact conversion)
-      const totalSeconds = (h * 3600) + (m * 60) + s;
-      // Return as minutes with decimal (exact)
-      return totalSeconds / 60;
-    }
-
-    // Helper: Get total SECONDS from h:m:s inputs (exact, no rounding)
     function getTotalSecondsFromInputs(hoursId, minsId, secsId) {
       const h = parseInt(document.getElementById(hoursId).value) || 0;
       const m = parseInt(document.getElementById(minsId).value) || 0;
@@ -2655,7 +2772,6 @@
       return (h * 3600) + (m * 60) + s;
     }
 
-    // Helper: Set h:m:s inputs from total seconds (exact)
     function setDurationInputsFromSeconds(hoursId, minsId, secsId, totalSeconds) {
       const h = Math.floor(totalSeconds / 3600);
       const m = Math.floor((totalSeconds % 3600) / 60);
@@ -2663,12 +2779,6 @@
       document.getElementById(hoursId).value = h;
       document.getElementById(minsId).value = m;
       document.getElementById(secsId).value = s;
-    }
-
-    // Helper: Set h:m:s inputs from total minutes (for loading settings)
-    function setDurationInputs(hoursId, minsId, secsId, totalMinutes) {
-      const totalSeconds = Math.round(totalMinutes * 60);
-      setDurationInputsFromSeconds(hoursId, minsId, secsId, totalSeconds);
     }
 
     function loadSettings() {
@@ -2691,8 +2801,6 @@
         longBreakDuration = settings.longBreakDuration || 15;
         customDuration = settings.customDuration || 30;
         
-        // Set duration inputs from stored values (total seconds stored in settings)
-        // We store the actual seconds in the settings for precision
         const sessionSeconds = settings.sessionSeconds !== undefined ? settings.sessionSeconds : sessionDuration * 60;
         const shortBreakSeconds = settings.shortBreakSeconds !== undefined ? settings.shortBreakSeconds : shortBreakDuration * 60;
         const longBreakSeconds = settings.longBreakSeconds !== undefined ? settings.longBreakSeconds : longBreakDuration * 60;
@@ -2703,7 +2811,6 @@
         setDurationInputsFromSeconds('longBreakHours', 'longBreakMins', 'longBreakSecs', longBreakSeconds);
         setDurationInputsFromSeconds('customHours', 'customMins', 'customSecs', customSeconds);
         
-        // Store exact seconds in timer
         sessionTimer.setDuration(sessionDuration);
         shortBreakTimer.setDuration(shortBreakDuration);
         longBreakTimer.setDuration(longBreakDuration);
@@ -2837,7 +2944,6 @@
         document.getElementById('timer2Name').value = t2Name;
         document.getElementById('timer3Name').value = t3Name;
         document.getElementById('timer4Name').value = t4Name;
-        // Duration inputs already set by loadSettings
         document.getElementById('sessionAlarm').value = sessionAlarm;
         document.getElementById('shortBreakAlarm').value = shortBreakAlarm;
         document.getElementById('longBreakAlarm').value = longBreakAlarm;
@@ -2880,21 +2986,18 @@
         t4Name = document.getElementById('timer4Name').value || 'Timer 4';
         updateTimerNames(sessionName, shortBreakName, longBreakName, customName, t1Name, t2Name, t3Name, t4Name);
         
-        // Get exact seconds from inputs (NO rounding)
         const sessionSeconds = getTotalSecondsFromInputs('sessionHours', 'sessionMins', 'sessionSecs');
         const shortBreakSeconds = getTotalSecondsFromInputs('shortBreakHours', 'shortBreakMins', 'shortBreakSecs');
         const longBreakSeconds = getTotalSecondsFromInputs('longBreakHours', 'longBreakMins', 'longBreakSecs');
         const customSeconds = getTotalSecondsFromInputs('customHours', 'customMins', 'customSecs');
         
-        // Convert to minutes (as decimal, exact)
         sessionDuration = sessionSeconds / 60;
         shortBreakDuration = shortBreakSeconds / 60;
         longBreakDuration = longBreakSeconds / 60;
         customDuration = customSeconds / 60;
         
-        // Ensure minimum of 1 second
         if (sessionSeconds < 1) { 
-          sessionDuration = 1/60; // 1 second
+          sessionDuration = 1/60;
           setDurationInputsFromSeconds('sessionHours', 'sessionMins', 'sessionSecs', 1);
         }
         if (shortBreakSeconds < 1) {
