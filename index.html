@@ -1491,7 +1491,7 @@
   </div>
 
   <script>
-    // ========== SOUND SYSTEM - WORKS ON MOBILE ==========
+    // ========== SOUND SYSTEM - ROBUST FOR MOBILE AND WEB ==========
     // Audio context for mobile
     let audioContext = null;
     let audioUnlocked = false;
@@ -1509,16 +1509,17 @@
     
     // Unlock audio context on user interaction
     function unlockAudio() {
-      if (audioUnlocked) return;
       const ctx = getAudioContext();
-      if (ctx && ctx.state === 'suspended') {
+      if (!ctx) return;
+      
+      if (ctx.state === 'suspended') {
         ctx.resume().then(() => {
           audioUnlocked = true;
           console.log('AudioContext unlocked');
         }).catch(e => {
           console.log('Could not resume AudioContext:', e);
         });
-      } else if (ctx && ctx.state === 'running') {
+      } else if (ctx.state === 'running') {
         audioUnlocked = true;
       }
     }
@@ -1534,12 +1535,23 @@
     let soundsPreloaded = false;
     let soundsLoading = false;
     
-    // This function preloads all sounds - called by both Test and Start
+    // Force preload all sounds - this is called by both Test and Start
     function preloadAllSounds() {
+      // Always unlock audio when preloading
+      unlockAudio();
+      
       if (soundsPreloaded) {
-        console.log('Sounds already preloaded');
-        return;
+        console.log('Sounds already preloaded, ensuring cache is ready...');
+        // Ensure all cached sounds are still valid
+        Object.keys(soundCache).forEach(key => {
+          if (!soundCache[key] || soundCache[key].readyState < 2) {
+            soundsPreloaded = false;
+            console.log(`Sound ${key} not ready, re-preloading...`);
+          }
+        });
+        if (soundsPreloaded) return;
       }
+      
       if (soundsLoading) {
         console.log('Sounds already loading...');
         return;
@@ -1549,6 +1561,7 @@
       console.log('Preloading all sounds...');
       
       let loadedCount = 0;
+      const totalFiles = soundFiles.length;
       
       soundFiles.forEach(file => {
         try {
@@ -1558,8 +1571,8 @@
           // When sound is ready, mark it
           audio.addEventListener('canplaythrough', () => {
             loadedCount++;
-            console.log(`Sound ready: ${file} (${loadedCount}/${soundFiles.length})`);
-            if (loadedCount === soundFiles.length) {
+            console.log(`Sound ready: ${file} (${loadedCount}/${totalFiles})`);
+            if (loadedCount === totalFiles) {
               soundsPreloaded = true;
               soundsLoading = false;
               console.log('All sounds preloaded successfully!');
@@ -1570,7 +1583,7 @@
           audio.addEventListener('error', (e) => {
             console.log(`Error loading ${file}:`, e);
             loadedCount++;
-            if (loadedCount === soundFiles.length) {
+            if (loadedCount === totalFiles) {
               soundsPreloaded = true;
               soundsLoading = false;
               console.log('All sounds attempted (some may have errors)');
@@ -1585,7 +1598,7 @@
         } catch(e) {
           console.log(`Could not preload ${file}:`, e);
           loadedCount++;
-          if (loadedCount === soundFiles.length) {
+          if (loadedCount === totalFiles) {
             soundsPreloaded = true;
             soundsLoading = false;
           }
@@ -1602,14 +1615,20 @@
       window.addEventListener('load', preloadAllSounds);
     }
     
-    // ========== PLAY ALARM - USES PRELOADED SOUNDS ==========
+    // ========== PLAY ALARM - ROBUST PLAYBACK ==========
     function playAlarm(soundFile) {
-      // Unlock audio context on play
+      // Always unlock audio on play attempt
       unlockAudio();
       
-      console.log(`Playing: ${soundFile}`);
+      console.log(`Attempting to play: ${soundFile}`);
       console.log(`Sounds preloaded: ${soundsPreloaded}`);
       console.log(`Sound in cache: ${!!soundCache[soundFile]}`);
+      
+      // If sounds aren't preloaded or the specific sound isn't cached, preload all
+      if (!soundsPreloaded || !soundCache[soundFile]) {
+        console.log('Sounds not ready, preloading...');
+        preloadAllSounds();
+      }
       
       try {
         // Try to use cached audio
@@ -1625,26 +1644,29 @@
                 console.log(`Successfully played: ${soundFile}`);
               }).catch((err) => {
                 console.log(`Cached playback failed:`, err);
+                // Try creating a new audio as fallback
                 playNewAudio(soundFile);
               });
             }
           } else {
-            console.log(`Audio not ready yet, waiting...`);
+            console.log(`Audio not ready yet, waiting for canplaythrough...`);
             audio.addEventListener('canplaythrough', () => {
               const playPromise = audio.play();
               if (playPromise !== undefined) {
-                playPromise.catch(() => playNewAudio(soundFile));
+                playPromise.then(() => {
+                  console.log(`Successfully played (after wait): ${soundFile}`);
+                }).catch(() => playNewAudio(soundFile));
               }
             }, { once: true });
             
-            // Fallback: try after a delay
+            // Also try again after a short delay
             setTimeout(() => {
               if (!audio.paused) return;
               const playPromise = audio.play();
               if (playPromise !== undefined) {
                 playPromise.catch(() => playNewAudio(soundFile));
               }
-            }, 500);
+            }, 300);
           }
           return;
         }
@@ -1704,6 +1726,22 @@
         
       } catch(e) { 
         console.log('Fallback beep error:', e); 
+        // Ultimate fallback - try a simple oscillator
+        try {
+          const ctx = getAudioContext();
+          if (ctx) {
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            gain2.connect(ctx.destination);
+            osc2.connect(gain2);
+            osc2.frequency.value = 880;
+            osc2.type = 'sine';
+            gain2.gain.setValueAtTime(0.3, ctx.currentTime);
+            osc2.start(ctx.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
+            osc2.stop(ctx.currentTime + 0.5);
+          }
+        } catch(e2) {}
       }
     }
 
@@ -1876,10 +1914,9 @@
       }
 
       start() {
-        // ===== KEY FIX: Preload all sounds AND unlock audio when Start is clicked =====
-        // This does EXACTLY the same thing as the Test button
-        unlockAudio();
+        // ALWAYS preload sounds and unlock audio when any timer starts
         preloadAllSounds();
+        unlockAudio();
         
         if (!this.isCountUp && (this.hasCompleted || this.currentSeconds <= 0)) {
           this.currentSeconds = this.defaultMinutes * 60;
@@ -2215,15 +2252,17 @@
     document.querySelectorAll('[data-test-sound]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        // Unlock audio and preload sounds (same as Start)
-        unlockAudio();
-        preloadAllSounds();
         const timerName = btn.dataset.testSound;
         const selectId = `${timerName}Alarm`;
         const select = document.getElementById(selectId);
         if (select) {
           const soundFile = select.value;
-          playAlarm(soundFile);
+          // Preload sounds and play
+          preloadAllSounds();
+          // Small delay to ensure preload starts
+          setTimeout(() => {
+            playAlarm(soundFile);
+          }, 100);
         }
       });
     });
