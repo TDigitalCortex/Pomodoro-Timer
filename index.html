@@ -2605,25 +2605,39 @@
     let actionBtnColor = '#f2f5f9', actionBtnTextColor = '#1f2e3a';
     let taskTextColor = '#1a2c38', taskCardColor = '#f9fbfd', pageBgColor = '#667eea', cardBgColor = '#ffffff';
 
-    // Helper: Get total minutes from h:m:s inputs
-    function getTotalMinutes(hoursId, minsId, secsId) {
+    // Helper: Get total MINUTES from h:m:s inputs (for compatibility with existing code)
+    function getTotalMinutesFromInputs(hoursId, minsId, secsId) {
       const h = parseInt(document.getElementById(hoursId).value) || 0;
       const m = parseInt(document.getElementById(minsId).value) || 0;
       const s = parseInt(document.getElementById(secsId).value) || 0;
-      // Convert to total minutes (round up if seconds >= 30)
+      // Convert to total seconds then to minutes (NO rounding - exact conversion)
       const totalSeconds = (h * 3600) + (m * 60) + s;
-      return Math.ceil(totalSeconds / 60);
+      // Return as minutes with decimal (exact)
+      return totalSeconds / 60;
     }
 
-    // Helper: Set h:m:s inputs from total minutes
-    function setDurationInputs(hoursId, minsId, secsId, totalMinutes) {
-      const totalSeconds = totalMinutes * 60;
+    // Helper: Get total SECONDS from h:m:s inputs (exact, no rounding)
+    function getTotalSecondsFromInputs(hoursId, minsId, secsId) {
+      const h = parseInt(document.getElementById(hoursId).value) || 0;
+      const m = parseInt(document.getElementById(minsId).value) || 0;
+      const s = parseInt(document.getElementById(secsId).value) || 0;
+      return (h * 3600) + (m * 60) + s;
+    }
+
+    // Helper: Set h:m:s inputs from total seconds (exact)
+    function setDurationInputsFromSeconds(hoursId, minsId, secsId, totalSeconds) {
       const h = Math.floor(totalSeconds / 3600);
       const m = Math.floor((totalSeconds % 3600) / 60);
       const s = totalSeconds % 60;
       document.getElementById(hoursId).value = h;
       document.getElementById(minsId).value = m;
       document.getElementById(secsId).value = s;
+    }
+
+    // Helper: Set h:m:s inputs from total minutes (for loading settings)
+    function setDurationInputs(hoursId, minsId, secsId, totalMinutes) {
+      const totalSeconds = Math.round(totalMinutes * 60);
+      setDurationInputsFromSeconds(hoursId, minsId, secsId, totalSeconds);
     }
 
     function loadSettings() {
@@ -2646,12 +2660,19 @@
         longBreakDuration = settings.longBreakDuration || 15;
         customDuration = settings.customDuration || 30;
         
-        // Set duration inputs
-        setDurationInputs('sessionHours', 'sessionMins', 'sessionSecs', sessionDuration);
-        setDurationInputs('shortBreakHours', 'shortBreakMins', 'shortBreakSecs', shortBreakDuration);
-        setDurationInputs('longBreakHours', 'longBreakMins', 'longBreakSecs', longBreakDuration);
-        setDurationInputs('customHours', 'customMins', 'customSecs', customDuration);
+        // Set duration inputs from stored values (total seconds stored in settings)
+        // We store the actual seconds in the settings for precision
+        const sessionSeconds = settings.sessionSeconds !== undefined ? settings.sessionSeconds : sessionDuration * 60;
+        const shortBreakSeconds = settings.shortBreakSeconds !== undefined ? settings.shortBreakSeconds : shortBreakDuration * 60;
+        const longBreakSeconds = settings.longBreakSeconds !== undefined ? settings.longBreakSeconds : longBreakDuration * 60;
+        const customSeconds = settings.customSeconds !== undefined ? settings.customSeconds : customDuration * 60;
         
+        setDurationInputsFromSeconds('sessionHours', 'sessionMins', 'sessionSecs', sessionSeconds);
+        setDurationInputsFromSeconds('shortBreakHours', 'shortBreakMins', 'shortBreakSecs', shortBreakSeconds);
+        setDurationInputsFromSeconds('longBreakHours', 'longBreakMins', 'longBreakSecs', longBreakSeconds);
+        setDurationInputsFromSeconds('customHours', 'customMins', 'customSecs', customSeconds);
+        
+        // Store exact seconds in timer
         sessionTimer.setDuration(sessionDuration);
         shortBreakTimer.setDuration(shortBreakDuration);
         longBreakTimer.setDuration(longBreakDuration);
@@ -2828,17 +2849,35 @@
         t4Name = document.getElementById('timer4Name').value || 'Timer 4';
         updateTimerNames(sessionName, shortBreakName, longBreakName, customName, t1Name, t2Name, t3Name, t4Name);
         
-        // Get durations from h:m:s inputs
-        sessionDuration = getTotalMinutes('sessionHours', 'sessionMins', 'sessionSecs');
-        shortBreakDuration = getTotalMinutes('shortBreakHours', 'shortBreakMins', 'shortBreakSecs');
-        longBreakDuration = getTotalMinutes('longBreakHours', 'longBreakMins', 'longBreakSecs');
-        customDuration = getTotalMinutes('customHours', 'customMins', 'customSecs');
+        // Get exact seconds from inputs (NO rounding)
+        const sessionSeconds = getTotalSecondsFromInputs('sessionHours', 'sessionMins', 'sessionSecs');
+        const shortBreakSeconds = getTotalSecondsFromInputs('shortBreakHours', 'shortBreakMins', 'shortBreakSecs');
+        const longBreakSeconds = getTotalSecondsFromInputs('longBreakHours', 'longBreakMins', 'longBreakSecs');
+        const customSeconds = getTotalSecondsFromInputs('customHours', 'customMins', 'customSecs');
         
-        // Ensure minimum of 1 minute
-        if (sessionDuration < 1) sessionDuration = 1;
-        if (shortBreakDuration < 1) shortBreakDuration = 1;
-        if (longBreakDuration < 1) longBreakDuration = 1;
-        if (customDuration < 1) customDuration = 1;
+        // Convert to minutes (as decimal, exact)
+        sessionDuration = sessionSeconds / 60;
+        shortBreakDuration = shortBreakSeconds / 60;
+        longBreakDuration = longBreakSeconds / 60;
+        customDuration = customSeconds / 60;
+        
+        // Ensure minimum of 1 second
+        if (sessionSeconds < 1) { 
+          sessionDuration = 1/60; // 1 second
+          setDurationInputsFromSeconds('sessionHours', 'sessionMins', 'sessionSecs', 1);
+        }
+        if (shortBreakSeconds < 1) {
+          shortBreakDuration = 1/60;
+          setDurationInputsFromSeconds('shortBreakHours', 'shortBreakMins', 'shortBreakSecs', 1);
+        }
+        if (longBreakSeconds < 1) {
+          longBreakDuration = 1/60;
+          setDurationInputsFromSeconds('longBreakHours', 'longBreakMins', 'longBreakSecs', 1);
+        }
+        if (customSeconds < 1) {
+          customDuration = 1/60;
+          setDurationInputsFromSeconds('customHours', 'customMins', 'customSecs', 1);
+        }
         
         sessionTimer.setDuration(sessionDuration);
         shortBreakTimer.setDuration(shortBreakDuration);
@@ -2906,6 +2945,7 @@
           sessionName, shortBreakName, longBreakName, customName,
           t1Name, t2Name, t3Name, t4Name,
           sessionDuration, shortBreakDuration, longBreakDuration, customDuration,
+          sessionSeconds, shortBreakSeconds, longBreakSeconds, customSeconds,
           sessionAlarm, shortBreakAlarm, longBreakAlarm, customAlarm,
           t1Alarm, t2Alarm, t3Alarm, t4Alarm,
           currentTimeEnabled, currentTimeColor, sessionViewEnabled, statusBarEnabled, taskScrollEnabled,
