@@ -493,6 +493,27 @@
       background: #eef3fc;
     }
 
+    .task-hide-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+      color: #9aaebf;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+      padding: 0;
+    }
+
+    .task-hide-btn:hover {
+      color: #ed8936;
+      background: #fff5ee;
+    }
+
     .delete-task {
       background: transparent;
       border: none;
@@ -2282,6 +2303,18 @@
       };
       actionsDiv.appendChild(cogBtn);
       
+      // Hide button for ACTIVE tasks only (between Cog and Delete)
+      if (status === 'active') {
+        const hideBtn = document.createElement('button');
+        hideBtn.className = 'task-hide-btn';
+        hideBtn.innerHTML = '➖';
+        hideBtn.title = 'Hide task (moves to hidden)';
+        hideBtn.onclick = () => {
+          moveToHidden(task.id);
+        };
+        actionsDiv.appendChild(hideBtn);
+      }
+      
       if (status === 'hidden') {
         const restoreBtn = document.createElement('button');
         restoreBtn.className = 'delete-task';
@@ -2322,6 +2355,7 @@
         actionsDiv.appendChild(permDelBtn);
       }
       
+      // Delete button for active tasks (after Hide)
       if (status === 'active') {
         const delBtn = document.createElement('button');
         delBtn.className = 'delete-task';
