@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Pomodoro Timer - 8 Background Timers</title>
+  <title>Pomodoro Timer - Task Settings</title>
   <style>
     * {
       margin: 0;
@@ -272,11 +272,36 @@
     .tasks-header {
       margin-bottom: 1rem;
       text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .tasks-header h3 {
       font-size: 1.2rem;
       color: #1f2b36;
+    }
+
+    .tasks-header-actions {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .show-deleted-btn {
+      background: none;
+      border: 1px solid #cfdee9;
+      padding: 0.2rem 0.6rem;
+      border-radius: 1rem;
+      font-size: 0.7rem;
+      cursor: pointer;
+      color: #4a5568;
+      transition: all 0.2s ease;
+    }
+
+    .show-deleted-btn:hover {
+      background: #eef3fc;
+      border-color: #9bb7cf;
     }
 
     .task-input-container {
@@ -369,8 +394,8 @@
       padding: 0.8rem;
       margin-bottom: 0.6rem;
       display: flex;
-      align-items: flex-start;
-      gap: 12px;
+      align-items: center;
+      gap: 8px;
       border: 1px solid #eef2f6;
       transition: background-color 0.3s ease;
     }
@@ -384,7 +409,6 @@
       height: 1.2rem;
       cursor: pointer;
       flex-shrink: 0;
-      margin-top: 0.2rem;
     }
 
     .task-text {
@@ -399,6 +423,7 @@
       outline: none;
       cursor: text;
       line-height: 1.4;
+      min-width: 0;
     }
 
     .task-list.line-break .task-text {
@@ -429,6 +454,34 @@
     .task-completed .task-text {
       text-decoration: line-through;
       color: #8ba0ae;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .task-cog-btn {
+      background: transparent;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      color: #9aaebf;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+      padding: 0;
+    }
+
+    .task-cog-btn:hover {
+      color: #667eea;
+      background: #eef3fc;
     }
 
     .delete-task {
@@ -462,6 +515,158 @@
       border: 1px dashed #dce5ec;
     }
 
+    /* Task Settings Modal */
+    .task-settings-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .task-settings-modal {
+      background: white;
+      border-radius: 1.5rem;
+      width: 90%;
+      max-width: 450px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .task-settings-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid #edeff4;
+    }
+
+    .task-settings-modal-header h2 {
+      font-size: 1.1rem;
+      color: #1f2b36;
+    }
+
+    .task-settings-close-btn {
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      cursor: pointer;
+      color: #93a9bb;
+      width: 35px;
+      height: 35px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .task-settings-close-btn:hover {
+      color: #cc5a5a;
+      background: #fff0f0;
+    }
+
+    .task-settings-body {
+      padding: 1.5rem;
+    }
+
+    .task-settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f0f2f5;
+    }
+
+    .task-settings-row label {
+      font-weight: 500;
+      color: #2d3748;
+      font-size: 0.85rem;
+    }
+
+    .task-settings-row .value {
+      font-size: 0.85rem;
+      color: #4a5568;
+    }
+
+    .task-settings-row input {
+      width: 80px;
+      padding: 0.3rem 0.5rem;
+      border: 1px solid #cfdee9;
+      border-radius: 0.4rem;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .task-settings-row .edit-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 0.2rem 0.6rem;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      font-size: 0.7rem;
+    }
+
+    .task-settings-row .edit-btn:hover {
+      background: #5a67d8;
+    }
+
+    .task-settings-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #edeff4;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.8rem;
+    }
+
+    .task-settings-footer .delete-btn {
+      background: #e53e3e;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.6rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .task-settings-footer .delete-btn:hover {
+      background: #c53030;
+    }
+
+    .task-settings-footer .erase-btn {
+      background: #ed8936;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.6rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .task-settings-footer .erase-btn:hover {
+      background: #dd6b20;
+    }
+
+    .task-settings-footer .close-btn {
+      background: #f0f2f5;
+      color: #4a5568;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.6rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .task-settings-footer .close-btn:hover {
+      background: #e2e8f0;
+    }
+
+    /* Main Settings Modal */
     .settings-overlay {
       display: none;
       position: fixed;
@@ -669,23 +874,28 @@
         padding: 0.4rem 0.7rem;
         font-size: 0.75rem;
       }
+      .task-item {
+        flex-wrap: wrap;
+      }
+      .task-actions {
+        margin-left: auto;
+      }
     }
   </style>
 </head>
 <body>
   <div class="timer-container">
     <div class="timer-card" id="timerCard">
+      <!-- Mode Selector -->
       <div class="mode-selector" id="mainModeSelector">
-        <!-- View 1: Session-Custom -->
         <button class="mode-btn active" data-mode="session" id="sessionModeBtn">Session</button>
         <button class="mode-btn" data-mode="shortBreak" id="shortBreakModeBtn">Short Break</button>
         <button class="mode-btn" data-mode="longBreak" id="longBreakModeBtn">Long Break</button>
         <button class="mode-btn" data-mode="custom" id="customModeBtn">Custom</button>
-        <!-- View 2: Timer 1-4 -->
-        <button class="mode-btn" data-mode="timer1" id="timer1ModeBtn" style="display:none;">Timer 1</button>
-        <button class="mode-btn" data-mode="timer2" id="timer2ModeBtn" style="display:none;">Timer 2</button>
-        <button class="mode-btn" data-mode="timer3" id="timer3ModeBtn" style="display:none;">Timer 3</button>
-        <button class="mode-btn" data-mode="timer4" id="timer4ModeBtn" style="display:none;">Timer 4</button>
+        <button class="mode-btn" data-mode="timer1" id="timer1ModeBtn" style="display:none;">⏱️ Timer 1</button>
+        <button class="mode-btn" data-mode="timer2" id="timer2ModeBtn" style="display:none;">⏱️ Timer 2</button>
+        <button class="mode-btn" data-mode="timer3" id="timer3ModeBtn" style="display:none;">⏱️ Timer 3</button>
+        <button class="mode-btn" data-mode="timer4" id="timer4ModeBtn" style="display:none;">⏱️ Timer 4</button>
       </div>
 
       <div class="flip-container">
@@ -716,38 +926,36 @@
       </div>
 
       <div class="status-bar" id="statusBar">
-        <!-- View 1: Session-Custom -->
         <div class="status-item session" data-status="session">
-          <div class="status-label" id="sessionStatusLabel">Session <span class="status-badge" id="sessionBadge"></span></div>
+          <div class="status-label" id="sessionStatusLabel">🍅 Session <span class="status-badge" id="sessionBadge"></span></div>
           <div class="status-time" id="sessionStatusTime">25:00</div>
         </div>
         <div class="status-item shortBreak" data-status="shortBreak">
-          <div class="status-label" id="shortBreakStatusLabel">Short Break <span class="status-badge" id="shortBreakBadge"></span></div>
+          <div class="status-label" id="shortBreakStatusLabel">🌿 Short Break <span class="status-badge" id="shortBreakBadge"></span></div>
           <div class="status-time" id="shortBreakStatusTime">05:00</div>
         </div>
         <div class="status-item longBreak" data-status="longBreak">
-          <div class="status-label" id="longBreakStatusLabel">Long Break <span class="status-badge" id="longBreakBadge"></span></div>
+          <div class="status-label" id="longBreakStatusLabel">☕ Long Break <span class="status-badge" id="longBreakBadge"></span></div>
           <div class="status-time" id="longBreakStatusTime">15:00</div>
         </div>
         <div class="status-item custom" data-status="custom">
-          <div class="status-label" id="customStatusLabel">Custom <span class="status-badge" id="customBadge"></span></div>
+          <div class="status-label" id="customStatusLabel">⚙ Custom <span class="status-badge" id="customBadge"></span></div>
           <div class="status-time" id="customStatusTime">30:00</div>
         </div>
-        <!-- View 2: Timer 1-4 -->
         <div class="status-item timer1" data-status="timer1" style="display:none;">
-          <div class="status-label" id="timer1StatusLabel">Timer 1 <span class="status-badge" id="timer1Badge"></span></div>
+          <div class="status-label" id="timer1StatusLabel">⏱️ Timer 1 <span class="status-badge" id="timer1Badge"></span></div>
           <div class="status-time" id="timer1StatusTime">00:00</div>
         </div>
         <div class="status-item timer2" data-status="timer2" style="display:none;">
-          <div class="status-label" id="timer2StatusLabel">Timer 2 <span class="status-badge" id="timer2Badge"></span></div>
+          <div class="status-label" id="timer2StatusLabel">⏱️ Timer 2 <span class="status-badge" id="timer2Badge"></span></div>
           <div class="status-time" id="timer2StatusTime">00:00</div>
         </div>
         <div class="status-item timer3" data-status="timer3" style="display:none;">
-          <div class="status-label" id="timer3StatusLabel">Timer 3 <span class="status-badge" id="timer3Badge"></span></div>
+          <div class="status-label" id="timer3StatusLabel">⏱️ Timer 3 <span class="status-badge" id="timer3Badge"></span></div>
           <div class="status-time" id="timer3StatusTime">00:00</div>
         </div>
         <div class="status-item timer4" data-status="timer4" style="display:none;">
-          <div class="status-label" id="timer4StatusLabel">Timer 4 <span class="status-badge" id="timer4Badge"></span></div>
+          <div class="status-label" id="timer4StatusLabel">⏱️ Timer 4 <span class="status-badge" id="timer4Badge"></span></div>
           <div class="status-time" id="timer4StatusTime">00:00</div>
         </div>
       </div>
@@ -770,6 +978,9 @@
       <div class="tasks-section">
         <div class="tasks-header">
           <h3>Tasks</h3>
+          <div class="tasks-header-actions">
+            <button class="show-deleted-btn" id="showDeletedBtn">📂 Deleted</button>
+          </div>
         </div>
         <div class="task-input-container">
           <input type="text" id="taskInput" placeholder="Enter a new task..." class="task-input-field">
@@ -778,10 +989,58 @@
         <ul class="task-list" id="taskListContainer">
           <li class="empty-tasks">No tasks yet — add something to focus on</li>
         </ul>
+        <ul class="task-list" id="deletedTaskListContainer" style="display:none;">
+          <li class="empty-tasks">No deleted tasks</li>
+        </ul>
       </div>
     </div>
   </div>
 
+  <!-- Task Settings Modal -->
+  <div id="taskSettingsOverlay" class="task-settings-overlay">
+    <div class="task-settings-modal">
+      <div class="task-settings-modal-header">
+        <h2>Task Settings</h2>
+        <button class="task-settings-close-btn">&times;</button>
+      </div>
+      <div class="task-settings-body" id="taskSettingsBody">
+        <div class="task-settings-row">
+          <label>Task Name</label>
+          <span class="value" id="tskName">-</span>
+        </div>
+        <div class="task-settings-row">
+          <label>Date Created</label>
+          <span class="value" id="tskCreated">-</span>
+        </div>
+        <div class="task-settings-row">
+          <label>Date Completed</label>
+          <span class="value" id="tskCompleted">-</span>
+        </div>
+        <div class="task-settings-row">
+          <label>Time Spent</label>
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            <span class="value" id="tskTimeSpent">-</span>
+            <button class="edit-btn" id="editTimeBtn">Edit</button>
+          </div>
+        </div>
+        <div class="task-settings-row" id="editTimeRow" style="display:none;">
+          <label>Set Time Spent</label>
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            <input type="number" id="tskTimeInput" min="0" value="0" step="1">
+            <span style="font-size:0.8rem; color:#718096;">seconds</span>
+            <button class="edit-btn" id="saveTimeBtn">Save</button>
+          </div>
+        </div>
+      </div>
+      <div class="task-settings-footer">
+        <button class="close-btn" id="taskSettingsCloseBtn">Close</button>
+        <button class="delete-btn" id="taskSettingsDeleteBtn">Delete</button>
+        <button class="erase-btn" id="taskSettingsEraseBtn">Erase</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Settings Modal -->
   <div id="settingsOverlay" class="settings-overlay">
     <div class="settings-modal">
       <div class="settings-modal-header">
@@ -868,7 +1127,7 @@
             <input type="checkbox" id="statusBarToggle" checked>
           </div>
           <div class="settings-row">
-            <label>Task View (Show scrolling view):</label>
+            <label>Task View (when exceeds limit):</label>
             <input type="checkbox" id="taskScrollToggle" checked>
           </div>
         </div>
@@ -1177,36 +1436,6 @@
       document.getElementById('todayCompleted').textContent = completionStats.todayCompleted;
       document.getElementById('totalCompleted').textContent = completionStats.totalCompleted;
       document.getElementById('timeSpent').textContent = formatTimeSpent(completionStats.totalSeconds);
-    }
-
-    function recordTaskCompletionWithDuration(seconds) {
-      const today = new Date().toDateString();
-      if (completionStats.todayDate !== today) {
-        completionStats.todayCompleted = 0;
-        completionStats.todayDate = today;
-      }
-      completionStats.todayCompleted++;
-      completionStats.totalCompleted++;
-      completionStats.totalSeconds += seconds;
-      saveCompletionStats();
-      updateSessionView();
-    }
-
-    function decrementTaskCompletionWithDuration(seconds) {
-      const today = new Date().toDateString();
-      if (completionStats.todayDate !== today) {
-        completionStats.todayCompleted = 0;
-        completionStats.todayDate = today;
-      }
-      if (completionStats.todayCompleted > 0) {
-        completionStats.todayCompleted--;
-      }
-      if (completionStats.totalCompleted > 0) {
-        completionStats.totalCompleted--;
-        completionStats.totalSeconds = Math.max(0, completionStats.totalSeconds - seconds);
-      }
-      saveCompletionStats();
-      updateSessionView();
     }
 
     // ========== SESSION TRACKING ==========
@@ -1521,7 +1750,6 @@
         }
       });
       
-      // Update status bar visibility
       document.querySelectorAll('.status-item').forEach(item => {
         const mode = item.dataset.status;
         if (isView1) {
@@ -1539,14 +1767,12 @@
         }
       });
       
-      // Ensure the active button is visible and active
       const activeBtn = document.querySelector(`.mode-btn[data-mode="${currentView}"]`);
       if (activeBtn) {
         activeBtn.style.display = '';
         allBtns.forEach(b => b.classList.remove('active'));
         activeBtn.classList.add('active');
       } else {
-        // If current view not visible, switch to first button of current view
         const firstView = isView1 ? 'session' : 'timer1';
         currentView = firstView;
         const newActive = document.querySelector(`.mode-btn[data-mode="${firstView}"]`);
@@ -1558,13 +1784,12 @@
         updateAllDisplays();
       }
       
-      flipBtn.textContent = isView1 ? '⟳ Flip to Timers' : '⟳ Flip to Sessions';
+      flipBtn.textContent = isView1 ? '⟳ Flip to Timers' : '⟳ Flip to Session-Custom';
     }
 
     if (flipBtn) {
       flipBtn.onclick = () => {
         isView1 = !isView1;
-        // Set default view for the new mode
         if (isView1) {
           currentView = 'session';
         } else {
@@ -1580,19 +1805,19 @@
       shortBreakModeBtn.textContent = shortName;
       longBreakModeBtn.textContent = longName;
       customModeBtn.textContent = customName;
-      timer1ModeBtn.textContent = `${t1Name}`;
-      timer2ModeBtn.textContent = `${t2Name}`;
-      timer3ModeBtn.textContent = `${t3Name}`;
-      timer4ModeBtn.textContent = `${t4Name}`;
+      timer1ModeBtn.textContent = `⏱️ ${t1Name}`;
+      timer2ModeBtn.textContent = `⏱️ ${t2Name}`;
+      timer3ModeBtn.textContent = `⏱️ ${t3Name}`;
+      timer4ModeBtn.textContent = `⏱️ ${t4Name}`;
       
-      sessionStatusLabel.innerHTML = `${sessionName} <span class="status-badge" id="sessionBadge"></span>`;
-      shortBreakStatusLabel.innerHTML = `${shortName} <span class="status-badge" id="shortBreakBadge"></span>`;
-      longBreakStatusLabel.innerHTML = `${longName} <span class="status-badge" id="longBreakBadge"></span>`;
-      customStatusLabel.innerHTML = `${customName} <span class="status-badge" id="customBadge"></span>`;
-      timer1StatusLabel.innerHTML = `${t1Name} <span class="status-badge" id="timer1Badge"></span>`;
-      timer2StatusLabel.innerHTML = `${t2Name} <span class="status-badge" id="timer2Badge"></span>`;
-      timer3StatusLabel.innerHTML = `${t3Name} <span class="status-badge" id="timer3Badge"></span>`;
-      timer4StatusLabel.innerHTML = `${t4Name} <span class="status-badge" id="timer4Badge"></span>`;
+      sessionStatusLabel.innerHTML = `🍅 ${sessionName} <span class="status-badge" id="sessionBadge"></span>`;
+      shortBreakStatusLabel.innerHTML = `🌿 ${shortName} <span class="status-badge" id="shortBreakBadge"></span>`;
+      longBreakStatusLabel.innerHTML = `☕ ${longName} <span class="status-badge" id="longBreakBadge"></span>`;
+      customStatusLabel.innerHTML = `⚙ ${customName} <span class="status-badge" id="customBadge"></span>`;
+      timer1StatusLabel.innerHTML = `⏱️ ${t1Name} <span class="status-badge" id="timer1Badge"></span>`;
+      timer2StatusLabel.innerHTML = `⏱️ ${t2Name} <span class="status-badge" id="timer2Badge"></span>`;
+      timer3StatusLabel.innerHTML = `⏱️ ${t3Name} <span class="status-badge" id="timer3Badge"></span>`;
+      timer4StatusLabel.innerHTML = `⏱️ ${t4Name} <span class="status-badge" id="timer4Badge"></span>`;
       
       document.getElementById('sessionBadge').className = `status-badge ${sessionTimer.getIsRunning() ? 'running' : 'idle'}`;
       document.getElementById('shortBreakBadge').className = `status-badge ${shortBreakTimer.getIsRunning() ? 'running' : 'idle'}`;
@@ -1645,7 +1870,6 @@
       item.addEventListener('click', () => {
         const mode = item.dataset.status;
         currentView = mode;
-        // If switching to a timer from view 2, ensure we're in the right view
         const view1Buttons = ['session', 'shortBreak', 'longBreak', 'custom'];
         const view2Buttons = ['timer1', 'timer2', 'timer3', 'timer4'];
         if (view2Buttons.includes(mode) && isView1) {
@@ -1680,20 +1904,75 @@
       });
     });
 
-    // ========== TASKS MODULE ==========
+    // ========== TASKS MODULE WITH DELETED ITEMS ==========
     let tasks = [];
+    let deletedTasks = [];
+    let showDeleted = false;
+    let selectedTaskId = null;
+    let taskIdCounter = 1;
     const taskListContainer = document.getElementById('taskListContainer');
+    const deletedTaskListContainer = document.getElementById('deletedTaskListContainer');
     const taskInput = document.getElementById('taskInput');
     const addTaskBtn = document.getElementById('addTaskBtn');
+    const showDeletedBtn = document.getElementById('showDeletedBtn');
     let taskScrollEnabled = true;
 
+    // Task Settings elements
+    const taskSettingsOverlay = document.getElementById('taskSettingsOverlay');
+    const taskSettingsCloseBtn = document.querySelector('.task-settings-close-btn');
+    const taskSettingsCloseBtn2 = document.getElementById('taskSettingsCloseBtn');
+    const taskSettingsDeleteBtn = document.getElementById('taskSettingsDeleteBtn');
+    const taskSettingsEraseBtn = document.getElementById('taskSettingsEraseBtn');
+    const editTimeBtn = document.getElementById('editTimeBtn');
+    const saveTimeBtn = document.getElementById('saveTimeBtn');
+    const editTimeRow = document.getElementById('editTimeRow');
+    const tskTimeInput = document.getElementById('tskTimeInput');
+
+    function formatDate(timestamp) {
+      if (!timestamp) return 'Never';
+      const date = new Date(timestamp);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    }
+
+    function openTaskSettings(taskId) {
+      selectedTaskId = taskId;
+      const allTasks = [...tasks, ...deletedTasks];
+      const task = allTasks.find(t => t.id === taskId);
+      if (!task) return;
+      
+      document.getElementById('tskName').textContent = task.text || 'Untitled';
+      document.getElementById('tskCreated').textContent = formatDate(task.createdAt);
+      document.getElementById('tskCompleted').textContent = task.completedAt ? formatDate(task.completedAt) : 'Not completed';
+      const timeSpentSeconds = task.completedDuration || 0;
+      document.getElementById('tskTimeSpent').textContent = formatTimeSpent(timeSpentSeconds);
+      tskTimeInput.value = timeSpentSeconds;
+      editTimeRow.style.display = 'none';
+      
+      taskSettingsOverlay.style.display = 'flex';
+    }
+
+    function closeTaskSettings() {
+      taskSettingsOverlay.style.display = 'none';
+      selectedTaskId = null;
+    }
+
+    // Save Tasks
     function saveTasks() {
       localStorage.setItem('pomodoro_tasks', JSON.stringify(tasks));
+      localStorage.setItem('pomodoro_deleted_tasks', JSON.stringify(deletedTasks));
     }
 
     function loadTasks() {
       const saved = localStorage.getItem('pomodoro_tasks');
       if (saved) tasks = JSON.parse(saved);
+      const savedDeleted = localStorage.getItem('pomodoro_deleted_tasks');
+      if (savedDeleted) deletedTasks = JSON.parse(savedDeleted);
+      if (tasks.length > 0) {
+        const maxId = Math.max(...tasks.map(t => t.id));
+        taskIdCounter = maxId + 1;
+      } else {
+        taskIdCounter = 1;
+      }
       renderTasks();
     }
 
@@ -1701,9 +1980,13 @@
       if (taskScrollEnabled) {
         taskListContainer.classList.add('scroll');
         taskListContainer.classList.remove('line-break');
+        deletedTaskListContainer.classList.add('scroll');
+        deletedTaskListContainer.classList.remove('line-break');
       } else {
         taskListContainer.classList.add('line-break');
         taskListContainer.classList.remove('scroll');
+        deletedTaskListContainer.classList.add('line-break');
+        deletedTaskListContainer.classList.remove('scroll');
       }
     }
 
@@ -1732,7 +2015,6 @@
       if (currentView === 'shortBreak') return shortBreakTimer.defaultMinutes * 60;
       if (currentView === 'longBreak') return longBreakTimer.defaultMinutes * 60;
       if (currentView === 'custom') return customTimer.defaultMinutes * 60;
-      // For timer1-4, use elapsed seconds
       if (currentView === 'timer1') return Math.max(1, timer1.getElapsedSeconds());
       if (currentView === 'timer2') return Math.max(1, timer2.getElapsedSeconds());
       if (currentView === 'timer3') return Math.max(1, timer3.getElapsedSeconds());
@@ -1741,7 +2023,7 @@
     }
 
     function renderTasks() {
-      if (!taskListContainer) return;
+      // Render active tasks
       taskListContainer.innerHTML = '';
       
       const incomplete = tasks.filter(t => !t.completed);
@@ -1753,18 +2035,47 @@
         empty.className = 'empty-tasks';
         empty.innerText = 'No tasks yet — add something to focus on';
         taskListContainer.appendChild(empty);
-        applyTaskDisplayMode();
-        return;
+      } else {
+        sorted.forEach(task => {
+          const li = createTaskItem(task);
+          taskListContainer.appendChild(li);
+        });
       }
       
-      sorted.forEach(task => {
-        const li = document.createElement('li');
-        li.className = `task-item ${task.completed ? 'task-completed' : ''}`;
-        
-        const check = document.createElement('input');
-        check.type = 'checkbox';
-        check.className = 'task-check';
-        check.checked = task.completed;
+      // Render deleted tasks
+      deletedTaskListContainer.innerHTML = '';
+      if (deletedTasks.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'empty-tasks';
+        empty.innerText = 'No deleted tasks';
+        deletedTaskListContainer.appendChild(empty);
+      } else {
+        deletedTasks.forEach(task => {
+          const li = createTaskItem(task, true);
+          deletedTaskListContainer.appendChild(li);
+        });
+      }
+      
+      if (showDeleted) {
+        deletedTaskListContainer.style.display = '';
+      } else {
+        deletedTaskListContainer.style.display = 'none';
+      }
+      
+      applyTaskDisplayMode();
+    }
+
+    function createTaskItem(task, isDeleted) {
+      const li = document.createElement('li');
+      li.className = `task-item ${task.completed ? 'task-completed' : ''}`;
+      
+      const check = document.createElement('input');
+      check.type = 'checkbox';
+      check.className = 'task-check';
+      check.checked = task.completed;
+      check.disabled = isDeleted;
+      
+      if (!isDeleted) {
         check.onchange = () => {
           const wasCompleted = task.completed;
           task.completed = check.checked;
@@ -1772,44 +2083,130 @@
           let durationSeconds = getDurationForCurrentView();
           
           if (task.completed && !wasCompleted) {
+            task.completedAt = Date.now();
             recordTaskCompletionWithDuration(durationSeconds);
             task.completedDuration = durationSeconds;
           } else if (!task.completed && wasCompleted) {
             const usedDuration = task.completedDuration || durationSeconds;
             decrementTaskCompletionWithDuration(usedDuration);
             task.completedDuration = 0;
+            task.completedAt = null;
           }
           saveTasks();
           renderTasks();
         };
-        
-        const textDiv = createEditableDiv(task.text, (newText) => {
+      }
+      
+      const textDiv = createEditableDiv(task.text, (newText) => {
+        if (!isDeleted) {
           task.text = newText;
           saveTasks();
           renderTasks();
-        });
-        
-        const del = document.createElement('button');
-        del.className = 'delete-task';
-        del.innerHTML = '×';
-        del.onclick = () => {
-          tasks = tasks.filter(t => t.id !== task.id);
-          saveTasks();
-          renderTasks();
-        };
-        
-        li.appendChild(check);
-        li.appendChild(textDiv);
-        li.appendChild(del);
-        taskListContainer.appendChild(li);
+        }
       });
-      applyTaskDisplayMode();
+      
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'task-actions';
+      
+      if (!isDeleted) {
+        const cogBtn = document.createElement('button');
+        cogBtn.className = 'task-cog-btn';
+        cogBtn.innerHTML = '⚙';
+        cogBtn.title = 'Task Settings';
+        cogBtn.onclick = (e) => {
+          e.stopPropagation();
+          openTaskSettings(task.id);
+        };
+        actionsDiv.appendChild(cogBtn);
+      }
+      
+      const delBtn = document.createElement('button');
+      delBtn.className = 'delete-task';
+      if (isDeleted) {
+        delBtn.innerHTML = '↩️';
+        delBtn.title = 'Restore task';
+        delBtn.onclick = () => {
+          restoreDeletedTask(task.id);
+        };
+      } else {
+        delBtn.innerHTML = '×';
+        delBtn.title = 'Delete task';
+        delBtn.onclick = () => {
+          moveToDeleted(task.id);
+        };
+      }
+      actionsDiv.appendChild(delBtn);
+      
+      li.appendChild(check);
+      li.appendChild(textDiv);
+      li.appendChild(actionsDiv);
+      return li;
+    }
+
+    function moveToDeleted(taskId) {
+      const index = tasks.findIndex(t => t.id === taskId);
+      if (index !== -1) {
+        const task = tasks[index];
+        tasks.splice(index, 1);
+        // Preserve completion data
+        deletedTasks.push(task);
+        saveTasks();
+        renderTasks();
+      }
+    }
+
+    function restoreDeletedTask(taskId) {
+      const index = deletedTasks.findIndex(t => t.id === taskId);
+      if (index !== -1) {
+        const task = deletedTasks[index];
+        deletedTasks.splice(index, 1);
+        tasks.push(task);
+        saveTasks();
+        renderTasks();
+      }
+    }
+
+    function eraseTask(taskId) {
+      // Find and remove from deleted tasks, subtract time spent
+      const index = deletedTasks.findIndex(t => t.id === taskId);
+      if (index !== -1) {
+        const task = deletedTasks[index];
+        const duration = task.completedDuration || 0;
+        // Subtract from stats
+        if (duration > 0 && task.completed) {
+          // Remove from total stats
+          completionStats.totalSeconds = Math.max(0, completionStats.totalSeconds - duration);
+          if (completionStats.totalCompleted > 0) completionStats.totalCompleted--;
+          // Check if it was today's completion
+          if (task.completedAt) {
+            const taskDate = new Date(task.completedAt).toDateString();
+            const today = new Date().toDateString();
+            if (taskDate === today && completionStats.todayCompleted > 0) {
+              completionStats.todayCompleted--;
+            }
+          }
+          saveCompletionStats();
+          updateSessionView();
+        }
+        deletedTasks.splice(index, 1);
+        saveTasks();
+        renderTasks();
+        closeTaskSettings();
+      }
     }
 
     function addTask() {
       const text = taskInput.value.trim();
       if (text === '') return;
-      tasks.push({ id: Date.now(), text: text, completed: false, completedDuration: 0 });
+      const newTask = {
+        id: taskIdCounter++,
+        text: text,
+        completed: false,
+        completedDuration: 0,
+        completedAt: null,
+        createdAt: Date.now()
+      };
+      tasks.push(newTask);
       saveTasks();
       taskInput.value = '';
       renderTasks();
@@ -1817,6 +2214,100 @@
 
     if (addTaskBtn) addTaskBtn.onclick = addTask;
     if (taskInput) taskInput.onkeypress = (e) => { if (e.key === 'Enter') addTask(); };
+
+    // Show/Hide Deleted
+    showDeletedBtn.onclick = () => {
+      showDeleted = !showDeleted;
+      showDeletedBtn.textContent = showDeleted ? '📂 Hide Deleted' : '📂 Deleted';
+      renderTasks();
+    };
+
+    // Task Settings event listeners
+    taskSettingsCloseBtn.onclick = closeTaskSettings;
+    taskSettingsCloseBtn2.onclick = closeTaskSettings;
+    taskSettingsOverlay.onclick = (e) => { if (e.target === taskSettingsOverlay) closeTaskSettings(); };
+
+    editTimeBtn.onclick = () => {
+      editTimeRow.style.display = 'flex';
+      const allTasks = [...tasks, ...deletedTasks];
+      const task = allTasks.find(t => t.id === selectedTaskId);
+      if (task) {
+        tskTimeInput.value = task.completedDuration || 0;
+      }
+    };
+
+    saveTimeBtn.onclick = () => {
+      const allTasks = [...tasks, ...deletedTasks];
+      const task = allTasks.find(t => t.id === selectedTaskId);
+      if (!task) return;
+      
+      const oldDuration = task.completedDuration || 0;
+      const newDuration = parseInt(tskTimeInput.value) || 0;
+      
+      if (task.completed && task.completedDuration) {
+        // Update total time spent
+        const diff = newDuration - oldDuration;
+        completionStats.totalSeconds = Math.max(0, completionStats.totalSeconds + diff);
+        saveCompletionStats();
+        updateSessionView();
+      }
+      
+      task.completedDuration = newDuration;
+      saveTasks();
+      renderTasks();
+      editTimeRow.style.display = 'none';
+      document.getElementById('tskTimeSpent').textContent = formatTimeSpent(newDuration);
+    };
+
+    taskSettingsDeleteBtn.onclick = () => {
+      // Delete from active tasks (moves to deleted)
+      const index = tasks.findIndex(t => t.id === selectedTaskId);
+      if (index !== -1) {
+        const task = tasks[index];
+        tasks.splice(index, 1);
+        deletedTasks.push(task);
+        saveTasks();
+        renderTasks();
+        closeTaskSettings();
+      } else {
+        // If already in deleted, just close
+        closeTaskSettings();
+      }
+    };
+
+    taskSettingsEraseBtn.onclick = () => {
+      eraseTask(selectedTaskId);
+    };
+
+    function recordTaskCompletionWithDuration(seconds) {
+      const today = new Date().toDateString();
+      if (completionStats.todayDate !== today) {
+        completionStats.todayCompleted = 0;
+        completionStats.todayDate = today;
+      }
+      completionStats.todayCompleted++;
+      completionStats.totalCompleted++;
+      completionStats.totalSeconds += seconds;
+      saveCompletionStats();
+      updateSessionView();
+    }
+
+    function decrementTaskCompletionWithDuration(seconds) {
+      const today = new Date().toDateString();
+      if (completionStats.todayDate !== today) {
+        completionStats.todayCompleted = 0;
+        completionStats.todayDate = today;
+      }
+      if (completionStats.todayCompleted > 0) {
+        completionStats.todayCompleted--;
+      }
+      if (completionStats.totalCompleted > 0) {
+        completionStats.totalCompleted--;
+        completionStats.totalSeconds = Math.max(0, completionStats.totalSeconds - seconds);
+      }
+      saveCompletionStats();
+      updateSessionView();
+    }
 
     // ========== SETTINGS ==========
     const settingsOverlay = document.getElementById('settingsOverlay');
