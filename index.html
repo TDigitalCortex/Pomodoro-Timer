@@ -616,7 +616,7 @@
       background: #5a67d8;
     }
 
-    /* Time edit row with mins and secs */
+    /* Time edit container with h, m, s */
     .time-edit-container {
       display: flex;
       align-items: center;
@@ -625,7 +625,7 @@
     }
 
     .time-edit-container input {
-      width: 50px;
+      width: 45px;
       padding: 0.3rem 0.2rem;
       border: 1px solid #cfdee9;
       border-radius: 0.3rem;
@@ -636,7 +636,7 @@
     .time-edit-container .shorthand {
       font-size: 0.7rem;
       color: #718096;
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .time-edit-container .sep {
@@ -1080,7 +1080,10 @@
         <div class="task-settings-row" id="editTimeRow" style="display:none;">
           <label>Set Time Spent</label>
           <div class="time-edit-container">
-            <input type="number" id="tskMinsInput" min="0" value="0" step="1">
+            <input type="number" id="tskHoursInput" min="0" value="0" step="1">
+            <span class="shorthand">h</span>
+            <span class="sep">:</span>
+            <input type="number" id="tskMinsInput" min="0" max="59" value="0" step="1">
             <span class="shorthand">m</span>
             <span class="sep">:</span>
             <input type="number" id="tskSecsInput" min="0" max="59" value="0" step="1">
@@ -1989,6 +1992,7 @@
     const editTimeBtn = document.getElementById('editTimeBtn');
     const saveTimeBtn = document.getElementById('saveTimeBtn');
     const editTimeRow = document.getElementById('editTimeRow');
+    const tskHoursInput = document.getElementById('tskHoursInput');
     const tskMinsInput = document.getElementById('tskMinsInput');
     const tskSecsInput = document.getElementById('tskSecsInput');
 
@@ -2010,8 +2014,10 @@
       const timeSpentSeconds = task.completedDuration || 0;
       document.getElementById('tskTimeSpent').textContent = formatTimeSpent(timeSpentSeconds);
       
-      const mins = Math.floor(timeSpentSeconds / 60);
+      const hours = Math.floor(timeSpentSeconds / 3600);
+      const mins = Math.floor((timeSpentSeconds % 3600) / 60);
       const secs = timeSpentSeconds % 60;
+      tskHoursInput.value = hours;
       tskMinsInput.value = mins;
       tskSecsInput.value = secs;
       
@@ -2405,7 +2411,8 @@
       const task = allTasks.find(t => t.id === selectedTaskId);
       if (task) {
         const seconds = task.completedDuration || 0;
-        tskMinsInput.value = Math.floor(seconds / 60);
+        tskHoursInput.value = Math.floor(seconds / 3600);
+        tskMinsInput.value = Math.floor((seconds % 3600) / 60);
         tskSecsInput.value = seconds % 60;
       }
     };
@@ -2416,9 +2423,10 @@
       if (!task) return;
       
       const oldDuration = task.completedDuration || 0;
+      const hours = parseInt(tskHoursInput.value) || 0;
       const mins = parseInt(tskMinsInput.value) || 0;
       const secs = parseInt(tskSecsInput.value) || 0;
-      const newDuration = (mins * 60) + secs;
+      const newDuration = (hours * 3600) + (mins * 60) + secs;
       
       if (task.completed && task.completedDuration) {
         const diff = newDuration - oldDuration;
