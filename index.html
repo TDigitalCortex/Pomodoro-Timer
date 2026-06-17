@@ -1491,8 +1491,8 @@
   </div>
 
   <script>
-    // ========== SOUND PRELOADER AND PLAYER - OPTIMIZED FOR MOBILE ==========
-    // Mobile-friendly sound preloading with fallbacks
+    // ========== MOBILE-FRIENDLY SOUND PRELOADER ==========
+    // This works the same on desktop and mobile - preloads all sounds on page load
     
     // Audio context for mobile (needs user gesture to unlock)
     let audioContext = null;
@@ -1509,55 +1509,75 @@
     }
     
     // Unlock audio context on first user interaction (required for mobile)
+    let audioUnlocked = false;
+    
     function unlockAudio() {
+      if (audioUnlocked) return;
       const ctx = getAudioContext();
       if (ctx && ctx.state === 'suspended') {
         ctx.resume().then(() => {
-          console.log('AudioContext resumed');
+          audioUnlocked = true;
+          console.log('AudioContext unlocked');
         }).catch(e => {
           console.log('Could not resume AudioContext:', e);
         });
+      } else if (ctx && ctx.state === 'running') {
+        audioUnlocked = true;
       }
     }
     
     // Listen for any user interaction to unlock audio
-    document.addEventListener('click', unlockAudio, { once: true });
-    document.addEventListener('touchstart', unlockAudio, { once: true });
+    document.addEventListener('click', unlockAudio, { once: false });
+    document.addEventListener('touchstart', unlockAudio, { once: false });
+    document.addEventListener('keydown', unlockAudio, { once: false });
     
-    // Sound cache with preloading support
+    // ========== SOUND PRELOADING - SAME AS WEB VERSION ==========
+    // Preload ALL sounds immediately on page load
     const soundCache = {};
     const soundFiles = ['sound1.mp3', 'sound2.mp3', 'sound3.mp3', 'sound4.mp3', 'sound5.mp3', 'sound6.mp3', 'sound7.mp3', 'sound8.mp3', 'sound9.mp3'];
+    let soundsPreloaded = false;
+    let soundsLoading = false;
     
-    // Preload sounds asynchronously (doesn't block page load)
     function preloadSounds() {
+      if (soundsPreloaded || soundsLoading) return;
+      soundsLoading = true;
+      
+      console.log('Preloading sounds...');
+      
       soundFiles.forEach(file => {
         try {
-          const audio = new Audio();
+          const audio = new Audio(`sounds/${file}`);
           audio.preload = 'auto';
-          audio.src = `sounds/${file}`;
           audio.load();
           soundCache[file] = audio;
-          console.log(`Preloading: ${file}`);
+          console.log(`Preloaded: ${file}`);
         } catch(e) {
           console.log(`Could not preload ${file}:`, e);
         }
       });
+      
+      soundsPreloaded = true;
+      soundsLoading = false;
     }
     
-    // Start preloading after page load
+    // Preload sounds immediately (not waiting for page load)
+    // This ensures they're ready before any user interaction
+    setTimeout(preloadSounds, 100);
+    
+    // Also preload on page load as backup
     if (document.readyState === 'complete') {
       preloadSounds();
     } else {
       window.addEventListener('load', preloadSounds);
     }
     
-    // Play alarm - mobile optimized
+    // ========== PLAY ALARM - WORKS WITH PRELOADED SOUNDS ==========
     function playAlarm(soundFile) {
       // Unlock audio context on first play attempt
       unlockAudio();
       
       try {
-        // Try to use cached audio
+        // Try to use cached audio (preloaded)
         if (soundCache[soundFile]) {
           const audio = soundCache[soundFile];
           // Reset audio to beginning
@@ -1565,14 +1585,25 @@
           const playPromise = audio.play();
           if (playPromise !== undefined) {
             playPromise.catch((err) => {
-              console.log('Cached playback failed, using fallback:', err);
-              playFallbackBeep();
+              console.log('Cached playback failed:', err);
+              // If cached fails, try creating a new audio
+              playNewAudio(soundFile);
             });
           }
           return;
         }
         
         // If not cached, create new Audio
+        playNewAudio(soundFile);
+        
+      } catch(e) {
+        console.log('MP3 creation failed, using fallback:', e);
+        playFallbackBeep();
+      }
+    }
+    
+    function playNewAudio(soundFile) {
+      try {
         const audio = new Audio(`sounds/${soundFile}`);
         audio.load();
         const playPromise = audio.play();
@@ -1583,18 +1614,17 @@
           });
         }
       } catch(e) {
-        console.log('MP3 creation failed, using fallback:', e);
+        console.log('New audio creation failed:', e);
         playFallbackBeep();
       }
     }
     
-    // Fallback beep using Web Audio API (works on mobile)
+    // Fallback beep using Web Audio API
     function playFallbackBeep() {
       try {
         const ctx = getAudioContext();
         if (!ctx) return;
         
-        // Resume context if suspended
         if (ctx.state === 'suspended') {
           ctx.resume();
         }
@@ -1612,44 +1642,12 @@
         gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 0.8);
         osc.stop(now + 0.8);
         
-        // Also try a simple oscillator for mobile compatibility
-        setTimeout(() => {
-          try {
-            const osc2 = ctx.createOscillator();
-            const gain2 = ctx.createGain();
-            gain2.connect(ctx.destination);
-            gain2.gain.setValueAtTime(0.2, ctx.currentTime);
-            osc2.connect(gain2);
-            osc2.frequency.value = 660;
-            osc2.type = 'square';
-            osc2.start(ctx.currentTime);
-            gain2.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
-            osc2.stop(ctx.currentTime + 0.5);
-          } catch(e) {}
-        }, 200);
-        
       } catch(e) { 
         console.log('Web Audio fallback error:', e); 
-        // Last resort: use oscillator with try-catch
-        try {
-          const ctx = getAudioContext();
-          if (ctx) {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            gain.connect(ctx.destination);
-            osc.connect(gain);
-            osc.frequency.value = 880;
-            osc.type = 'sine';
-            gain.gain.setValueAtTime(0.3, ctx.currentTime);
-            osc.start(ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.8);
-            osc.stop(ctx.currentTime + 0.8);
-          }
-        } catch(e2) {}
       }
     }
     
-    // Simple beep for testing (immediate)
+    // Simple beep for testing
     function playSimpleBeep() {
       try {
         const ctx = getAudioContext();
@@ -1811,7 +1809,7 @@
         }
         this.isRunning = false;
         this.hasCompleted = true;
-        // Play alarm using mobile-friendly function
+        // Play alarm using preloaded sounds
         playAlarm(this.alarmSound);
         if (this.onCompleteCallback && this.name === 'session') {
           this.onCompleteCallback(this.defaultMinutes);
@@ -2168,7 +2166,7 @@
       });
     });
 
-    // ========== TEST SOUND BUTTONS (mobile optimized) ==========
+    // ========== TEST SOUND BUTTONS ==========
     document.querySelectorAll('[data-test-sound]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -2179,10 +2177,8 @@
         const select = document.getElementById(selectId);
         if (select) {
           const soundFile = select.value;
-          // Play with a small delay to ensure audio context is ready
+          // Play using preloaded sounds
           playAlarm(soundFile);
-          // Also try simple beep as backup
-          setTimeout(playSimpleBeep, 100);
         }
       });
     });
