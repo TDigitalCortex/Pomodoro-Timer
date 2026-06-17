@@ -275,6 +275,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
 
     .tasks-header h3 {
@@ -284,11 +286,12 @@
 
     .tasks-header-actions {
       display: flex;
-      gap: 0.8rem;
+      gap: 0.5rem;
       align-items: center;
+      flex-wrap: wrap;
     }
 
-    .show-deleted-btn {
+    .tasks-header-btn {
       background: none;
       border: 1px solid #cfdee9;
       padding: 0.2rem 0.6rem;
@@ -299,7 +302,7 @@
       transition: all 0.2s ease;
     }
 
-    .show-deleted-btn:hover {
+    .tasks-header-btn:hover {
       background: #eef3fc;
       border-color: #9bb7cf;
     }
@@ -622,6 +625,21 @@
       display: flex;
       justify-content: flex-end;
       gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .task-settings-footer .hide-btn {
+      background: #ed8936;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.6rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .task-settings-footer .hide-btn:hover {
+      background: #dd6b20;
     }
 
     .task-settings-footer .delete-btn {
@@ -639,7 +657,7 @@
     }
 
     .task-settings-footer .erase-btn {
-      background: #ed8936;
+      background: #d69e2e;
       color: white;
       border: none;
       padding: 0.5rem 1rem;
@@ -649,7 +667,7 @@
     }
 
     .task-settings-footer .erase-btn:hover {
-      background: #dd6b20;
+      background: #b7791f;
     }
 
     .task-settings-footer .close-btn {
@@ -880,6 +898,13 @@
       .task-actions {
         margin-left: auto;
       }
+      .tasks-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .tasks-header-actions {
+        justify-content: flex-start;
+      }
     }
   </style>
 </head>
@@ -979,7 +1004,8 @@
         <div class="tasks-header">
           <h3>Tasks</h3>
           <div class="tasks-header-actions">
-            <button class="show-deleted-btn" id="showDeletedBtn">📂 Deleted</button>
+            <button class="tasks-header-btn" id="hideBtn">Hide</button>
+            <button class="tasks-header-btn" id="showDeletedBtn">📂 Deleted</button>
           </div>
         </div>
         <div class="task-input-container">
@@ -1034,6 +1060,7 @@
       </div>
       <div class="task-settings-footer">
         <button class="close-btn" id="taskSettingsCloseBtn">Close</button>
+        <button class="hide-btn" id="taskSettingsHideBtn">Hide</button>
         <button class="delete-btn" id="taskSettingsDeleteBtn">Delete</button>
         <button class="erase-btn" id="taskSettingsEraseBtn">Erase</button>
       </div>
@@ -1915,6 +1942,7 @@
     const taskInput = document.getElementById('taskInput');
     const addTaskBtn = document.getElementById('addTaskBtn');
     const showDeletedBtn = document.getElementById('showDeletedBtn');
+    const hideBtn = document.getElementById('hideBtn');
     let taskScrollEnabled = true;
 
     // Task Settings elements
@@ -1923,6 +1951,7 @@
     const taskSettingsCloseBtn2 = document.getElementById('taskSettingsCloseBtn');
     const taskSettingsDeleteBtn = document.getElementById('taskSettingsDeleteBtn');
     const taskSettingsEraseBtn = document.getElementById('taskSettingsEraseBtn');
+    const taskSettingsHideBtn = document.getElementById('taskSettingsHideBtn');
     const editTimeBtn = document.getElementById('editTimeBtn');
     const saveTimeBtn = document.getElementById('saveTimeBtn');
     const editTimeRow = document.getElementById('editTimeRow');
@@ -2037,7 +2066,7 @@
         taskListContainer.appendChild(empty);
       } else {
         sorted.forEach(task => {
-          const li = createTaskItem(task);
+          const li = createTaskItem(task, false);
           taskListContainer.appendChild(li);
         });
       }
@@ -2120,17 +2149,32 @@
         actionsDiv.appendChild(cogBtn);
       }
       
+      // Restore button for deleted tasks
+      if (isDeleted) {
+        const restoreBtn = document.createElement('button');
+        restoreBtn.className = 'delete-task';
+        restoreBtn.innerHTML = '↩️';
+        restoreBtn.title = 'Restore task';
+        restoreBtn.onclick = () => {
+          restoreDeletedTask(task.id);
+        };
+        actionsDiv.appendChild(restoreBtn);
+      }
+      
+      // Delete / Perm Delete button
       const delBtn = document.createElement('button');
       delBtn.className = 'delete-task';
       if (isDeleted) {
-        delBtn.innerHTML = '↩️';
-        delBtn.title = 'Restore task';
+        delBtn.innerHTML = '🗑️';
+        delBtn.title = 'Permanently delete (erases from stats)';
         delBtn.onclick = () => {
-          restoreDeletedTask(task.id);
+          if (confirm('Permanently delete this task? This will remove it from stats.')) {
+            eraseTask(task.id);
+          }
         };
       } else {
         delBtn.innerHTML = '×';
-        delBtn.title = 'Delete task';
+        delBtn.title = 'Move to deleted';
         delBtn.onclick = () => {
           moveToDeleted(task.id);
         };
@@ -2148,7 +2192,6 @@
       if (index !== -1) {
         const task = tasks[index];
         tasks.splice(index, 1);
-        // Preserve completion data
         deletedTasks.push(task);
         saveTasks();
         renderTasks();
@@ -2167,17 +2210,13 @@
     }
 
     function eraseTask(taskId) {
-      // Find and remove from deleted tasks, subtract time spent
       const index = deletedTasks.findIndex(t => t.id === taskId);
       if (index !== -1) {
         const task = deletedTasks[index];
         const duration = task.completedDuration || 0;
-        // Subtract from stats
         if (duration > 0 && task.completed) {
-          // Remove from total stats
           completionStats.totalSeconds = Math.max(0, completionStats.totalSeconds - duration);
           if (completionStats.totalCompleted > 0) completionStats.totalCompleted--;
-          // Check if it was today's completion
           if (task.completedAt) {
             const taskDate = new Date(task.completedAt).toDateString();
             const today = new Date().toDateString();
@@ -2189,6 +2228,20 @@
           updateSessionView();
         }
         deletedTasks.splice(index, 1);
+        saveTasks();
+        renderTasks();
+        closeTaskSettings();
+      }
+    }
+
+    function hideTask(taskId) {
+      // Move to deleted without affecting stats (preserves completion data)
+      const index = tasks.findIndex(t => t.id === taskId);
+      if (index !== -1) {
+        const task = tasks[index];
+        tasks.splice(index, 1);
+        // Keep all completion data intact
+        deletedTasks.push(task);
         saveTasks();
         renderTasks();
         closeTaskSettings();
@@ -2222,6 +2275,24 @@
       renderTasks();
     };
 
+    // Hide button - hides all completed tasks
+    hideBtn.onclick = () => {
+      const completedTasks = tasks.filter(t => t.completed);
+      if (completedTasks.length === 0) return;
+      if (confirm(`Hide ${completedTasks.length} completed task(s)? They will be moved to deleted.`)) {
+        completedTasks.forEach(task => {
+          const idx = tasks.findIndex(t => t.id === task.id);
+          if (idx !== -1) {
+            const t = tasks[idx];
+            tasks.splice(idx, 1);
+            deletedTasks.push(t);
+          }
+        });
+        saveTasks();
+        renderTasks();
+      }
+    };
+
     // Task Settings event listeners
     taskSettingsCloseBtn.onclick = closeTaskSettings;
     taskSettingsCloseBtn2.onclick = closeTaskSettings;
@@ -2245,7 +2316,6 @@
       const newDuration = parseInt(tskTimeInput.value) || 0;
       
       if (task.completed && task.completedDuration) {
-        // Update total time spent
         const diff = newDuration - oldDuration;
         completionStats.totalSeconds = Math.max(0, completionStats.totalSeconds + diff);
         saveCompletionStats();
@@ -2257,6 +2327,19 @@
       renderTasks();
       editTimeRow.style.display = 'none';
       document.getElementById('tskTimeSpent').textContent = formatTimeSpent(newDuration);
+    };
+
+    taskSettingsHideBtn.onclick = () => {
+      if (selectedTaskId) {
+        // Check if in active tasks
+        const inActive = tasks.find(t => t.id === selectedTaskId);
+        if (inActive) {
+          hideTask(selectedTaskId);
+        } else {
+          // If already in deleted, just close
+          closeTaskSettings();
+        }
+      }
     };
 
     taskSettingsDeleteBtn.onclick = () => {
@@ -2276,7 +2359,9 @@
     };
 
     taskSettingsEraseBtn.onclick = () => {
-      eraseTask(selectedTaskId);
+      if (selectedTaskId) {
+        eraseTask(selectedTaskId);
+      }
     };
 
     function recordTaskCompletionWithDuration(seconds) {
