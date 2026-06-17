@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Pomodoro Timer - Task Settings</title>
+  <title>Pomodoro Timer - Task Management</title>
   <style>
     * {
       margin: 0;
@@ -305,6 +305,12 @@
     .tasks-header-btn:hover {
       background: #eef3fc;
       border-color: #9bb7cf;
+    }
+
+    .tasks-header-btn.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
     }
 
     .task-input-container {
@@ -1004,8 +1010,8 @@
         <div class="tasks-header">
           <h3>Tasks</h3>
           <div class="tasks-header-actions">
-            <button class="tasks-header-btn" id="hideBtn">Hide</button>
-            <button class="tasks-header-btn" id="showDeletedBtn">📂 Deleted</button>
+            <button class="tasks-header-btn" id="hideBtn">📁 Hidden</button>
+            <button class="tasks-header-btn" id="deletedBtn">🗑️ Deleted</button>
           </div>
         </div>
         <div class="task-input-container">
@@ -1014,6 +1020,9 @@
         </div>
         <ul class="task-list" id="taskListContainer">
           <li class="empty-tasks">No tasks yet — add something to focus on</li>
+        </ul>
+        <ul class="task-list" id="hiddenTaskListContainer" style="display:none;">
+          <li class="empty-tasks">No hidden tasks</li>
         </ul>
         <ul class="task-list" id="deletedTaskListContainer" style="display:none;">
           <li class="empty-tasks">No deleted tasks</li>
@@ -1169,6 +1178,7 @@
 
         <div class="settings-group">
           <h3>Alarm Sounds (per timer)</h3>
+          <!-- Same as before - kept concise -->
           <div class="settings-row">
             <label>Session Alarm:</label>
             <div class="sound-select-container">
@@ -1931,18 +1941,21 @@
       });
     });
 
-    // ========== TASKS MODULE WITH DELETED ITEMS ==========
+    // ========== TASKS MODULE WITH SEPARATE HIDDEN & DELETED ==========
     let tasks = [];
+    let hiddenTasks = [];
     let deletedTasks = [];
+    let showHidden = false;
     let showDeleted = false;
     let selectedTaskId = null;
     let taskIdCounter = 1;
     const taskListContainer = document.getElementById('taskListContainer');
+    const hiddenTaskListContainer = document.getElementById('hiddenTaskListContainer');
     const deletedTaskListContainer = document.getElementById('deletedTaskListContainer');
     const taskInput = document.getElementById('taskInput');
     const addTaskBtn = document.getElementById('addTaskBtn');
-    const showDeletedBtn = document.getElementById('showDeletedBtn');
     const hideBtn = document.getElementById('hideBtn');
+    const deletedBtn = document.getElementById('deletedBtn');
     let taskScrollEnabled = true;
 
     // Task Settings elements
@@ -1965,7 +1978,7 @@
 
     function openTaskSettings(taskId) {
       selectedTaskId = taskId;
-      const allTasks = [...tasks, ...deletedTasks];
+      const allTasks = [...tasks, ...hiddenTasks, ...deletedTasks];
       const task = allTasks.find(t => t.id === taskId);
       if (!task) return;
       
@@ -1988,12 +2001,15 @@
     // Save Tasks
     function saveTasks() {
       localStorage.setItem('pomodoro_tasks', JSON.stringify(tasks));
+      localStorage.setItem('pomodoro_hidden_tasks', JSON.stringify(hiddenTasks));
       localStorage.setItem('pomodoro_deleted_tasks', JSON.stringify(deletedTasks));
     }
 
     function loadTasks() {
       const saved = localStorage.getItem('pomodoro_tasks');
       if (saved) tasks = JSON.parse(saved);
+      const savedHidden = localStorage.getItem('pomodoro_hidden_tasks');
+      if (savedHidden) hiddenTasks = JSON.parse(savedHidden);
       const savedDeleted = localStorage.getItem('pomodoro_deleted_tasks');
       if (savedDeleted) deletedTasks = JSON.parse(savedDeleted);
       if (tasks.length > 0) {
@@ -2006,17 +2022,16 @@
     }
 
     function applyTaskDisplayMode() {
-      if (taskScrollEnabled) {
-        taskListContainer.classList.add('scroll');
-        taskListContainer.classList.remove('line-break');
-        deletedTaskListContainer.classList.add('scroll');
-        deletedTaskListContainer.classList.remove('line-break');
-      } else {
-        taskListContainer.classList.add('line-break');
-        taskListContainer.classList.remove('scroll');
-        deletedTaskListContainer.classList.add('line-break');
-        deletedTaskListContainer.classList.remove('scroll');
-      }
+      const containers = [taskListContainer, hiddenTaskListContainer, deletedTaskListContainer];
+      containers.forEach(container => {
+        if (taskScrollEnabled) {
+          container.classList.add('scroll');
+          container.classList.remove('line-break');
+        } else {
+          container.classList.add('line-break');
+          container.classList.remove('scroll');
+        }
+      });
     }
 
     function createEditableDiv(content, onSave) {
@@ -2066,8 +2081,22 @@
         taskListContainer.appendChild(empty);
       } else {
         sorted.forEach(task => {
-          const li = createTaskItem(task, false);
+          const li = createTaskItem(task, 'active');
           taskListContainer.appendChild(li);
+        });
+      }
+      
+      // Render hidden tasks
+      hiddenTaskListContainer.innerHTML = '';
+      if (hiddenTasks.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'empty-tasks';
+        empty.innerText = 'No hidden tasks';
+        hiddenTaskListContainer.appendChild(empty);
+      } else {
+        hiddenTasks.forEach(task => {
+          const li = createTaskItem(task, 'hidden');
+          hiddenTaskListContainer.appendChild(li);
         });
       }
       
@@ -2080,21 +2109,23 @@
         deletedTaskListContainer.appendChild(empty);
       } else {
         deletedTasks.forEach(task => {
-          const li = createTaskItem(task, true);
+          const li = createTaskItem(task, 'deleted');
           deletedTaskListContainer.appendChild(li);
         });
       }
       
-      if (showDeleted) {
-        deletedTaskListContainer.style.display = '';
-      } else {
-        deletedTaskListContainer.style.display = 'none';
-      }
+      // Update visibility
+      hiddenTaskListContainer.style.display = showHidden ? '' : 'none';
+      deletedTaskListContainer.style.display = showDeleted ? '' : 'none';
+      
+      // Update button states
+      hideBtn.classList.toggle('active', showHidden);
+      deletedBtn.classList.toggle('active', showDeleted);
       
       applyTaskDisplayMode();
     }
 
-    function createTaskItem(task, isDeleted) {
+    function createTaskItem(task, status) {
       const li = document.createElement('li');
       li.className = `task-item ${task.completed ? 'task-completed' : ''}`;
       
@@ -2102,9 +2133,9 @@
       check.type = 'checkbox';
       check.className = 'task-check';
       check.checked = task.completed;
-      check.disabled = isDeleted;
+      check.disabled = status !== 'active';
       
-      if (!isDeleted) {
+      if (status === 'active') {
         check.onchange = () => {
           const wasCompleted = task.completed;
           task.completed = check.checked;
@@ -2127,7 +2158,7 @@
       }
       
       const textDiv = createEditableDiv(task.text, (newText) => {
-        if (!isDeleted) {
+        if (status === 'active') {
           task.text = newText;
           saveTasks();
           renderTasks();
@@ -2137,7 +2168,7 @@
       const actionsDiv = document.createElement('div');
       actionsDiv.className = 'task-actions';
       
-      if (!isDeleted) {
+      if (status === 'active') {
         const cogBtn = document.createElement('button');
         cogBtn.className = 'task-cog-btn';
         cogBtn.innerHTML = '⚙';
@@ -2149,8 +2180,19 @@
         actionsDiv.appendChild(cogBtn);
       }
       
-      // Restore button for deleted tasks
-      if (isDeleted) {
+      // Restore button for hidden/deleted tasks
+      if (status === 'hidden') {
+        const restoreBtn = document.createElement('button');
+        restoreBtn.className = 'delete-task';
+        restoreBtn.innerHTML = '↩️';
+        restoreBtn.title = 'Restore task';
+        restoreBtn.onclick = () => {
+          restoreHiddenTask(task.id);
+        };
+        actionsDiv.appendChild(restoreBtn);
+      }
+      
+      if (status === 'deleted') {
         const restoreBtn = document.createElement('button');
         restoreBtn.className = 'delete-task';
         restoreBtn.innerHTML = '↩️';
@@ -2159,27 +2201,42 @@
           restoreDeletedTask(task.id);
         };
         actionsDiv.appendChild(restoreBtn);
-      }
-      
-      // Delete / Perm Delete button
-      const delBtn = document.createElement('button');
-      delBtn.className = 'delete-task';
-      if (isDeleted) {
-        delBtn.innerHTML = '🗑️';
-        delBtn.title = 'Permanently delete (erases from stats)';
-        delBtn.onclick = () => {
+        
+        const permDelBtn = document.createElement('button');
+        permDelBtn.className = 'delete-task';
+        permDelBtn.innerHTML = '🗑️';
+        permDelBtn.title = 'Permanently delete (erases from stats)';
+        permDelBtn.onclick = () => {
           if (confirm('Permanently delete this task? This will remove it from stats.')) {
-            eraseTask(task.id);
+            eraseDeletedTask(task.id);
           }
         };
-      } else {
+        actionsDiv.appendChild(permDelBtn);
+      }
+      
+      // Delete button for active tasks
+      if (status === 'active') {
+        const delBtn = document.createElement('button');
+        delBtn.className = 'delete-task';
         delBtn.innerHTML = '×';
         delBtn.title = 'Move to deleted';
         delBtn.onclick = () => {
           moveToDeleted(task.id);
         };
+        actionsDiv.appendChild(delBtn);
       }
-      actionsDiv.appendChild(delBtn);
+      
+      // Delete button for hidden tasks (moves to deleted)
+      if (status === 'hidden') {
+        const delBtn = document.createElement('button');
+        delBtn.className = 'delete-task';
+        delBtn.innerHTML = '×';
+        delBtn.title = 'Move to deleted';
+        delBtn.onclick = () => {
+          moveHiddenToDeleted(task.id);
+        };
+        actionsDiv.appendChild(delBtn);
+      }
       
       li.appendChild(check);
       li.appendChild(textDiv);
@@ -2198,6 +2255,39 @@
       }
     }
 
+    function moveToHidden(taskId) {
+      const index = tasks.findIndex(t => t.id === taskId);
+      if (index !== -1) {
+        const task = tasks[index];
+        tasks.splice(index, 1);
+        hiddenTasks.push(task);
+        saveTasks();
+        renderTasks();
+      }
+    }
+
+    function moveHiddenToDeleted(taskId) {
+      const index = hiddenTasks.findIndex(t => t.id === taskId);
+      if (index !== -1) {
+        const task = hiddenTasks[index];
+        hiddenTasks.splice(index, 1);
+        deletedTasks.push(task);
+        saveTasks();
+        renderTasks();
+      }
+    }
+
+    function restoreHiddenTask(taskId) {
+      const index = hiddenTasks.findIndex(t => t.id === taskId);
+      if (index !== -1) {
+        const task = hiddenTasks[index];
+        hiddenTasks.splice(index, 1);
+        tasks.push(task);
+        saveTasks();
+        renderTasks();
+      }
+    }
+
     function restoreDeletedTask(taskId) {
       const index = deletedTasks.findIndex(t => t.id === taskId);
       if (index !== -1) {
@@ -2209,7 +2299,7 @@
       }
     }
 
-    function eraseTask(taskId) {
+    function eraseDeletedTask(taskId) {
       const index = deletedTasks.findIndex(t => t.id === taskId);
       if (index !== -1) {
         const task = deletedTasks[index];
@@ -2235,13 +2325,11 @@
     }
 
     function hideTask(taskId) {
-      // Move to deleted without affecting stats (preserves completion data)
       const index = tasks.findIndex(t => t.id === taskId);
       if (index !== -1) {
         const task = tasks[index];
         tasks.splice(index, 1);
-        // Keep all completion data intact
-        deletedTasks.push(task);
+        hiddenTasks.push(task);
         saveTasks();
         renderTasks();
         closeTaskSettings();
@@ -2268,29 +2356,24 @@
     if (addTaskBtn) addTaskBtn.onclick = addTask;
     if (taskInput) taskInput.onkeypress = (e) => { if (e.key === 'Enter') addTask(); };
 
-    // Show/Hide Deleted
-    showDeletedBtn.onclick = () => {
-      showDeleted = !showDeleted;
-      showDeletedBtn.textContent = showDeleted ? '📂 Hide Deleted' : '📂 Deleted';
+    // Toggle Hidden view
+    hideBtn.onclick = () => {
+      showHidden = !showHidden;
+      // If showing hidden, hide deleted
+      if (showHidden) {
+        showDeleted = false;
+      }
       renderTasks();
     };
 
-    // Hide button - hides all completed tasks
-    hideBtn.onclick = () => {
-      const completedTasks = tasks.filter(t => t.completed);
-      if (completedTasks.length === 0) return;
-      if (confirm(`Hide ${completedTasks.length} completed task(s)? They will be moved to deleted.`)) {
-        completedTasks.forEach(task => {
-          const idx = tasks.findIndex(t => t.id === task.id);
-          if (idx !== -1) {
-            const t = tasks[idx];
-            tasks.splice(idx, 1);
-            deletedTasks.push(t);
-          }
-        });
-        saveTasks();
-        renderTasks();
+    // Toggle Deleted view
+    deletedBtn.onclick = () => {
+      showDeleted = !showDeleted;
+      // If showing deleted, hide hidden
+      if (showDeleted) {
+        showHidden = false;
       }
+      renderTasks();
     };
 
     // Task Settings event listeners
@@ -2300,7 +2383,7 @@
 
     editTimeBtn.onclick = () => {
       editTimeRow.style.display = 'flex';
-      const allTasks = [...tasks, ...deletedTasks];
+      const allTasks = [...tasks, ...hiddenTasks, ...deletedTasks];
       const task = allTasks.find(t => t.id === selectedTaskId);
       if (task) {
         tskTimeInput.value = task.completedDuration || 0;
@@ -2308,7 +2391,7 @@
     };
 
     saveTimeBtn.onclick = () => {
-      const allTasks = [...tasks, ...deletedTasks];
+      const allTasks = [...tasks, ...hiddenTasks, ...deletedTasks];
       const task = allTasks.find(t => t.id === selectedTaskId);
       if (!task) return;
       
@@ -2331,19 +2414,16 @@
 
     taskSettingsHideBtn.onclick = () => {
       if (selectedTaskId) {
-        // Check if in active tasks
         const inActive = tasks.find(t => t.id === selectedTaskId);
         if (inActive) {
           hideTask(selectedTaskId);
         } else {
-          // If already in deleted, just close
           closeTaskSettings();
         }
       }
     };
 
     taskSettingsDeleteBtn.onclick = () => {
-      // Delete from active tasks (moves to deleted)
       const index = tasks.findIndex(t => t.id === selectedTaskId);
       if (index !== -1) {
         const task = tasks[index];
@@ -2353,14 +2433,27 @@
         renderTasks();
         closeTaskSettings();
       } else {
-        // If already in deleted, just close
         closeTaskSettings();
       }
     };
 
     taskSettingsEraseBtn.onclick = () => {
       if (selectedTaskId) {
-        eraseTask(selectedTaskId);
+        // Check if in deleted tasks
+        const inDeleted = deletedTasks.find(t => t.id === selectedTaskId);
+        if (inDeleted) {
+          eraseDeletedTask(selectedTaskId);
+        } else {
+          // Move to deleted first then erase
+          const inActive = tasks.find(t => t.id === selectedTaskId);
+          if (inActive) {
+            tasks.splice(tasks.indexOf(inActive), 1);
+            deletedTasks.push(inActive);
+            saveTasks();
+            renderTasks();
+            eraseDeletedTask(selectedTaskId);
+          }
+        }
       }
     };
 
